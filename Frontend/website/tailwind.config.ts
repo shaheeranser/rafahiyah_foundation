@@ -52,6 +52,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Custom Theme Colors
+				rafahiyah: {
+					gold: '#FDBC15',
+					'dark-gold': '#E6B122',
+					'deep-red': '#862D1B',
+					'dark-blue': '#252E4C',
+				},
 				lilac: {
 					DEFAULT: 'hsl(var(--lilac))',
 					foreground: 'hsl(var(--lilac-foreground))'
@@ -81,6 +88,7 @@ export default {
 			},
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
+				odibee: ['"Odibee Sans"', 'cursive'],
 			},
 			keyframes: {
 				'accordion-down': {
@@ -106,5 +114,5 @@ export default {
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate"),('@tailwindcss/line-clamp')],
+	plugins: [require("tailwindcss-animate"), ('@tailwindcss/line-clamp')],
 } satisfies Config;

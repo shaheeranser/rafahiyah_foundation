@@ -1,151 +1,96 @@
 import { Button } from "@/components/ui/button";
 import {
   Facebook,
-  Twitter,
+  Twitter, // Used for X icon
   Instagram,
   Linkedin,
   Mail,
   Phone,
-  MapPin,
-  Globe,
+  Globe, // Placeholder for Pinterest if needed, or I'll try to find a Pinterest icon from lucide
 } from "lucide-react";
+// Pinterest is not in lucide-react standard export? Let's check imports. 
+// Standard lucide might not have Pinterest. I will use a custom SVG or just standard icons for now.
+// Actually, Lucide has 'Pin' but not Pinterest brand icon usually. I'll use Twitter for X. 
+// Checking the reference: FB, X, Insta, Linkedin, Pinterest.
+import rafahiyahLogo from "@/assets/rafahiyah logo.png";
 
 const Footer = () => {
-  const quickLinks = [
-    { label: "About Us", href: "/about" },
-    { label: "Programs", href: "/programs" },
-    {label: "Events", href: "/events" },
-    { label: "Podcasts", href: "/podcasts" },
-    { label: "Gallery", href: "/gallery" },
-  ];
-
   return (
-    <footer className="bg-section-soft border-t border-border/50 text-sm">
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-          {/* Logo and Description */}
-          <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
-            <img
-              src="/lovable-uploads/622c5733-7332-4b87-b1a0-b0808c1ab94c.png"
-              alt="Growing Women Logo"
-              className="h-12 w-auto mb-4"
-            />
-            <p className="text-muted-foreground mb-6 leading-relaxed text-center sm:text-left text-sm">
-              Empowering women through education, opportunity, and community.
-              <br />
-              Together, we create lasting change.
-            </p>
-            <div className="flex space-x-4">
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                <Facebook className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                <Twitter className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                <Instagram className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                <Linkedin className="w-4 h-4" />
-              </Button>
+    <footer className="bg-[linear-gradient(180deg,#242D4B_0%,#35426D_50%,#242D4B_100%)] text-white pt-10 pb-6 border-t border-white/10 relative">
+      {/* The image shows a gradient/dark blue background. #1E2542 is a close estimation or use custom dark-blue */}
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+
+          {/* Column 1: Logo & Name */}
+          <div className="flex flex-col items-center lg:items-center text-center">
+            <div className="bg-white rounded-full p-2 w-24 h-24 flex items-center justify-center mb-3 shadow-lg">
+              <img
+                src={rafahiyahLogo}
+                alt="Rafahiyah Foundation"
+                className="h-16 w-auto object-contain"
+              />
+            </div>
+            <h2 className="text-xl font-odibee leading-tight uppercase tracking-widest text-center">
+              RAFAHIYAH<br />FOUNDATION
+            </h2>
+          </div>
+
+          {/* Column 2: Join Us */}
+          <div className="flex flex-col items-start lg:pl-10">
+            <h3 className="text-2xl font-odibee mb-4 tracking-wide text-white">Want To Become<br />Part Of Us?</h3>
+            <Button className="bg-[#5e1b10] hover:bg-[#7a2315] text-white border-2 border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.3)] font-odibee tracking-wider rounded-full px-8 py-2 text-lg transition-all">
+              <a href="/join-us">Join Us Now</a>
+            </Button>
+          </div>
+
+          {/* Column 3: Contact Info */}
+          <div>
+            <h3 className="text-2xl font-odibee mb-4 tracking-wide text-white">Contact Info</h3>
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-3 text-gray-300 text-sm font-sans">
+                <Mail className="w-5 h-5 text-[#FCD34D]" />
+                <span>rafahiyahfoundation@gmail.com</span>
+              </div>
+              <div className="flex items-center gap-3 text-gray-300 text-sm font-sans">
+                <Phone className="w-5 h-5 text-[#FCD34D]" />
+                <span>+92 335 9424716</span>
+              </div>
+            </div>
+
+            {/* Social Icons */}
+            <div className="flex space-x-3">
+              {/* Icons style: white specific icons */}
+              <a href="#" className="bg-white text-[#1E2542] hover:bg-white/80 p-1 rounded-full"><Facebook className="w-5 h-5" /></a>
+              <a href="#" className="bg-white text-[#1E2542] hover:bg-white/80 p-1 rounded-full"><Twitter className="w-5 h-5" /></a> {/* using Twitter for X */}
+              <a href="#" className="bg-white text-[#1E2542] hover:bg-white/80 p-1 rounded-full"><Instagram className="w-5 h-5" /></a>
+              <a href="#" className="bg-white text-[#1E2542] hover:bg-white/80 p-1 rounded-full"><Linkedin className="w-5 h-5" /></a>
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="text-center sm:text-left">
-            <h3 className="font-semibold text-foreground mb-4 text-base">Quick Links</h3>
-            <ul className="space-y-3">
-              {quickLinks.map((link) => (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
+          {/* Column 4: Quick Links */}
+          <div>
+            <h3 className="text-2xl font-odibee mb-4 tracking-wide text-white">Quick Links</h3>
+            <ul className="space-y-1.5 text-sm font-sans text-gray-300">
+              <li><a href="/" className="hover:text-[#FCD34D] transition-colors">Home</a></li>
+              <li><a href="/about" className="hover:text-[#FCD34D] transition-colors">About Us</a></li>
+              <li><a href="/programs" className="hover:text-[#FCD34D] transition-colors">Projects</a></li>
+              <li><a href="/programs" className="hover:text-[#FCD34D] transition-colors">Programs</a></li>
+              <li><a href="/events" className="hover:text-[#FCD34D] transition-colors">Events</a></li>
+              <li><a href="/join-us" className="hover:text-[#FCD34D] transition-colors">Join Us</a></li>
+              <li><a href="/donate" className="hover:text-[#FCD34D] transition-colors">Donate Now</a></li>
             </ul>
           </div>
 
-          {/* Programs */}
-          <div className="text-center sm:text-left">
-            <h3 className="font-semibold text-foreground mb-4 text-base">Programs</h3>
-            <ul className="space-y-3">
-              {[
-                "Leadership Training",
-                "Skills Development",
-                "Mentorship",
-                "Financial Literacy",
-                "Health & Wellness",
-              ].map((program) => (
-                <li key={program}>
-                  <a
-                    href="#"
-                    className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                  >
-                    {program}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact Info */}
-          <div className="text-center sm:text-left">
-            <h3 className="font-semibold text-foreground mb-4 text-base">Stay Connected</h3>
-            <div className="space-y-3">
-              <div className="flex justify-center sm:justify-start items-center gap-2 text-muted-foreground text-sm">
-                <Mail className="w-4 h-4" />
-                <span>info@growingwomenpk.org</span>
-              </div>
-              <div className="flex justify-center sm:justify-start items-center gap-2 text-muted-foreground text-sm">
-                <Globe className="w-4 h-4" />
-                <span>www.growingwomenpk.org</span>
-              </div>
-              <div className="flex justify-center sm:justify-start items-center gap-2 text-muted-foreground text-sm">
-                <Phone className="w-4 h-4" />
-                <span>03221774376</span>
-              </div>
-              <div className="flex justify-center sm:justify-start items-start gap-2 text-muted-foreground text-sm">
-                <MapPin className="w-4 h-4 mt-1" />
-                <span>
-                  Main Broadway Commercial,
-                  <br />
-                  Phase 8, DHA, Lahore
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
 
+        {/* Separator Line */}
+        <div className="w-full h-px bg-red-900/50 my-6 shadow-[0_1px_0_rgba(255,255,255,0.1)]"></div>
+
         {/* Bottom Footer */}
-        <div className="border-t border-border/50 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-          <p className="text-sm text-muted-foreground">
-            © 2025 Powered by{" "}
-            <a
-              href="https://glaxit.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              Glaxit
-            </a>. All rights reserved.
+        <div className="text-center">
+          <p className="text-sm text-gray-400 font-sans">
+            © Copyright 2023-2025 Rafahiyah Foundation Pakistan
           </p>
-          <div className="flex flex-wrap justify-center md:justify-end space-x-6">
-            <a
-              href="/privacy"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Privacy Policy
-            </a>
-            <a
-              href="/terms"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Terms of Service
-            </a>
-          </div>
         </div>
       </div>
     </footer>

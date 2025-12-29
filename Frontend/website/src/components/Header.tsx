@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown, ChevronUp } from "lucide-react";
 import { isAuthenticated } from "@/utils/auth";
 import NavbarProfileAvatar from "@/components/NavbarProfileAvatar";
+import rafahiyahLogo from "@/assets/rafahiyah logo.png";
 
 
 type NavItem = {
@@ -54,7 +55,7 @@ const Header = ({ showNavItems = true }: HeaderProps) => {
       name: "Opportunities",
       dropdown: true,
       items: [
-        
+
         { name: "Programs", href: "/programs" },
         { name: "Events", href: "/events" },
         { name: "Jobs", href: "/Jobs" },
@@ -68,146 +69,100 @@ const Header = ({ showNavItems = true }: HeaderProps) => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm"
-          : "bg-background/95"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-gradient-to-b from-[#8B2D1B] to-[#4A1811] border-b border-[#F6AD55]/30 shadow-2xl`}
     >
-      <div className="container mx-auto px-5">
-        <div className="flex items-center justify-between h-15 lg:h-24">
-          {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <img
-              src="/lovable-uploads/622c5733-7332-4b87-b1a0-b0808c1ab94c.png"
-              alt="Growing Women Logo"
-              className="h-[110px] w-auto"
-            />
+      <div className="container mx-auto px-4 h-24 flex items-center justify-between">
+
+        {/* Logo Area */}
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex-shrink-0 group">
+            <div className="bg-white rounded-full p-1 shadow-lg transition-transform transform group-hover:scale-105 duration-300">
+              <img
+                src={rafahiyahLogo}
+                alt="Rafahiyah Foundation Logo"
+                className="h-14 w-14 object-contain"
+              />
+            </div>
           </Link>
-
-          {/* Desktop Navigation */}
-
-        {showNavItems && (
-          <nav className="hidden lg:flex items-center space-x-5">
-            {navItems.map((item) =>
-              item.dropdown ? (
-                <div key={item.name} className="relative" ref={dropdownRef}>
-                  <button
-                    className="text-base lg:text-[17px] font-medium text-foreground/80 hover:text-foreground transition-colors flex items-center gap-1"
-                    onClick={() => setShowDesktopDropdown((prev) => !prev)}
-                  >
-                    {item.name}
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-
-                  {showDesktopDropdown && (
-                    <div className="absolute top-full left-0 mt-2 bg-background border border-border rounded-lg shadow-lg py-2 w-40 z-50">
-                      {item.items?.map((sub) => (
-                        <Link
-                          key={sub.name}
-                          to={sub.href}
-                          className="block px-4 py-2 text-[15px] lg:text-[16px] text-foreground/80 hover:text-foreground hover:bg-accent rounded-md transition-colors"
-                        >
-                          {sub.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  key={item.name}
-                  to={item.href!}
-                  className="text-base lg:text-[17px] font-medium text-foreground/80 hover:text-foreground transition-colors relative group"
-                >
-                  {item.name}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-                </Link>
-              )
-            )}
-            </nav>
-             )}
-
-            {/* CTA Buttons */}
-            {!isAuthenticated() ?
-            <div className="hidden lg:flex items-center space-x-4">
-              <Button variant="donate" size="lg">
-                <a href="/join-us">Join Us</a>
-              </Button>
-              
-            </div> : <NavbarProfileAvatar/>
-            }
-            
-
-            
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 rounded-xl hover:bg-accent transition-colors"
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <span className="hidden xl:block text-2xl font-odibee uppercase tracking-[0.15em] text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">
+            RAFAHIYAH FOUNDATION
+          </span>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-border/50 bg-background/95 backdrop-blur-md">
-            <nav className="py-6 space-y-4">
-              {showNavItems && navItems.map((item) =>
-                item.dropdown ? (
-                  <div key={item.name} className="px-4 space-y-1">
-                    <button
-                      onClick={() => setIsMobileDropdownOpen(!isMobileDropdownOpen)}
-                      className="flex items-center justify-between w-full text-base font-medium text-foreground/80 hover:text-foreground"
-                    >
-                      {item.name}
-                      {isMobileDropdownOpen ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
-                    </button>
-                    {isMobileDropdownOpen && (
-                      <div className="pl-4 space-y-1 pt-1">
-                        {item.items?.map((sub) => (
-                          <Link
-                            key={sub.name}
-                            to={sub.href}
-                            className="block text-base text-foreground/80 hover:text-foreground hover:bg-accent px-2 py-1 rounded transition-colors"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            {sub.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <Link
-                    key={item.name}
-                    to={item.href!}
-                    className="block px-4 py-2 text-base font-medium text-foreground/80 hover:text-foreground hover:bg-accent rounded-xl transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                )
-              )}
-              {!isAuthenticated() ?
-              <div className="px-4 pt-4 space-y-2">
-                <Button variant="donate" size="lg" className="w-full">
-                  <a href="/join-us">Join Us</a>
-                </Button>
-                <Button variant="donate" size="lg" className="w-full">
-                  <a href="/login">Log In</a>
-                </Button>
-              </div>  : <NavbarProfileAvatar/>
-              }
-            </nav>
-          </div>
+        {/* Desktop Navigation */}
+        {showNavItems && (
+          <nav className="hidden lg:flex items-center gap-24">
+            <Link to="/about" className="text-xl font-odibee tracking-wider text-white hover:text-[#FCD34D] transition-colors drop-shadow-md">
+              About Us
+            </Link>
+            <Link to="/stories" className="text-xl font-odibee tracking-wider text-white hover:text-[#FCD34D] transition-colors drop-shadow-md">
+              Initiatives
+            </Link>
+            <Link to="/stories#cases" className="text-xl font-odibee tracking-wider text-white hover:text-[#FCD34D] transition-colors drop-shadow-md">
+              Cases
+            </Link>
+            <Link to="/contact" className="text-xl font-odibee tracking-wider text-white hover:text-[#FCD34D] transition-colors drop-shadow-md">
+              Contact Us
+            </Link>
+          </nav>
         )}
+
+        {/* CTA Buttons */}
+        <div className="hidden lg:flex items-center space-x-4">
+          {!isAuthenticated() ? (
+            <>
+              <Link to="/contact#join-us">
+                <Button className="bg-[radial-gradient(circle_at_center,_#EBDE3F_0%,_#D89637_100%)] text-[#4A1811] hover:brightness-110 font-odibee tracking-wider text-xl rounded-full px-8 py-2 transition-all">
+                  Join Us Now
+                </Button>
+              </Link>
+              <Link to="/contact#donate">
+                <Button className="bg-[radial-gradient(circle_at_center,_#852D1A_0%,_#242D4B_100%)] text-white hover:brightness-110 font-odibee tracking-wider text-xl rounded-full px-8 py-2 transition-all">
+                  Donate Now
+                </Button>
+              </Link>
+            </>
+          ) : (
+            <NavbarProfileAvatar />
+          )}
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="lg:hidden p-2 text-white hover:bg-white/10 rounded-xl transition-colors"
+        >
+          {isMobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+        </button>
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden border-t border-[#F6AD55]/30 bg-[#5e1b10] shadow-inner">
+          <nav className="py-6 space-y-4 px-4 flex flex-col items-center">
+            <Link to="/" className="block text-2xl font-odibee text-white hover:text-[#FCD34D]" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
+            <Link to="/about" className="block text-2xl font-odibee text-white hover:text-[#FCD34D]" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
+            <Link to="/stories" className="block text-2xl font-odibee text-white hover:text-[#FCD34D]" onClick={() => setIsMobileMenuOpen(false)}>Initiatives</Link>
+            <Link to="/stories#cases" className="block text-2xl font-odibee text-white hover:text-[#FCD34D]" onClick={() => setIsMobileMenuOpen(false)}>Cases</Link>
+            <Link to="/contact" className="block text-2xl font-odibee text-white hover:text-[#FCD34D]" onClick={() => setIsMobileMenuOpen(false)}>Contact Us</Link>
+
+            {!isAuthenticated() ?
+              <div className="pt-6 space-y-4 w-full max-w-xs">
+                <Link to="/contact#join-us" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button className="w-full bg-[radial-gradient(circle_at_center,_#EBDE3F_0%,_#D89637_100%)] text-[#4A1811] hover:brightness-110 font-odibee tracking-wider text-xl rounded-full py-3 transition-all">
+                    Join Us Now
+                  </Button>
+                </Link>
+                <Link to="/contact#donate" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button className="w-full bg-[radial-gradient(circle_at_center,_#852D1A_0%,_#242D4B_100%)] text-white hover:brightness-110 font-odibee tracking-wider text-xl rounded-full py-3 transition-all">
+                    Donate Now
+                  </Button>
+                </Link>
+              </div> : <div className="pt-4"><NavbarProfileAvatar /></div>
+            }
+          </nav>
+        </div>
+      )}
     </header>
   );
 };

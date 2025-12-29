@@ -1,404 +1,224 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Users, GraduationCap, Globe, CheckCircle, Calendar, Award, Target } from "lucide-react";
-import heroImage from "@/assets/hero-women-empowerment.jpg";
-import womenLearningImage from "@/assets/women-learning-leading.jpg";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getAllTeams } from "../services/api";
-import { isAuthenticated } from "@/utils/auth";
-const About = () => {
-  const timelineEvents = [
-    {
-      year: "2018",
-      title: "WomenRise Founded",
-      description: "Started with a vision to empower women globally",
-      icon: <Target className="w-5 h-5" />
-    },
-    {
-      year: "2020",
-      title: "1,000 Women Trained",
-      description: "Reached our first major milestone in skills development",
-      icon: <GraduationCap className="w-5 h-5" />
-    },
-    {
-      year: "2022",
-      title: "Global Expansion",
-      description: "Extended programs to 15 countries worldwide",
-      icon: <Globe className="w-5 h-5" />
-    },
-    {
-      year: "2024",
-      title: "5,000+ Lives Changed",
-      description: "Celebrating transformative impact across communities",
-      icon: <Award className="w-5 h-5" />
-    }
-  ];
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const About = () => {
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollTo(0, 0)
-    async function fetchTeams() {
-      try {
-        const data = await getAllTeams();
-        // Map API fields to UI fields
-        const mapped = data.map((member) => ({
-          name: member.name,
-          role: member.position,
-          image: member.pic, // Assuming this is just the filename
-          description: member.bio,
-        }));
-        setTeamMembers(mapped);
-      } catch (err) {
-        setError("Failed to load team members");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchTeams();
+    window.scrollTo(0, 0);
   }, []);
 
-  const coreValues = [
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = scrollRef.current.clientWidth + 48; // Scroll one full view including one gap
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const dummyCrew = [
+    { name: "Team Member 1", role: "Design Lead", image: null, description: "Passionate about creating visually stunning experiences." },
+    { name: "Team Member 2", role: "Dev Wizard", image: null, description: "Turning complex problems into elegant solutions." },
+    { name: "Team Member 3", role: "Humanitarian", image: null, description: "Dedicated to serving humanity with kindness." },
+    { name: "Team Member 4", role: "Strategist", image: null, description: "Planning for a brighter and more prosperous future." },
+    { name: "Team Member 5", role: "Volunteer", image: null, description: "Always ready to lend a helping hand to those in need." },
+    { name: "Team Member 6", role: "Coordinator", image: null, description: "Ensuring every effort reaches its full potential." },
+  ];
+
+  const founders = [
     {
-      icon: <Heart className="w-8 h-8" />,
-      title: "Compassion",
-      description: "We lead with empathy and understanding in all our interactions."
+      name: "Zawar Ahmed",
+      role: "Co-Founder",
+      image: "/founder-zawar.png", // Replace with real paths if available
+      quote: "Rafahiyah has always been and will Always be something pure, meant to spread out the kindness and empathy, motivating others on this humble venture and helping the needy with kindness and Love.",
+      reverse: false
     },
     {
-      icon: <Users className="w-8 h-8" />,
-      title: "Equality",
-      description: "Every woman deserves equal opportunities to thrive and succeed."
+      name: "Nuzhat Hamid",
+      role: "Founder",
+      image: "/founder-nuzhat.png",
+      quote: "A humanitarian who has always believed that even the smallest acts of kindness can have a profound impact. One ordinary day, while chatting with two close friends in a group chat, the conversation sparked and we came up with the idea of Rafahiyah. Today, I'm humbled and honoured to lead an NGO dedicated to helping people and creating awareness among the youth to help spread prosperity. We're passionate individuals united by a shared mission: Towards prosperity and a Smiling Future.",
+      reverse: true
     },
     {
-      icon: <GraduationCap className="w-8 h-8" />,
-      title: "Education",
-      description: "Knowledge is the foundation for lasting empowerment and change."
-    },
-    {
-      icon: <CheckCircle className="w-8 h-8" />,
-      title: "Dignity",
-      description: "We honor the inherent worth and potential of every individual."
+      name: "Mubashir Awan",
+      role: "Co-Founder",
+      image: "/founder-mubashir.png",
+      quote: "", // Empty as per mock or placeholder
+      reverse: false
     }
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen font-sans bg-white">
+      <style>{`
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
       <Header />
 
       {/* Hero Section */}
+      <section className="relative h-[80vh] flex items-center justify-start overflow-hidden pt-20">
+        {/* Background Overlay (Simulating Video Background) */}
+        <div className="absolute inset-0 bg-black/60 z-10" />
+        <div className="absolute inset-0 z-0">
+          {/* Placeholder for video clips from Rafahiyah Documentary */}
+          <div className="w-full h-full bg-[#1a1a1a] flex items-center justify-center text-gray-500 text-sm italic">
+            [clips from Rafahiyah Documentary in Background (From Drive)]
+          </div>
+        </div>
 
-      <section className="pt-20 lg:pt-24 pb-16 bg-gradient-to-br from-section-soft to-gentle-rose mt-14 ">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl lg:text-6xl font-bold text-primary mb-6">
-            Who We Are
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Empowering women through education, opportunity, and community.
-          </p>
+        <div className="container mx-auto px-4 relative z-20">
+          <div className="max-w-4xl">
+            <h1 className="text-6xl md:text-8xl font-odibee text-white mb-4 tracking-wider">
+              Get to Know Us
+            </h1>
+            <p className="text-2xl md:text-3xl font-odibee text-rafahiyah-gold leading-tight max-w-2xl">
+              Three Friends, One Vision, United Passion, and a Group Chat, That's Where It All Started!
+            </p>
+          </div>
         </div>
       </section>
-      {/* Mission & Vision */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <div className="space-y-12">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-                  Our Mission
-                </h2>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="w-6 h-6 text-primary mt-0.5 flex-shrink-0" />
-                    <p className="text-muted-foreground">
-                      Provide comprehensive education and skills training to women in pakistan
-                    </p>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="w-6 h-6 text-primary mt-0.5 flex-shrink-0" />
-                    <p className="text-muted-foreground">
-                      Create sustainable opportunities for economic independence
-                    </p>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="w-6 h-6 text-primary mt-0.5 flex-shrink-0" />
-                    <p className="text-muted-foreground">
-                      Build supportive communities that foster growth and leadership
-                    </p>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="w-6 h-6 text-primary mt-0.5 flex-shrink-0" />
-                    <p className="text-muted-foreground">
-                      every woman has the opportunity,
-                      resources, and recognition to grow financially
-                      and contribute to national development
-                    </p>
-                  </div>
-                </div>
-              </div>
 
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-                  Our Vision
-                </h2>
-                <p className="text-muted-foreground text-lg leading-relaxed">
-                  To empower women across Pakistan through
-                  entrepreneurship, skill development, financial
-                  literacy, and inclusive business ecosystems—
-                  turning homes into hubs of innovation, income,
-                  and impact
+      {/* Vision & Mission Section */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-odibee text-rafahiyah-dark-blue mb-4">ONE VISION</h2>
+          </div>
+
+          <div className="space-y-16">
+            {/* One Vision */}
+            <div className="text-center">
+              <div className="bg-[#E5E5E5] p-10 rounded-2xl shadow-sm">
+                <p className="text-xl text-gray-700 leading-relaxed font-medium">
+                  "We came together to create a prosperous and caring society in which everyone has access to opportunities, healthcare, education, and fundamental human dignity as a right rather than a privilege. We see thriving communities where every one of us can reach their full potential and make a significant contribution to a better tomorrow. These communities are bolstered by unity, equity, and self-reliance."
                 </p>
               </div>
             </div>
 
-            <div className="relative">
-              <img
-                src={womenLearningImage}
-                alt="Women learning and leading together"
-                className="rounded-3xl shadow-xl w-full object-cover aspect-square"
-              />
-              <div className="absolute -bottom-6 -right-6 bg-gradient-to-br from-primary to-soft-purple rounded-2xl p-6 text-primary-foreground shadow-xl">
-                <div className="text-center">
-                  <p className="text-3xl font-bold">5,000+</p>
-                  <p className="text-sm opacity-90">Lives Changed</p>
-                </div>
+            {/* Our Mission */}
+            <div className="text-center">
+              <h2 className="text-4xl md:text-5xl font-odibee text-rafahiyah-dark-blue mb-4">OUR MISSION</h2>
+              <div className="bg-[#E5E5E5] p-10 rounded-2xl shadow-sm">
+                <p className="text-xl text-gray-700 leading-relaxed font-medium">
+                  "We strive to uplift the underprivileged and transform communities, fostering a world where everyone has the opportunity to thrive."
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-
-      <section className="py-20 bg-section-soft relative">
-  <div className="container mx-auto px-4">
-    <div className="text-center mb-16">
-      <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-        Message from the Founder
-      </h2>
-    </div>
-
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-start">
-      {/* Left: Fancy Layered Image */}
-      <div className="flex justify-center relative z-10 mt-0">
-        <div className="relative z-3">
-          {/* Outer gradient background */}
-          <div className="w-[32rem] h-[32rem] rounded-full bg-gradient-to-br from-primary to-soft-purple flex items-center justify-center shadow-2xl">
-            {/* White inner ring */}
-            <div className="w-[30rem] h-[30rem] rounded-full bg-white flex items-center justify-center shadow-xl relative">
-              {/* Inner gradient ring */}
-              <div className="w-[25rem] h-[25rem] rounded-full bg-gradient-to-br from-blue-300 via-purple-300 to-pink-300 flex items-center justify-center relative z-10">
-                {/* Image */}
-                <div className="w-[24rem] h-[24rem] rounded-full overflow-hidden flex justify-center items-center">
-                  <img
-                    src="/3fc.png"
-                    alt="Romana Ch."
-                    width={700}
-                    height={700}
-                    className="w-full h-full object-cover rounded-full object-center"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right: Text */}
-      <div className="space-y-4 text-muted-foreground text-lg leading-relaxed">
-        <div className="space-y-4">
-          <p>
-            I started this journey from Gujrat with passion and a clear
-            purpose—to bring positive change for women and contribute to
-            Pakistan's social and economic development.
-          </p>
-          <p>
-            My mission is to strengthen women in meaningful ways and provide
-            them with opportunities at every doorstep.
-          </p>
-          <p>
-            At <strong>Growing Women</strong>, we believe that women's
-            financial growth is not just a dream—it's a shared responsibility.
-            This organization was founded to empower women through education,
-            entrepreneurship, and economic inclusion.
-          </p>
-          <p>
-            Now, women can pursue their dreams with direction and dignity. With
-            your support, I am committed to knocking on every door and
-            connecting every opportunity to ensure that no woman is left behind.
-          </p>
-          <p>
-            <strong>Growing Women Prosperity Organization</strong>, originally
-            founded as Growing Pakistan in 2020 by Miss Romana Ch in Gujrat,
-            began as a passionate individual initiative to empower women through
-            financial independence and entrepreneurship. In 2025, the initiative
-            was officially registered under the name{" "}
-            <strong>Growing Women Prosperity Organization</strong> to reflect
-            its focused mission of uplifting women across Pakistan.
-          </p>
-        </div>
-        <div className="flex items-center pt-4">
-          <div className="w-9 h-0.5 bg-foreground mr-4"></div>
-          <div>
-            <h3 className="text-3xl font-bold text-foreground mb-1">
-              Romana Ch.
-            </h3>
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
-              Founder / Chairperson
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-
-
-      <div className="h-1 w-full bg-gradient-to-r from-primary to-soft-purple rounded-full"></div>
-      {/* Our Story Timeline */}
-      <section className="py-20 bg-section-soft">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Our Story
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              From humble beginnings to global impact - discover the journey that shaped our mission.
-            </p>
+      {/* Founders Section */}
+      <section className="py-24 bg-[#FAFAFA]">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-6xl font-odibee text-rafahiyah-dark-blue">Meet Our Founders</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {timelineEvents.map((event, index) => (
-              <Card key={index} className="relative bg-background/60 backdrop-blur-sm border-border/50 hover:shadow-lg transition-all duration-300">
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 text-primary-foreground">
-                    {event.icon}
+          <div className="space-y-12">
+            {founders.map((founder, index) => (
+              <div key={index} className={`flex flex-col ${founder.reverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12`}>
+                <div className="flex-shrink-0 text-center">
+                  <div className="w-64 h-64 rounded-full border-[12px] border-rafahiyah-deep-red overflow-hidden shadow-xl mb-4 bg-white flex items-center justify-center p-2">
+                    <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center italic text-gray-400">
+                      {/* Image would go here */}
+                      pic: {founder.name.split(' ')[0]}
+                    </div>
                   </div>
-                  <div className="text-2xl font-bold text-primary mb-2">{event.year}</div>
-                  <h3 className="font-semibold text-foreground mb-3">{event.title}</h3>
-                  <p className="text-sm text-muted-foreground">{event.description}</p>
-                </CardContent>
-              </Card>
+                  <h4 className="text-2xl font-bold text-rafahiyah-dark-blue">{founder.name}</h4>
+                  <p className="text-gray-500 font-medium">{founder.role}</p>
+                </div>
+                {founder.quote && (
+                  <div className="flex-grow">
+                    <div className="bg-[#E5E5E5] p-8 md:p-12 rounded-[2rem] shadow-sm relative">
+                      <p className="text-lg md:text-xl text-gray-700 leading-relaxed">
+                        "{founder.quote}"
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {!founder.quote && (
+                  <div className="flex-grow bg-[#E5E5E5] h-64 rounded-[2rem] shadow-sm flex items-center justify-center italic text-gray-400">
+                    [Placeholder for quote/info]
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Meet the Team with Infinite Auto-Scroll */}
-      <section className="py-20 bg-background">
+      {/* OG Crew Section */}
+      <section className="py-24 bg-white overflow-hidden">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Meet Our Team
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Passionate leaders dedicated to creating meaningful change in women's lives.
-            </p>
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-6xl font-odibee text-rafahiyah-dark-blue mb-4">Meet Our OG Crew</h2>
           </div>
 
-
-    <div className="overflow-hidden relative p-10">
-      {loading ? (
-        <div className="text-center py-10">Loading team members...</div>
-      ) : error ? (
-        <div className="text-center text-red-500 py-10">{error}</div>
-      ) : (
-        <div
-          className="flex gap-20 w-max animate-scroll-slow px-4"
-          style={{ animationDuration: `${teamMembers.length * 4}s` }}
-        >
-          {/* Render the array twice for seamless looping */}
-          {[...teamMembers, ...teamMembers].map((member, index) => (
-            <Card 
-              key={`${member.id || index}-${index}`} 
-              className="min-w-[280px] text-center border-border/50 hover:shadow-lg transition-all duration-300"
+          <div className="relative px-12">
+            {/* Carousel Navigation */}
+            <button
+              onClick={() => scroll('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors z-50 bg-[#D9D9D9] shadow-sm"
+              aria-label="Scroll Left"
             >
-              <CardContent className="p-8">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-soft-purple mx-auto mb-6 overflow-hidden">
-                  <img
-                    src={member.image.startsWith('http') ? member.image : `http://localhost:8000/${member.image}`}
-                    alt={member.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">{member.name}</h3>
-                <p className="text-primary font-medium mb-3">{member.role}</p>
-                <p className="text-m text-muted-foreground whitespace-pre-line line-clamp-4 h-[30px] overflow-hidden">
-                  {member.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+              <ArrowLeft className="w-5 h-5 text-black" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors z-50 bg-[#D9D9D9] shadow-sm"
+              aria-label="Scroll Right"
+            >
+              <ArrowRight className="w-5 h-5 text-black" />
+            </button>
 
-      
-              </div>
-            )}
-          </div>
-
-        </div>
-      </section>
-
-      {/* Core Values */}
-      <section className="py-20 bg-section-soft">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Our Core Values
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              The principles that guide everything we do and every decision we make.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {coreValues.map((value, index) => (
-              <Card key={index} className="text-center bg-background/60 backdrop-blur-sm border-border/50 hover:shadow-lg transition-all duration-300 group">
-                <CardContent className="p-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-soft-purple rounded-2xl flex items-center justify-center mx-auto mb-6 text-primary-foreground group-hover:scale-110 transition-transform duration-300">
-                    {value.icon}
+            <div
+              ref={scrollRef}
+              className="flex gap-12 overflow-x-auto py-10 no-scrollbar scroll-smooth snap-x snap-mandatory"
+            >
+              {dummyCrew.map((member, idx) => (
+                <div key={idx} className="w-[calc((100%-96px)/3)] flex-shrink-0 flex flex-col items-center bg-[#D9D9D9] p-10 rounded-[2.5rem] shadow-md border border-gray-200/50 snap-start">
+                  {/* Pic area */}
+                  <div className="w-40 h-40 rounded-full bg-white mb-8 flex items-center justify-center italic text-gray-400 border-4 border-white shadow-lg overflow-hidden relative">
+                    {member.image ? (
+                      <img
+                        src={member.image}
+                        alt={member.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      "pic"
+                    )}
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-4">{value.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{value.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* Join the Movement CTA */}
-      <section className="py-20 bg-gradient-to-br from-primary/5 to-soft-purple/5">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-              Want to be part of something bigger?
-            </h2>
-            <p className="text-xl text-muted-foreground mb-10 leading-relaxed">
-              Join thousands of supporters who are making a real difference in women's lives worldwide.
-            </p>
+                  {/* Name area */}
+                  <h4 className="text-2xl font-bold text-black mb-6 tracking-tight">{member.name}</h4>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              {!isAuthenticated() &&
-                <Button variant="donate" size="lg" className="text-lg px-8 py-6">
-                  <a href="/join-us">Join Us</a>
-                </Button>
-              }
-              <Button variant="empowerment" size="lg" className="text-lg px-8 py-6">
-                <a href="/contact">Contact Us</a>
-              </Button>
-
+                  {/* About text box */}
+                  <div className="w-full bg-[#9B9B9B] h-[120px] rounded-[1.5rem] flex items-center justify-center p-6 shadow-inner">
+                    <p className="text-white text-sm font-medium text-center leading-snug line-clamp-3">
+                      {member.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
-
-
           </div>
         </div>
       </section>
-      <div className="h-1 w-full bg-gradient-to-r from-primary to-soft-purple rounded-full"></div>
 
       <Footer />
     </div>

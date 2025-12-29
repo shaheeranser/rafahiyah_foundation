@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import Events from "./pages/Events";
 import LoginPage from "./pages/LoginPage";
 import UserDasboard from "./pages/UserDashboard"
+import Cases from "./pages/Cases";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DonationForm from "./pages/DonationForm"
 import TermsConditions from "./pages/terms";
@@ -24,7 +25,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster 
+      <Toaster
         position="top-right"
         reverseOrder={false}
         gutter={8}
@@ -74,12 +75,13 @@ const App = () => (
             }
           />
           <Route path="/Donate" element={<DonationForm />} />
-          
+
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
           <Route path="/programs" element={<Programs />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/stories" element={<Cases />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/podcasts" element={<Podcasts />} />
           <Route path="/join-us" element={<JoinUs />} />
