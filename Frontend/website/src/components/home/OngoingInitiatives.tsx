@@ -2,27 +2,30 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import educationImg from "@/assets/women-learning-leading.jpg";
+import communityImg from "@/assets/women-supporting-each-other.jpg";
+import healthcareImg from "@/assets/hero-women-empowerment.jpg";
 
 const OngoingInitiatives = () => {
     // Mock data based on design
     const initiatives = [
         {
             id: 1,
-            title: "Title",
-            description: "Description",
-            image: "pic 1 relevant to square",
+            title: "Clean Water Project",
+            description: "Providing safe and clean drinking water to remote villages.",
+            image: communityImg,
         },
         {
             id: 2,
-            title: "Title",
-            description: "Description",
-            image: "pic relevant relevant to square",
+            title: "Education for All",
+            description: "Building schools and providing scholarships for underprivileged children.",
+            image: educationImg,
         },
         {
             id: 3,
-            title: "Title",
-            description: "Description",
-            image: "picture relevant to square",
+            title: "Healthcare Outreach",
+            description: "Mobile clinics delivering essential healthcare services to rural areas.",
+            image: healthcareImg,
         }
     ];
 
@@ -38,9 +41,8 @@ const OngoingInitiatives = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {initiatives.map((item) => (
                         <Card key={item.id} className="bg-white rounded-3xl overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
-                            <div className="h-64 bg-gray-200 flex items-center justify-center relative">
-                                {/* Placeholder Image */}
-                                <span className="text-gray-400 font-medium px-4 text-center">{item.image}</span>
+                            <div className="h-64 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                             </div>
 
                             <CardHeader className="text-left pb-2">
@@ -84,25 +86,27 @@ const OngoingInitiatives = () => {
                                 {/* Top Section: Image and Stats */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     {/* Left: Relevant Picture Placeholder */}
-                                    <div className="bg-gray-200 rounded-2xl h-64 flex items-center justify-center text-gray-500 font-medium text-lg">
-                                        relevant picture
+                                    <div className="bg-gray-200 rounded-2xl h-64 flex items-center justify-center overflow-hidden">
+                                        <img src={selectedInitiative.image} alt={selectedInitiative.title} className="w-full h-full object-cover" />
                                     </div>
 
                                     {/* Right: Stats and Title */}
                                     <div className="flex flex-col justify-center space-y-3 text-left">
-                                        <h3 className="text-4xl font-odibee text-gray-900 mb-2">Title:</h3>
+                                        <h3 className="text-4xl font-odibee text-gray-900 mb-2">{selectedInitiative.title}</h3>
                                         <div className="space-y-1 font-sans text-gray-700 text-lg">
-                                            <p><span className="font-semibold uppercase text-gray-900">DATE:</span></p>
-                                            <p><span className="font-semibold uppercase text-gray-900">total amount:</span></p>
-                                            <p><span className="font-semibold uppercase text-gray-900">collected amount:</span></p>
-                                            <p><span className="font-semibold uppercase text-gray-900">remaining amount:</span></p>
+                                            <p><span className="font-semibold uppercase text-gray-900">DATE:</span> Oct 2023 - Present</p>
+                                            <p><span className="font-semibold uppercase text-gray-900">total amount:</span> $50,000</p>
+                                            <p><span className="font-semibold uppercase text-gray-900">collected amount:</span> $12,500</p>
+                                            <p><span className="font-semibold uppercase text-gray-900">remaining amount:</span> $37,500</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Middle Section: Description */}
-                                <div className="bg-gray-200 rounded-2xl p-6 min-h-[150px] flex items-center justify-center text-gray-500 font-medium text-lg text-center md:text-left">
-                                    description text
+                                <div className="bg-gray-100 rounded-2xl p-6 min-h-[150px] flex items-center text-gray-700 font-sans text-lg text-left">
+                                    <p>
+                                        {selectedInitiative.description} This initiative aims to address critical needs in the community by focusing on sustainable solutions and long-term impact. We are working closely with local partners to ensure effective implementation and monitoring.
+                                    </p>
                                 </div>
 
                                 {/* Bottom Section: Buttons */}

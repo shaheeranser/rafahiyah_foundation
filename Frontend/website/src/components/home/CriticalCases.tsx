@@ -2,15 +2,18 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import medicalCaseImg from "@/assets/success-story-woman.jpg";
+import emergencyCaseImg from "@/assets/hero-empowered-women.jpg";
+import educationCaseImg from "@/assets/women-learning-leading.jpg";
 
 const CriticalCases = () => {
     // Mock data based on design
     const cases = [
         {
             id: 1,
-            title: "Title",
-            description: "Description",
-            image: "picture relevant to case",
+            title: "Urgent Medical Aid",
+            description: "Providing life-saving surgery for children with congenital heart defects.",
+            image: medicalCaseImg,
             amountNeeded: 120000,
             raised: 60000,
             category: "Medical",
@@ -18,9 +21,9 @@ const CriticalCases = () => {
         },
         {
             id: 2,
-            title: "Title",
-            description: "Description",
-            image: "picture relevant to case",
+            title: "Flood Relief Support",
+            description: "Emergency shelter and food supplies for families displaced by recent floods.",
+            image: emergencyCaseImg,
             amountNeeded: 50000,
             raised: 12000,
             category: "Emergency",
@@ -28,9 +31,9 @@ const CriticalCases = () => {
         },
         {
             id: 3,
-            title: "Title",
-            description: "Description",
-            image: "picture relevant to case",
+            title: "School Reconstruction",
+            description: "Rebuilding a girls' school destroyed by earthquake to restore education.",
+            image: educationCaseImg,
             amountNeeded: 85000,
             raised: 80000,
             category: "Education",
@@ -50,9 +53,8 @@ const CriticalCases = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {cases.map((item) => (
                         <Card key={item.id} className="bg-white rounded-3xl overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
-                            <div className="h-64 bg-gray-200 flex items-center justify-center relative">
-                                {/* Placeholder Image */}
-                                <span className="text-gray-400 font-medium">{item.image}</span>
+                            <div className="h-64 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                             </div>
 
                             <CardHeader className="text-left pb-2">
@@ -70,7 +72,7 @@ const CriticalCases = () => {
                                     ></div>
                                 </div>
                                 <div className="flex justify-between text-sm text-gray-500 font-sans">
-                                    <span>[dynamic: amount raised so far]</span>
+                                    <span>Raised: ${item.raised.toLocaleString()} / ${item.amountNeeded.toLocaleString()}</span>
                                 </div>
                             </CardContent>
 
@@ -107,19 +109,19 @@ const CriticalCases = () => {
                                 {/* Top Section: Image and Info */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     {/* Left: Relevant Picture Placeholder */}
-                                    <div className="bg-gray-200 rounded-2xl h-64 flex items-center justify-center text-gray-500 font-medium text-lg">
-                                        relevant picture
+                                    <div className="bg-gray-200 rounded-2xl h-64 flex items-center justify-center overflow-hidden">
+                                        <img src={selectedCase.image} alt={selectedCase.title} className="w-full h-full object-cover" />
                                     </div>
 
                                     {/* Right: Case Info */}
                                     <div className="flex flex-col justify-center space-y-3 text-left">
-                                        <h3 className="text-4xl font-odibee text-gray-900 mb-2">Title:</h3>
+                                        <h3 className="text-4xl font-odibee text-gray-900 mb-2">{selectedCase.title}</h3>
                                         <div className="space-y-1 font-sans text-gray-700 text-lg">
-                                            <p><span className="font-semibold text-gray-900">case number:</span> {selectedCase.caseNumber}</p>
-                                            <p><span className="font-semibold text-gray-900">category:</span> {selectedCase.category}</p>
-                                            <p><span className="font-semibold text-gray-900">total amount:</span> ${selectedCase.amountNeeded.toLocaleString()}</p>
-                                            <p><span className="font-semibold text-gray-900">collected amount:</span> ${selectedCase.raised.toLocaleString()}</p>
-                                            <p><span className="font-semibold text-gray-900">remaining amount:</span> ${(selectedCase.amountNeeded - selectedCase.raised).toLocaleString()}</p>
+                                            <p><span className="font-semibold text-gray-900">CASE NUMBER:</span> {selectedCase.caseNumber}</p>
+                                            <p><span className="font-semibold text-gray-900">CATEGORY:</span> {selectedCase.category}</p>
+                                            <p><span className="font-semibold text-gray-900">TOTAL AMOUNT:</span> ${selectedCase.amountNeeded.toLocaleString()}</p>
+                                            <p><span className="font-semibold text-gray-900">COLLECTED AMOUNT:</span> ${selectedCase.raised.toLocaleString()}</p>
+                                            <p><span className="font-semibold text-gray-900">REMAINING AMOUNT:</span> ${(selectedCase.amountNeeded - selectedCase.raised).toLocaleString()}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -127,14 +129,16 @@ const CriticalCases = () => {
                                 {/* Bottom Grid: Description and Action */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                     {/* Description (Span 2 cols) */}
-                                    <div className="md:col-span-2 bg-gray-200 rounded-2xl p-6 min-h-[150px] flex items-center justify-center text-gray-500 font-medium text-lg text-center md:text-left">
-                                        description text
+                                    <div className="md:col-span-2 bg-gray-200 rounded-2xl p-6 min-h-[150px] flex items-center text-gray-700 font-sans text-lg text-left">
+                                        <p>
+                                            {selectedCase.description} This critical case requires immediate attention. Your contribution can help save lives or restore dignity to those affected. We ensure 100% transparency in funds utilization.
+                                        </p>
                                     </div>
 
                                     {/* Donate Action (Span 1 col) */}
                                     <div className="flex flex-col justify-end gap-2">
                                         <div className="bg-gray-200 text-gray-600 text-center py-2 px-4 rounded-md text-sm font-semibold">
-                                            last date (optional)
+                                            Urgent Need
                                         </div>
                                         <Button className="w-full bg-[#852D1A] hover:bg-[#6b2416] text-white py-6 rounded-xl font-sans text-lg shadow-md transition-all">
                                             Donate Now

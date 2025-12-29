@@ -35,21 +35,21 @@ const About = () => {
     {
       name: "Zawar Ahmed",
       role: "Co-Founder",
-      image: "/founder-zawar.png", // Replace with real paths if available
+      image: "/zawar-ahmed.png",
       quote: "Rafahiyah has always been and will Always be something pure, meant to spread out the kindness and empathy, motivating others on this humble venture and helping the needy with kindness and Love.",
       reverse: false
     },
     {
       name: "Nuzhat Hamid",
       role: "Founder",
-      image: "/founder-nuzhat.png",
+      image: "/nuzhat-hamid.png",
       quote: "A humanitarian who has always believed that even the smallest acts of kindness can have a profound impact. One ordinary day, while chatting with two close friends in a group chat, the conversation sparked and we came up with the idea of Rafahiyah. Today, I'm humbled and honoured to lead an NGO dedicated to helping people and creating awareness among the youth to help spread prosperity. We're passionate individuals united by a shared mission: Towards prosperity and a Smiling Future.",
       reverse: true
     },
     {
       name: "Mubashir Awan",
       role: "Co-Founder",
-      image: "/founder-mubashir.png",
+      image: "/mubashir-awan.png",
       quote: "", // Empty as per mock or placeholder
       reverse: false
     }
@@ -133,9 +133,16 @@ const About = () => {
               <div key={index} className={`flex flex-col ${founder.reverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12`}>
                 <div className="flex-shrink-0 text-center">
                   <div className="w-64 h-64 rounded-full border-[12px] border-rafahiyah-deep-red overflow-hidden shadow-xl mb-4 bg-white flex items-center justify-center p-2">
-                    <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center italic text-gray-400">
-                      {/* Image would go here */}
-                      pic: {founder.name.split(' ')[0]}
+                    <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center italic text-gray-400 overflow-hidden relative">
+                      {founder.image ? (
+                        <img
+                          src={founder.image}
+                          alt={founder.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        `pic: ${founder.name.split(' ')[0]}`
+                      )}
                     </div>
                   </div>
                   <h4 className="text-2xl font-bold text-rafahiyah-dark-blue">{founder.name}</h4>

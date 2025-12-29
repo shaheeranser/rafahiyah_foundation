@@ -1,11 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { isAuthenticated } from "../utils/auth";
-import { User, Event, Program, Donation, TabType, ApiErrorResponse } from "../types";
-import { apiCall } from "@/api/apiCall";
-import toast from "react-hot-toast";
-
 import {
   Card,
   CardContent,
@@ -17,76 +11,71 @@ import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Calendar } from "lucide-react";
-import { getAllPrograms } from "@/services/api";
+import toast from "react-hot-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+// Import Assets
+import educationImg from "@/assets/women-learning-leading.jpg";
+import healthImg from "@/assets/hero-empowered-women.jpg";
+import communityImg from "@/assets/women-supporting-each-other.jpg";
+import workshopImg from "@/assets/success-story-woman.jpg";
 
 const Programs = () => {
-  const navigate = useNavigate();
-  const [programs, setPrograms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedProgram, setSelectedProgram] = useState(null);
-  const [viewMoreProgram, setViewMoreProgram] = useState(null);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-  });
+  const [selectedProgram, setSelectedProgram] = useState<any>(null);
+  const [viewMoreProgram, setViewMoreProgram] = useState<any>(null);
   const [search, setSearch] = useState("");
+
+  // Mock Data for Demo
+  const programs = [
+    {
+      _id: "1",
+      title: "Women Leadership Workshop",
+      description: "A comprehensive workshop designed to empower women with leadership skills, public speaking confidence, and strategic thinking capabilities to excel in their careers and communities.",
+      image: educationImg,
+      startingDate: "2023-11-15",
+      endingDate: "2023-11-17",
+      day: "Friday - Sunday",
+      time: "10:00 AM - 4:00 PM"
+    },
+    {
+      _id: "2",
+      title: "Community Health Camp",
+      description: "Free medical checkups and health awareness sessions for women and children. Includes basic screenings, nutritional advice, and distribution of essential vitamins.",
+      image: healthImg,
+      startingDate: "2023-12-05",
+      endingDate: "2023-12-05",
+      day: "Tuesday",
+      time: "9:00 AM - 5:00 PM"
+    },
+    {
+      _id: "3",
+      title: "Clean Water Initiative",
+      description: "Installation of water filtration plants in remote areas. Join us for the inauguration and awareness session on safe drinking water practices.",
+      image: communityImg,
+      startingDate: "2024-01-10",
+      endingDate: "2024-01-10",
+      day: "Wednesday",
+      time: "11:00 AM - 2:00 PM"
+    },
+    {
+      _id: "4",
+      title: "Vocational Skills Training",
+      description: "Hands-on training program teaching sewing, embroidery, and handicrafts to help women achieve financial independence and support their families.",
+      image: workshopImg,
+      startingDate: "2024-02-01",
+      endingDate: "2024-03-01",
+      day: "Mon - Thu",
+      time: "2:00 PM - 5:00 PM"
+    }
+  ];
 
   useEffect(() => {
     scrollTo(0, 0);
-    async function fetchPrograms() {
-      try {
-        const data = await getAllPrograms();
-        setPrograms(Array.isArray(data) ? data : data.programs || data.data || []);
-      } catch (err) {
-        setError("Failed to load programs");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPrograms();
   }, []);
 
-  const handleparticipate = async (programId: string) => {
-    if (!isAuthenticated()) {
-      toast.error("Authentication Required - You need to log in to participate in programs.");
-      navigate("/login");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await apiCall({
-        url: `${API_BASE_URL}/programs/add/${programId}/participants`,
-        method: "POST",
-        requiresAuth: true,
-      });
-      if (res.success) {
-        toast.success("Success! You have successfully registered for the program!");
-      } else {
-        const errorData = res.data as ApiErrorResponse;
-        if (res.status === 400 && errorData.message?.includes("already registered")) {
-          toast.error("Already Registered - You are already registered for this program.");
-        } else {
-          toast.error(`Error - ${errorData.message || "Something went wrong. Please try again."}`);
-        }
-      }
-    } catch (err) {
-      toast.error("Network Error - Network error. Please try again later.");
-      console.error("Participation error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleparticipate = (programId: string) => {
+    toast.success("Registration demo: You have clicked Enroll!");
+    // In a real app, check auth and send API request
   };
 
   const filteredPrograms = programs.filter((program) =>
@@ -94,15 +83,15 @@ const Programs = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-sans">
       <Header />
 
       <section className="pt-20 lg:pt-24 pb-16 bg-gradient-to-br from-section-soft to-lilac mt-14">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl lg:text-6xl font-bold text-primary mb-6">
+          <h1 className="text-4xl lg:text-6xl font-bold font-odibee text-primary mb-6">
             Explore Our Core Programs
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-sans">
             Engage in transformative opportunities designed for empowerment.
           </p>
         </div>
@@ -114,124 +103,125 @@ const Programs = () => {
               placeholder="Search programs by title..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="max-w-xl mx-auto"
+              className="max-w-xl mx-auto bg-white"
             />
           </div>
-          <Button onClick={() => {}}>Search</Button>
+          <Button onClick={() => { }}>Search</Button>
         </div>
       </section>
 
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl lg:text-4xl font-bold text-center text-primary mb-12">
+          <h2 className="text-3xl lg:text-4xl font-bold text-center font-odibee text-primary mb-12">
             Core Programs
           </h2>
-          {loading ? (
-            <div className="text-center py-10">Loading programs...</div>
-          ) : error ? (
-            <div className="text-center text-red-500 py-10">{error}</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredPrograms.map((program, index) => (
-                <Card
-                  key={program._id || index}
-                  className="overflow-hidden hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="relative group aspect-video">
-                    <img
-                      src={`http://localhost:8000/uploads/images/${program.image}`}
-                      alt={program.title}
-                      className="w-full h-full object-cover rounded-t-md"
-                    />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredPrograms.map((program) => (
+              <Card
+                key={program._id}
+                className="overflow-hidden hover:shadow-lg transition-all duration-300 border-none shadow-md"
+              >
+                <div className="relative group aspect-video overflow-hidden">
+                  <img
+                    src={program.image}
+                    alt={program.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                </div>
+                <CardHeader>
+                  <CardTitle className="text-primary font-odibee text-2xl">{program.title}</CardTitle>
+                  <div className="text-sm text-muted-foreground mb-2 flex items-center">
+                    <Calendar className="inline-block h-4 w-4 mr-2" />
+                    {new Date(program.startingDate).toLocaleDateString()}
                   </div>
-                  <CardHeader>
-                    <CardTitle className="text-primary">{program.title}</CardTitle>
-                    <div className="text-sm text-muted-foreground mb-2">
-                      <Calendar className="inline-block h-4 w-4 mr-2" />
-                      {new Date(program.startingDate).toLocaleDateString()} -{" "}
-                      {new Date(program.endingDate).toLocaleDateString()} ({program.day} {program.time})
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="mb-4 line-clamp-3">
-                      {program.description?.slice(0, 100)}...
-                    </CardDescription>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        className="w-1/2 text-primary border-primary hover:bg-primary/10 transition"
-                        onClick={() => setViewMoreProgram(program)}
-                      >
-                        View More
-                      </Button>
-                      <Button
-                        className="w-1/2"
-                        onClick={() => handleparticipate(program._id)}
-                      >
-                        Enroll
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="mb-4 line-clamp-3 text-gray-600 font-sans">
+                    {program.description}
+                  </CardDescription>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="w-1/2 text-primary border-primary hover:bg-primary/10 transition font-odibee tracking-wide text-lg"
+                      onClick={() => setViewMoreProgram(program)}
+                    >
+                      View More
+                    </Button>
+                    <Button
+                      className="w-1/2 bg-rafahiyah-deep-red hover:bg-[#6b2416] text-white font-odibee tracking-wide text-lg"
+                      onClick={() => setSelectedProgram(program)}
+                    >
+                      Enroll
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Register Modal */}
-      {selectedProgram && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 space-y-4 animate-fadeInSlide">
-            <h3 className="text-xl font-bold text-primary mb-2">
-              Register for {selectedProgram.title}
-            </h3>
-            <Input name="firstName" placeholder="First Name" onChange={handleChange} />
-            <Input name="lastName" placeholder="Last Name" onChange={handleChange} />
-            <Input name="email" type="email" placeholder="Email" onChange={handleChange} />
-            <Input name="phone" placeholder="Phone Number" onChange={handleChange} />
-            <Button className="w-full">Enroll</Button>
-            <Button
-              variant="ghost"
-              className="w-full text-sm text-muted-foreground hover:bg-gray-100"
-              onClick={() => setSelectedProgram(null)}
-            >
-              Cancel
+      <Dialog open={!!selectedProgram} onOpenChange={(open) => !open && setSelectedProgram(null)}>
+        <DialogContent className="max-w-lg bg-white rounded-xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-primary font-odibee">Register for {selectedProgram?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 font-sans">
+            <Input placeholder="First Name" />
+            <Input placeholder="Last Name" />
+            <Input type="email" placeholder="Email" />
+            <Input placeholder="Phone Number" />
+            <Button className="w-full bg-rafahiyah-deep-red hover:bg-[#6b2416]" onClick={() => {
+              toast.success("Application Submitted Successfully (Demo)");
+              setSelectedProgram(null);
+            }}>
+              Submit Application
             </Button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* View More Modal */}
-      {viewMoreProgram && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 space-y-4 overflow-y-auto max-h-[90vh] animate-fadeInSlide">
-            <img
-              src={`http://localhost:8000/uploads/images/${viewMoreProgram.image}`}
-              alt={viewMoreProgram.title}
-              className="w-full h-64 object-cover rounded-md mb-4"
-            />
-            <h3 className="text-2xl font-bold text-primary">{viewMoreProgram.title}</h3>
-            <p className="text-sm text-muted-foreground mb-2">
-              {new Date(viewMoreProgram.startingDate).toLocaleDateString()} -{" "}
-              {new Date(viewMoreProgram.endingDate).toLocaleDateString()} (
-              {viewMoreProgram.day} {viewMoreProgram.time})
-            </p>
-            <p className="text-base text-gray-700 whitespace-pre-line">
-              {viewMoreProgram.description}
-            </p>
-            <Button
-              variant="ghost"
-              className="text-sm text-muted-foreground bg-pink-100 hover:bg-pink-200 transition"
-              onClick={() => setViewMoreProgram(null)}
-            >
-              Close
-            </Button>
+      <Dialog open={!!viewMoreProgram} onOpenChange={(open) => !open && setViewMoreProgram(null)}>
+        <DialogContent className="max-w-2xl bg-white rounded-2xl p-0 overflow-hidden">
+          <div className="relative h-64">
+            {viewMoreProgram && (
+              <img
+                src={viewMoreProgram.image}
+                alt={viewMoreProgram.title}
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
-        </div>
-      )}
+          <div className="p-6">
+            <DialogHeader>
+              <DialogTitle className="text-3xl font-bold text-primary font-odibee mb-2">{viewMoreProgram?.title}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 font-sans">
+              <div className="flex items-center text-gray-600">
+                <Calendar className="w-5 h-5 mr-2" />
+                <span className="font-medium">
+                  {viewMoreProgram && new Date(viewMoreProgram.startingDate).toLocaleDateString()} - {viewMoreProgram && new Date(viewMoreProgram.endingDate).toLocaleDateString()}
+                </span>
+                <span className="mx-2">|</span>
+                <span>{viewMoreProgram?.day} {viewMoreProgram?.time}</span>
+              </div>
+              <p className="text-gray-700 leading-relaxed text-lg">
+                {viewMoreProgram?.description}
+              </p>
+              <Button
+                className="w-full bg-primary text-white hover:bg-primary/90 mt-4"
+                onClick={() => setViewMoreProgram(null)}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      <div className="h-1 w-full bg-gradient-to-r from-primary to-soft-purple rounded-full"></div>
       <Footer />
     </div>
   );
