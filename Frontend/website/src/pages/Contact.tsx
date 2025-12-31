@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 const Contact = () => {
   const { hash } = useLocation();
@@ -120,6 +121,9 @@ const Contact = () => {
                   />
                   <span className="absolute bottom-4 right-4 text-[10px] text-gray-400">0/150</span>
                 </div>
+                <Button className="w-full h-14 rounded-xl bg-white hover:bg-gray-100 hover:text-rafahiyah-dark-blue text-rafahiyah-dark-blue text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg">
+                  Send Message
+                </Button>
               </form>
             </div>
           </div>
@@ -163,6 +167,9 @@ const Contact = () => {
                     By submitting this form, I acknowledge and agree to volunteer my time and services without any financial benefit. I understand that this is a voluntary role and does not constitute employment.
                   </p>
                 </div>
+                <Button className="w-full h-12 rounded-xl bg-white hover:bg-gray-100 hover:text-[#8B2D1B] text-[#8B2D1B] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg">
+                  Join The Crew
+                </Button>
               </form>
             </div>
 
@@ -357,6 +364,9 @@ const Contact = () => {
                     <SelectItem value="food">Food Security</SelectItem>
                   </SelectContent>
                 </Select>
+                <Button className="w-full h-14 rounded-xl bg-white hover:bg-gray-100 hover:text-[#806306] text-[#806306] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg">
+                  Donate Now
+                </Button>
               </form>
             </div>
           </div>

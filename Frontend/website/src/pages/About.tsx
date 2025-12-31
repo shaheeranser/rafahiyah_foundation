@@ -5,6 +5,12 @@ import { useEffect, useState, useRef } from "react";
 import { getAllTeams } from "../services/api";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
+import bassamImg from "@/assets/Bassam.jpeg";
+import adeenahImg from "@/assets/adeenah.jpeg";
+import ruqayaImg from "@/assets/Ruqaya.jpeg";
+import fazalImg from "@/assets/fazal.jpeg";
+import laibaImg from "@/assets/laiba waseem.jpeg";
+
 const About = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -22,13 +28,42 @@ const About = () => {
     }
   };
 
-  const dummyCrew = [
-    { name: "Team Member 1", role: "Design Lead", image: null, description: "Passionate about creating visually stunning experiences." },
-    { name: "Team Member 2", role: "Dev Wizard", image: null, description: "Turning complex problems into elegant solutions." },
-    { name: "Team Member 3", role: "Humanitarian", image: null, description: "Dedicated to serving humanity with kindness." },
-    { name: "Team Member 4", role: "Strategist", image: null, description: "Planning for a brighter and more prosperous future." },
-    { name: "Team Member 5", role: "Volunteer", image: null, description: "Always ready to lend a helping hand to those in need." },
-    { name: "Team Member 6", role: "Coordinator", image: null, description: "Ensuring every effort reaches its full potential." },
+  const ogCrew = [
+    {
+      name: "Bassam",
+      role: "Social Media Head",
+      image: bassamImg,
+      description: "Social Media Head",
+      years: "2023 - 2024"
+    },
+    {
+      name: "Adeenah Mahmood",
+      role: "Account Manager",
+      image: adeenahImg,
+      description: "Account Manager",
+      years: "2023 - 2026"
+    },
+    {
+      name: "Ruqaya Atiq",
+      role: "Volunteer Team Member Rawalpindi",
+      image: ruqayaImg,
+      description: "Volunteer Team Member Rawalpindi",
+      years: "2023 - 2026"
+    },
+    {
+      name: "Fazal ul Rehman",
+      role: "Volunteer Team Lead Lahore",
+      image: fazalImg,
+      description: "Volunteer Team Lead Lahore",
+      years: "2024 - 2026"
+    },
+    {
+      name: "Laiba Waseem",
+      role: "Volunteer Team Member Islamabad",
+      image: laibaImg,
+      description: "Volunteer Team Member Islamabad",
+      years: "2024 - 2025"
+    },
   ];
 
   const founders = [
@@ -69,15 +104,18 @@ const About = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-start overflow-hidden pt-20">
-        {/* Background Overlay (Simulating Video Background) */}
-        <div className="absolute inset-0 bg-black/60 z-10" />
+      <section className="relative h-[80vh] flex items-center justify-start overflow-hidden pt-20 bg-gray-900">
+        {/* Background Wrapper */}
         <div className="absolute inset-0 z-0">
-          {/* Placeholder for video clips from Rafahiyah Documentary */}
-          <div className="w-full h-full bg-[#1a1a1a] flex items-center justify-center text-gray-500 text-sm italic">
-            [clips from Rafahiyah Documentary in Background (From Drive)]
-          </div>
+          <img
+
+            alt="About Us Hero"
+            className="w-full h-full object-contain"
+          />
         </div>
+
+        {/* Dark Overlay for Text Readability - adjusted to match image area or full cover */}
+        <div className="absolute inset-0 bg-black/60 z-10" />
 
         <div className="container mx-auto px-4 relative z-20">
           <div className="max-w-4xl">
@@ -101,8 +139,8 @@ const About = () => {
           <div className="space-y-16">
             {/* One Vision */}
             <div className="text-center">
-              <div className="bg-[#E5E5E5] p-10 rounded-2xl shadow-sm">
-                <p className="text-xl text-gray-700 leading-relaxed font-medium">
+              <div className="bg-rafahiyah-gold p-10 rounded-2xl shadow-md">
+                <p className="text-xl text-rafahiyah-dark-blue leading-relaxed font-medium">
                   "We came together to create a prosperous and caring society in which everyone has access to opportunities, healthcare, education, and fundamental human dignity as a right rather than a privilege. We see thriving communities where every one of us can reach their full potential and make a significant contribution to a better tomorrow. These communities are bolstered by unity, equity, and self-reliance."
                 </p>
               </div>
@@ -111,8 +149,8 @@ const About = () => {
             {/* Our Mission */}
             <div className="text-center">
               <h2 className="text-4xl md:text-5xl font-odibee text-rafahiyah-dark-blue mb-4">OUR MISSION</h2>
-              <div className="bg-[#E5E5E5] p-10 rounded-2xl shadow-sm">
-                <p className="text-xl text-gray-700 leading-relaxed font-medium">
+              <div className="bg-rafahiyah-gold p-10 rounded-2xl shadow-md">
+                <p className="text-xl text-rafahiyah-dark-blue leading-relaxed font-medium">
                   "We strive to uplift the underprivileged and transform communities, fostering a world where everyone has the opportunity to thrive."
                 </p>
               </div>
@@ -150,15 +188,15 @@ const About = () => {
                 </div>
                 {founder.quote && (
                   <div className="flex-grow">
-                    <div className="bg-[#E5E5E5] p-8 md:p-12 rounded-[2rem] shadow-sm relative">
-                      <p className="text-lg md:text-xl text-gray-700 leading-relaxed">
+                    <div className="bg-rafahiyah-deep-red p-8 md:p-12 rounded-[2rem] shadow-sm relative">
+                      <p className="text-lg md:text-xl text-white leading-relaxed">
                         "{founder.quote}"
                       </p>
                     </div>
                   </div>
                 )}
                 {!founder.quote && (
-                  <div className="flex-grow bg-[#E5E5E5] h-64 rounded-[2rem] shadow-sm flex items-center justify-center italic text-gray-400">
+                  <div className="flex-grow bg-rafahiyah-deep-red h-64 rounded-[2rem] shadow-sm flex items-center justify-center italic text-white/70">
                     [Placeholder for quote/info]
                   </div>
                 )}
@@ -196,15 +234,15 @@ const About = () => {
               ref={scrollRef}
               className="flex gap-12 overflow-x-auto py-10 no-scrollbar scroll-smooth snap-x snap-mandatory"
             >
-              {dummyCrew.map((member, idx) => (
-                <div key={idx} className="w-[calc((100%-96px)/3)] flex-shrink-0 flex flex-col items-center bg-[#D9D9D9] p-10 rounded-[2.5rem] shadow-md border border-gray-200/50 snap-start">
+              {ogCrew.map((member, idx) => (
+                <div key={idx} className="w-[calc((100%-96px)/3)] flex-shrink-0 flex flex-col items-center bg-white p-6 rounded-[2rem] shadow-xl border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 snap-start">
                   {/* Pic area */}
-                  <div className="w-40 h-40 rounded-full bg-white mb-8 flex items-center justify-center italic text-gray-400 border-4 border-white shadow-lg overflow-hidden relative">
+                  <div className="w-48 h-64 rounded-2xl bg-gray-100 mb-6 flex items-center justify-center italic text-gray-400 border-[6px] border-rafahiyah-gold shadow-md overflow-hidden relative">
                     {member.image ? (
                       <img
                         src={member.image}
                         alt={member.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-top"
                       />
                     ) : (
                       "pic"
@@ -212,12 +250,16 @@ const About = () => {
                   </div>
 
                   {/* Name area */}
-                  <h4 className="text-2xl font-bold text-black mb-6 tracking-tight">{member.name}</h4>
+                  <h4 className="text-3xl font-odibee text-rafahiyah-dark-blue mb-4 tracking-wide">{member.name}</h4>
 
                   {/* About text box */}
-                  <div className="w-full bg-[#9B9B9B] h-[120px] rounded-[1.5rem] flex items-center justify-center p-6 shadow-inner">
-                    <p className="text-white text-sm font-medium text-center leading-snug line-clamp-3">
+                  <div className="w-full bg-rafahiyah-dark-blue h-[120px] rounded-[1.5rem] flex flex-col items-center justify-center p-4 shadow-inner relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-rafahiyah-deep-red opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+                    <p className="text-white text-2xl font-medium text-center leading-relaxed font-odibee tracking-wider line-clamp-2">
                       {member.description}
+                    </p>
+                    <p className="text-rafahiyah-gold/90 text-lg font-medium text-center mt-1 font-odibee tracking-widest">
+                      {member.years}
                     </p>
                   </div>
                 </div>

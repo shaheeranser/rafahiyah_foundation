@@ -89,7 +89,7 @@ const Cases = () => {
                 <div className="absolute inset-0 bg-black/50 z-10" />
                 <div className="absolute inset-0 z-0">
                     <img
-                        src={programImg2}
+
                         alt="Hero Background"
                         className="w-full h-full object-cover"
                     />
