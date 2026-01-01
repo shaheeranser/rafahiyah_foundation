@@ -1,6 +1,6 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHome, faCalendarAlt, faFileAlt,faDonate ,faBriefcase,faUserCircle, faUserGraduate, faProjectDiagram, faStar, faUsers, faSignOutAlt, faUser, faEnvelope, faImages, faPodcast, faLightbulb } from "@fortawesome/free-solid-svg-icons";
+import { faHome, faCalendarAlt, faFileAlt, faDonate, faBriefcase, faUserCircle, faUserGraduate, faProjectDiagram, faStar, faUsers, faSignOutAlt, faUser, faEnvelope, faImages, faPodcast, faLightbulb } from "@fortawesome/free-solid-svg-icons";
 import { Link, useLocation } from "react-router-dom";
 
 function SideBar() {
@@ -8,35 +8,35 @@ function SideBar() {
 
   const links = [
     { to: "/", icon: faHome, label: "Dashboard" },
-    { to: "/Admin/Events", icon: faCalendarAlt, label: "Event" },
-    { to: "/Admin/Posts", icon: faFileAlt, label: "Blog" },
-    { to: "/Admin/Program", icon: faProjectDiagram, label: "Program" },
-    { to: "/Admin/SuccessStories", icon: faStar, label: "Success Stories" },
-    { to: "/Admin/Gallery", icon: faImages, label: "Gallery" },
-    { to: "/Admin/Donations", icon: faDonate, label: "Donation" },
-    { to: "/Admin/Jobs", icon: faBriefcase, label: "Jobs" },
-    { to: "/Admin/Podcast", icon: faPodcast, label: "Podcast" },
-    { to: "/Admin/Awareness", icon: faLightbulb, label: "Awareness" },
-    { to: "/Admin/Users", icon: faUser, label: "Users" },
-    { to: "/Admin/contact", icon: faEnvelope, label: "Contact" },
-    { to: "/Admin/Team", icon: faUsers, label: "Team" },
+    { to: "/Admin/Posts", icon: faFileAlt, label: "Cases" },
+    { to: "/Admin/Events", icon: faCalendarAlt, label: "Events" },
+    { to: "/Admin/Team", icon: faUsers, label: "Volunteers" },
+    { to: "/Admin/Program", icon: faProjectDiagram, label: "Programs" },
+    { to: "/Admin/contact", icon: faEnvelope, label: "Contact Us" },
     { to: "/Logout", icon: faSignOutAlt, label: "Logout" }
   ];
 
   return (
-    <nav className="border-r bg-white h-screen p-4 w-64 pt-10">
-      {links.map((link) => (
-        <Link key={link.to} to={link.to} aria-label={link.label}>
-          <div
-            className={`flex items-center text-black-300 hover:text-blue-500 cursor-pointer rounded-md p-2 mb-2 ${location.pathname === link.to ||
-                (location.pathname === "/Admin" && link.to === "/Admin/Dashboard") ? "bg-gray-200" : ""
-              }`}
-          >
-            <FontAwesomeIcon icon={link.icon} className="mr-3 text-indigo-500" />
-            <span>{link.label}</span>
-          </div>
-        </Link>
-      ))}
+    <nav className="border-r bg-[#1F2937] h-screen p-4 w-64 pt-10 border-none">
+      {links.map((link) => {
+        const isActive = location.pathname === link.to || (location.pathname === "/Admin" && link.to === "/Admin/Dashboard");
+        return (
+          <Link key={link.to} to={link.to} aria-label={link.label}>
+            <div
+              className={`group flex items-center cursor-pointer rounded-md p-3 mb-3 transition-colors ${isActive
+                ? "bg-[#FFD700] text-black font-semibold"
+                : "text-gray-400 hover:text-white hover:bg-gray-800"
+                }`}
+            >
+              <FontAwesomeIcon
+                icon={link.icon}
+                className={`mr-3 w-5 ${isActive ? "text-black" : "text-gray-400 group-hover:text-white"}`}
+              />
+              <span>{link.label}</span>
+            </div>
+          </Link>
+        );
+      })}
     </nav>
   );
 }

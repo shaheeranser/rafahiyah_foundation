@@ -1,291 +1,176 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
 import AdminLayout from "../../layouts/AdminLayout";
-import Domain from '../../Api/Api';
-import { AuthToken } from '../../Api/Api';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFileAlt, faUsers, faCalendarAlt, faFolderOpen, faUserCircle } from "@fortawesome/free-solid-svg-icons";
-import { Line } from 'react-chartjs-2';
-import Chart from 'chart.js/auto';
-import Loading from '../../layouts/Loading';
-import axios from 'axios';
+import { Download, MoreHorizontal } from "lucide-react";
 
-function StatCard({ title, value, icon, color }) {
-  return (
-    <div className={`rounded-xl shadow-md p-6 flex items-center space-x-4 bg-gradient-to-br ${color} transition-transform transform hover:scale-105`}>
-      <FontAwesomeIcon icon={icon} className="text-4xl text-white drop-shadow" />
+// Mock Data for Charts (Simple SVG Paths)
+const Sparkline = ({ color = "#10B981", data }) => (
+  <svg width="100%" height="40" viewBox="0 0 100 40" className="overflow-visible">
+    <path
+      d={data}
+      fill="none"
+      stroke={color}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const StatCard = ({ title, value, subtext, trend, trendType, chartData, chartColor }) => (
+  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-40 relative overflow-hidden group hover:shadow-md transition-shadow">
+    <div className="flex justify-between items-start mb-2">
+      <span className="text-gray-500 text-sm font-medium">{title}</span>
+      <button className="text-gray-300 hover:text-gray-500">
+        <MoreHorizontal size={16} />
+      </button>
+    </div>
+
+    <div className="flex items-end justify-between relative z-10">
       <div>
-        <h3 className="text-lg font-semibold text-white opacity-90">{title}</h3>
-        <p className="text-3xl font-bold mt-2 text-white">{value}</p>
+        <h3 className="text-3xl font-bold text-gray-800 mb-1">{value}</h3>
+        <div className={`flex items-center text-xs font-medium ${trendType === 'up' ? 'text-emerald-500' : 'text-rose-500'}`}>
+          {trendType === 'up' ? '↗' : '↘'} {trend}
+        </div>
+        <span className="text-xs text-gray-400 mt-1 block">{subtext}</span>
+      </div>
+      <div className="w-24 h-10 mb-1">
+        <Sparkline color={chartColor} data={chartData} />
       </div>
     </div>
-  );
-}
+  </div>
+);
 
-function Dashboard() {
-  const [isLoading, setLoading] = useState(false);
-  const [stats, setStats] = useState({
-    blogs: 0,
-    events: 0,
-    programs: 0,
-  });
-  const [dashboardData, setDashboardData] = useState({
-    MonthlyPosts: [],
-    MonthlyComments: [],
-  });
-  const [adminName, setAdminName] = useState('');
-
-  useEffect(() => {
-    // Fetch all stats function
-    const fetchStats = () => {
-      axios.get(`${Domain()}/Dashboard`, {
-        headers: { 'Authorization': `Bearer ${AuthToken()}` },
-      })
-        .then(response => {
-          console.log('Dashboard:', response.data);
-          setStats(prev => ({ ...prev, blogs: response.data.TotalPosts || 0 }));
-          setDashboardData({
-            MonthlyPosts: response.data.MonthlyPosts || [],
-            MonthlyComments: response.data.MonthlyComments || [],
-          });
-          setLoading(true);
-        })
-        .catch((error) => {
-          console.error('Error fetching dashboard data:', error);
-          setLoading(true);
-        });
-      axios.get('http://localhost:8000/api/events/getallevent', {
-        headers: { 'Authorization': `Bearer ${AuthToken()}` }
-      })
-        .then(res => {
-          console.log('Events response:', res.data);
-          console.log('Events data structure:', typeof res.data, Array.isArray(res.data));
-          if (Array.isArray(res.data)) {
-            setStats(prev => ({ ...prev, events: res.data.length }));
-          } else if (res.data && Array.isArray(res.data.events)) {
-            setStats(prev => ({ ...prev, events: res.data.events.length }));
-          } else {
-            setStats(prev => ({ ...prev, events: 0 }));
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching events:', error);
-          setStats(prev => ({ ...prev, events: 0 }));
-        });
-      axios.get('http://localhost:8000/api/programs/getallprogram', {
-        headers: { 'Authorization': `Bearer ${AuthToken()}` }
-      })
-        .then(res => {
-          console.log('Programs response:', res.data);
-          console.log('Programs data structure:', typeof res.data, Array.isArray(res.data));
-          if (Array.isArray(res.data)) {
-            setStats(prev => ({ ...prev, programs: res.data.length }));
-          } else if (res.data && Array.isArray(res.data.programs)) {
-            setStats(prev => ({ ...prev, programs: res.data.programs.length }));
-          } else {
-            setStats(prev => ({ ...prev, programs: 0 }));
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching programs:', error);
-          setStats(prev => ({ ...prev, programs: 0 }));
-        });
-      
-      // Also fetch blogs separately to ensure we get the correct count
-      axios.get('http://localhost:8000/api/blogs/getallblog', {
-        headers: { 'Authorization': `Bearer ${AuthToken()}` }
-      })
-        .then(res => {
-          console.log('Blogs response:', res.data);
-          if (res.data && res.data.blogs && Array.isArray(res.data.blogs)) {
-            setStats(prev => ({ ...prev, blogs: res.data.blogs.length }));
-          } else if (Array.isArray(res.data)) {
-            setStats(prev => ({ ...prev, blogs: res.data.length }));
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching blogs:', error);
-        });
-    };
-    fetchStats();
-    const interval = setInterval(fetchStats, 10000); // 10 seconds
-    // Optionally, fetch admin name from storage or API
-    const name = sessionStorage.getItem('AdminName') || 'Admin';
-    setAdminName(name);
-    return () => clearInterval(interval);
-  }, []);
-
-  const dashboardContent = isLoading ? (
-    <div className="container mx-auto mt-8 px-4">
-      {/* Greeting/Profile */}
-      <div className="flex items-center mb-8 gap-4">
-        <div className="bg-gradient-to-br from-indigo-500 to-blue-400 rounded-full h-16 w-16 flex items-center justify-center shadow-lg">
-          <FontAwesomeIcon icon={faUserCircle} className="text-4xl text-white" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">Welcome back, <span className="text-indigo-600">{adminName}</span>!</h2>
-          <p className="text-gray-500">Here's a quick overview of your platform.</p>
-        </div>
-      </div>
-      {/* Live Stats Section */}
-      <div className="mb-10">
-        <h3 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
-          Live Stats
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 animate-pulse">Live</span>
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatCard title="Blogs" value={stats.blogs} icon={faFileAlt} color="from-indigo-500 to-blue-400" />
-          <StatCard title="Events" value={stats.events} icon={faCalendarAlt} color="from-green-500 to-emerald-400" />
-          <StatCard title="Programs" value={stats.programs} icon={faFolderOpen} color="from-yellow-500 to-orange-400" />
-        </div>
-        
-        {/* Quick Actions */}
-        <div className="mt-8">
-          <h3 className="text-xl font-bold text-gray-700 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link to="/Admin/Events" className="block">
-              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-md p-6 flex items-center space-x-4 transition-transform transform hover:scale-105 cursor-pointer">
-                <FontAwesomeIcon icon={faCalendarAlt} className="text-4xl text-white drop-shadow" />
-                <div>
-                  <h3 className="text-lg font-semibold text-white opacity-90">Manage Events</h3>
-                  <p className="text-white opacity-75 text-sm">Create and manage events</p>
-                </div>
-              </div>
-            </Link>
-            <Link to="/Admin/Program" className="block">
-              <div className="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-md p-6 flex items-center space-x-4 transition-transform transform hover:scale-105 cursor-pointer">
-                <FontAwesomeIcon icon={faFolderOpen} className="text-4xl text-white drop-shadow" />
-                <div>
-                  <h3 className="text-lg font-semibold text-white opacity-90">Manage Programs</h3>
-                  <p className="text-white opacity-75 text-sm">Create and manage programs</p>
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </div>
-      {/* Beautiful Section: Analytics */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-lg p-8 mb-10">
-        <h3 className="text-xl font-bold text-gray-700 mb-4">Platform Analytics</h3>
-        <Analytics
-          Posts={dashboardData.MonthlyPosts}
-          Comments={dashboardData.MonthlyComments}
-        />
-      </div>
-    </div>
-  ) : (
-    <Loading />
-  );
-
-  return (
-    <AdminLayout Content={dashboardContent} />
-  );
-}
-
-function Analytics({ Posts, Comments }) {
-  if (!Posts.length && !Comments.length) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-4 mt-5">
-        <h2 className="text-2xl font-semibold mb-4">Analytics Dashboard</h2>
-        <p>No data available. Please check back later.</p>
-      </div>
-    );
-  }
-
-  const orderedMonths = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+const DonationTable = () => {
+  const transactions = [
+    { name: "John Doe", email: "john@example.com", amount: "$500.00", date: "10/03/2024", method: "Credit Card", campaign: "Ramadan Drive", status: "Approved" },
+    { name: "Sarah Smith", email: "sarah@example.com", amount: "$120.00", date: "12/03/2024", method: "PayPal", campaign: "Education Fund", status: "Approved" },
+    { name: "Ahmed Khan", email: "ahmed@example.com", amount: "$1,000.00", date: "14/03/2024", method: "Bank Transfer", campaign: "Medical Aid", status: "Pending" },
+    { name: "Emily Davis", email: "emily@example.com", amount: "$50.00", date: "15/03/2024", method: "Credit Card", campaign: "General", status: "Approved" },
+    { name: "Michael Brown", email: "mike@example.com", amount: "$250.00", date: "18/03/2024", method: "PayPal", campaign: "Winter Relief", status: "Rejected" },
+    { name: "Ayesha Ali", email: "ayesha@example.com", amount: "$300.00", date: "20/03/2024", method: "Credit Card", campaign: "Orphan Support", status: "Approved" },
+    { name: "David Wilson", email: "david@example.com", amount: "$75.00", date: "22/03/2024", method: "Stripe", campaign: "General", status: "Approved" },
   ];
 
-  const postCounts = new Array(12).fill(0);
-  const TotalComment = new Array(12).fill(0);
-
-  Posts.forEach(item => {
-    const monthIndex = orderedMonths.indexOf(item.month);
-    if (monthIndex !== -1) {
-      postCounts[monthIndex] = item.post_count;
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Approved": return "bg-emerald-100 text-emerald-600";
+      case "Pending": return "bg-amber-100 text-amber-600";
+      case "Rejected": return "bg-rose-100 text-rose-600";
+      default: return "bg-gray-100 text-gray-600";
     }
-  });
-
-  Comments.forEach(item => {
-    const monthIndex = orderedMonths.indexOf(item.month);
-    if (monthIndex !== -1) {
-      TotalComment[monthIndex] = item.comment_count;
-    }
-  });
-
-  const PostsChart = {
-    labels: orderedMonths,
-    datasets: [
-      {
-        label: 'Posts',
-        data: postCounts,
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 2,
-        fill: false,
-      },
-      {
-        label: 'Posts',
-        type: 'bar',
-        data: postCounts,
-        borderColor: 'rgba(255, 99, 132, 1)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-        borderWidth: 2,
-        fill: false,
-      },
-    ],
-  };
-
-  const CommentsChart = {
-    labels: orderedMonths,
-    datasets: [
-      {
-        label: 'Comments',
-        data: TotalComment,
-        borderColor: 'rgba(153, 102, 255, 1)',
-        borderWidth: 2,
-        fill: false,
-      },
-      {
-        label: 'Comments',
-        type: 'bar',
-        data: TotalComment,
-        borderColor: 'rgba(54, 162, 235, 1)',
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-        borderWidth: 2,
-        fill: false,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    scales: {
-      x: {
-        type: 'category',
-        grid: {
-          display: false,
-        },
-      },
-      y: {
-        beginAtZero: true,
-        grid: {
-          borderDash: [5, 5],
-        },
-      },
-    },
   };
 
   return (
-    <>
-      <div className="bg-white rounded-lg shadow-md my-5 p-2">
-        <h2 className="text-2xl font-semibold mb-4">Posts Chart</h2>
-        <Line data={PostsChart} options={chartOptions} />
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 mt-8">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h3 className="text-xl font-bold text-gray-800">Donation History</h3>
+          <p className="text-sm text-gray-400 mt-1">Recent contributions from all channels (Static)</p>
+        </div>
+        <button className="flex items-center gap-2 bg-[#0A1229] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-900 transition-colors">
+          <Download size={16} /> Export CSV
+        </button>
       </div>
-      <div className="bg-white rounded-lg shadow-md my-5 p-2">
-        <h2 className="text-2xl font-semibold mb-4">Comments Chart</h2>
-        <Line data={CommentsChart} options={chartOptions} />
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-50">
+              <th className="pb-4 font-medium pl-2">Donor Name</th>
+              <th className="pb-4 font-medium">Amount</th>
+              <th className="pb-4 font-medium">Date</th>
+              <th className="pb-4 font-medium">Method</th>
+              <th className="pb-4 font-medium">Campaign</th>
+              <th className="pb-4 font-medium">Status</th>
+            </tr>
+          </thead>
+          <tbody className="text-sm text-gray-600">
+            {transactions.map((t, idx) => (
+              <tr key={idx} className="hover:bg-gray-50 transition-colors group">
+                <td className="py-4 pl-2 border-b border-gray-50">
+                  <div className="font-semibold text-gray-800">{t.name}</div>
+                  <div className="text-xs text-gray-400">{t.email}</div>
+                </td>
+                <td className="py-4 border-b border-gray-50 font-bold text-gray-800">{t.amount}</td>
+                <td className="py-4 border-b border-gray-50">{t.date}</td>
+                <td className="py-4 border-b border-gray-50">{t.method}</td>
+                <td className="py-4 border-b border-gray-50">{t.campaign}</td>
+                <td className="py-4 border-b border-gray-50">
+                  <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${getStatusColor(t.status)}`}>
+                    • {t.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-    </>
+    </div>
+  );
+};
+
+function Dashboard() {
+  return (
+    <AdminLayout>
+      <div className="min-h-screen bg-gray-50/50 -m-6 p-8"> {/* Negative margin to counteract default padding if needed, or just normal layout */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold text-gray-800">Overview</h1>
+          <p className="text-gray-500 mt-1">Welcome back, Admin. Here's what's happening.</p>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <StatCard
+            title="Total Donations"
+            value="$15,430"
+            subtext="Target Audience"
+            trend="+12.5%"
+            trendType="up"
+            chartData="M0 35 L15 32 L30 38 L45 25 L60 30 L75 20 L90 25 L100 15"
+            chartColor="#10B981"
+          />
+          <StatCard
+            title="Total Events"
+            value="12"
+            subtext="Overall"
+            trend="+8.2%"
+            trendType="up"
+            chartData="M0 35 L20 35 L40 30 L60 32 L80 20 L100 15"
+            chartColor="#10B981"
+          />
+          <StatCard
+            title="Total Programs"
+            value="8"
+            subtext="Completed"
+            trend="+4.6%"
+            trendType="up"
+            chartData="M0 38 L30 38 L50 30 L70 25 L85 20 L100 15"
+            chartColor="#10B981"
+          />
+          <StatCard
+            title="Total Cases"
+            value="45"
+            subtext="Pending"
+            trend="-2.4%"
+            trendType="down"
+            chartData="M0 10 L15 12 L30 10 L45 25 L60 15 L75 28 L90 30 L100 35"
+            chartColor="#F43F5E"
+          />
+          <StatCard
+            title="Volunteers"
+            value="120"
+            subtext="Active"
+            trend="+18%"
+            trendType="up"
+            chartData="M0 35 L20 32 L40 28 L60 20 L80 15 L90 18 L100 10"
+            chartColor="#10B981"
+          />
+        </div>
+
+        {/* Donation History Table */}
+        <DonationTable />
+      </div>
+    </AdminLayout>
   );
 }
 
