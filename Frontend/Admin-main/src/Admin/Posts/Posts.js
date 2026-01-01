@@ -1,459 +1,453 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from "react-router-dom";
-import Swal from "sweetalert2";
+import Swal from 'sweetalert2';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
   faSearch,
+  faDownload,
   faEye,
-  faTrash,
-  faPen,
-  faTimes,
-  faSpinner,
-  faCalendarAlt,
-  faUser
+  faCheckCircle,
+  faTimesCircle,
+  faFileUpload,
+  faEdit,
+  faTrash
 } from "@fortawesome/free-solid-svg-icons";
 import AdminLayout from "../../layouts/AdminLayout";
 
-const PostsData = ({ postsData, currentPage, itemsPerPage, setPostsData }) => {
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const postsToDisplay = postsData.slice(startIndex, endIndex);
+// --- Components ---
 
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedPost, setSelectedPost] = useState(null);
+// 1. Current Cases Card
+const CaseCard = ({ data, onClick }) => {
+  const percentage = Math.min(100, Math.round((data.amountCollected / data.amountRequired) * 100)) || 0;
 
-  const handleViewPost = (post) => {
-    setSelectedPost(post);
-    setShowViewModal(true);
+  return (
+    <div
+      onClick={() => onClick(data)}
+      className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-all transform hover:-translate-y-1 relative overflow-hidden group"
+    >
+      <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+      <div className="flex justify-between items-start mb-3 pl-3">
+        <span className="text-xs font-bold text-gray-400">#{data.caseNo}</span>
+        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+          {data.category || 'General'}
+        </span>
+      </div>
+
+      <h3 className="text-lg font-bold text-gray-800 mb-2 pl-3 line-clamp-1">{data.title}</h3>
+
+      <div className="pl-3 mb-4">
+        <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <span>Raised: ${data.amountCollected}</span>
+          <span>Goal: ${data.amountRequired}</span>
+        </div>
+        <div className="w-full bg-gray-100 rounded-full h-2">
+          <div
+            className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+            style={{ width: `${percentage}%` }}
+          ></div>
+        </div>
+      </div>
+
+      <div className="flex -space-x-2 pl-3 overflow-hidden">
+        <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/women/1.jpg" alt="" />
+        <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/men/2.jpg" alt="" />
+        <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/women/3.jpg" alt="" />
+      </div>
+    </div>
+  );
+};
+
+// 2. Table for Completed/Dropped
+const HistoryTable = ({ data, emptyMessage, isDropped }) => {
+  if (!data || data.length === 0) {
+    return <div className="p-8 text-center text-gray-400 border border-dashed rounded-xl bg-gray-50">{emptyMessage}</div>;
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-100">
+              <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">Case No</th>
+              <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">Title</th>
+              <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">Category</th>
+              <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">Date Ended</th>
+              <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">{isDropped ? 'Reason' : 'Amount Raised'}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((item) => (
+              <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                <td className="py-4 px-6 text-sm text-gray-600">#{item.caseNo}</td>
+                <td className="py-4 px-6 text-sm font-medium text-gray-800">{item.title}</td>
+                <td className="py-4 px-6 text-sm text-gray-600">{item.category}</td>
+                <td className="py-4 px-6 text-sm text-gray-600">{new Date(item.updatedAt || Date.now()).toLocaleDateString()}</td>
+                <td className="py-4 px-6 text-sm text-gray-600">
+                  {isDropped ? 'Cancelled by Admin' : `$${item.amountCollected}`}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+
+const Posts = () => {
+  // State
+  const [activeCases, setActiveCases] = useState([]);
+  const [completedCases, setCompletedCases] = useState([]);
+  const [droppedCases, setDroppedCases] = useState([]);
+
+  // Modals
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+
+  // Selected Item
+  const [selectedCase, setSelectedCase] = useState(null);
+
+  // Forms
+  const [newCaseForm, setNewCaseForm] = useState({
+    caseNo: '',
+    category: 'Financial Help',
+    date: new Date().toISOString().split('T')[0],
+    amountRequired: '',
+    title: '',
+    description: '',
+    picture: null
+  });
+
+  const [completionForm, setCompletionForm] = useState({
+    finalAmount: '',
+    docs: null,
+    receipt: null
+  });
+
+  // Mock Initialization
+  useEffect(() => {
+    // Generate some starter data
+    const startData = [
+      { id: 1, caseNo: '1001', category: 'Medical Assistance', title: 'Urgent Surgery for Child', description: 'Requires heart surgery immediately.', amountRequired: 5000, amountCollected: 3200, createdAt: new Date().toISOString(), status: 'active' },
+      { id: 2, caseNo: '1002', category: 'Fee Assistance', title: 'University Fees Support', description: 'Student needs help with semester fees.', amountRequired: 1200, amountCollected: 450, createdAt: new Date().toISOString(), status: 'active' },
+      { id: 3, caseNo: '1003', category: 'Financial Help', title: 'Widow Support Fund', description: 'Monthly ration support.', amountRequired: 300, amountCollected: 300, createdAt: new Date().toISOString(), status: 'completed' }
+    ];
+
+    setActiveCases(startData.filter(c => c.status === 'active'));
+    setCompletedCases(startData.filter(c => c.status === 'completed'));
+    setDroppedCases(startData.filter(c => c.status === 'dropped'));
+  }, []);
+
+  // Handlers
+  const handleCreateOpen = () => {
+    setNewCaseForm({
+      caseNo: Math.floor(1000 + Math.random() * 9000), // Auto-generate
+      category: 'Financial Help',
+      date: new Date().toISOString().split('T')[0],
+      amountRequired: '',
+      title: '',
+      description: '',
+      picture: null
+    });
+    setShowCreateModal(true);
   };
 
-  const handleDelete = async (postId) => {
-    const result = await Swal.fire({
+  const handleCreateSubmit = (e) => {
+    e.preventDefault();
+    // Logic to add to active cases
+    const newCase = {
+      id: Date.now(),
+      ...newCaseForm,
+      amountCollected: 0,
+      status: 'active',
+      createdAt: new Date().toISOString()
+    };
+    setActiveCases([newCase, ...activeCases]);
+    setShowCreateModal(false);
+    Swal.fire('Created!', 'New case has been created successfully.', 'success');
+  };
+
+  const handleCardClick = (caseItem) => {
+    setSelectedCase(caseItem);
+    setShowDetailModal(true);
+  };
+
+  const handleDropCase = () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you want to drop this case?",
       icon: 'warning',
-      title: 'Delete Post?',
-      text: 'This action cannot be undone!',
       showCancelButton: true,
       confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Delete',
-      cancelButtonText: 'Cancel'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await axios.delete(`http://localhost:8000/api/blogs/delete/${postId}`);
-
-        const updatedPosts = postsData.filter(post => post.id !== postId);
-        setPostsData(updatedPosts);
-        Swal.fire('Deleted!', 'The post has been deleted.', 'success');
-      } catch (error) {
-        Swal.fire('Error', 'Failed to delete post', 'error');
-        console.error('Delete error:', error);
+      confirmButtonText: 'Yes, Drop it'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Move from active to dropped
+        setDroppedCases([selectedCase, ...droppedCases]);
+        setActiveCases(activeCases.filter(c => c.id !== selectedCase.id));
+        setShowDetailModal(false);
+        Swal.fire('Dropped!', 'Case has been moved to dropped list.', 'success');
       }
-    }
+    })
+  };
+
+  const handleCompleteStart = () => {
+    setShowDetailModal(false);
+    setCompletionForm({ finalAmount: selectedCase.amountCollected, docs: null, receipt: null });
+    setShowCompleteModal(true);
+  };
+
+  const handleCompleteSubmit = (e) => {
+    e.preventDefault();
+    // Move from active to completed
+    const completedCase = { ...selectedCase, amountCollected: completionForm.finalAmount, status: 'completed', updatedAt: new Date().toISOString() };
+    setCompletedCases([completedCase, ...completedCases]);
+    setActiveCases(activeCases.filter(c => c.id !== selectedCase.id));
+    setShowCompleteModal(false);
+    Swal.fire('Completed!', 'Case closed successfully.', 'success');
+  };
+
+  const handleExport = (data, filename) => {
+    if (!data.length) return;
+    const headers = ['Case No', 'Title', 'Category', 'Date', 'Amount Required', 'Amount Collected'];
+    const rows = data.map(c => [
+      c.caseNo, c.title, c.category, new Date(c.createdAt).toLocaleDateString(), c.amountRequired, c.amountCollected
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {postsToDisplay.map(post => (
-        <div key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
-          <div className="relative h-48 overflow-hidden">
-            <img
-              className="w-full h-full object-cover"
-              src={post.image}
-              alt={post.name}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/default-post-image.jpg';
-              }}
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-              <h3 className="text-white font-semibold text-lg truncate">{post.name}</h3>
-            </div>
+    <AdminLayout>
+      <div className="container mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-10">
+          <div>
+            <h1 className="text-3xl font-handwriting text-gray-800" style={{ fontFamily: '"Patrick Hand", cursive' }}>Cases Management</h1>
           </div>
-
-          <div className="p-4 flex flex-col flex-grow">
-            <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">
-              {post.description || 'No description available'}
-            </p>
-
-            <div className="mt-auto">
-              <div className="flex items-center text-sm text-gray-500 mb-2">
-                <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
-                {new Date(post.publicationDate).toLocaleDateString()}
-              </div>
-
-              <div className="flex items-center text-sm text-gray-500 mb-4">
-                <FontAwesomeIcon icon={faUser} className="mr-2" />
-                {post.author || 'Unknown Author'}
-              </div>
-
-              <div className="flex justify-between items-center border-t pt-3">
-                <span className={`px-3 py-1 text-xs rounded-full ${post.isPublished
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                  {post.isPublished ? 'Published' : 'Draft'}
-                </span>
-
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => handleViewPost(post)}
-                    className="text-blue-500 hover:text-blue-700 transition-colors"
-                    title="View"
-                  >
-                    <FontAwesomeIcon icon={faEye} />
-                  </button>
-                  <Link
-                    to={`/Admin/Posts/Update/${post.id}`}
-                    className="text-yellow-500 hover:text-yellow-700 transition-colors"
-                    title="Edit"
-                  >
-                    <FontAwesomeIcon icon={faPen} />
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(post.id)}
-                    className="text-red-500 hover:text-red-700 transition-colors"
-                    title="Delete"
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <button
+            onClick={handleCreateOpen}
+            className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center transition-colors shadow-lg shadow-gray-200"
+          >
+            <FontAwesomeIcon icon={faPlus} className="mr-2" />
+            Create New Case
+          </button>
         </div>
-      ))}
 
-      {/* View Post Modal */}
-      {showViewModal && selectedPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-start p-6 border-b">
-              <h2 className="text-xl font-bold">Post Details</h2>
-              <button
-                onClick={() => setShowViewModal(false)}
-                className="text-gray-400 hover:text-gray-700 text-2xl"
-              >
-                &times;
+        {/* Current Cases Grid */}
+        <div className="mb-12">
+          <h2 className="text-xl font-bold text-gray-800 mb-6 font-handwriting">Current Cases</h2>
+          {activeCases.length === 0 ? (
+            <div className="p-8 text-center text-gray-400 border border-dashed rounded-xl bg-gray-50">No active cases. Create one to get started.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activeCases.map(c => <CaseCard key={c.id} data={c} onClick={handleCardClick} />)}
+            </div>
+          )}
+        </div>
+
+        {/* Completed Cases */}
+        <div className="mb-12">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800 font-handwriting">Completed Cases</h2>
+            <button onClick={() => handleExport(completedCases, 'completed_cases.csv')} className="text-sm text-gray-500 hover:text-gray-800 flex items-center border px-3 py-1 rounded bg-white">
+              <FontAwesomeIcon icon={faDownload} className="mr-2" /> Export CSV
+            </button>
+          </div>
+          <HistoryTable data={completedCases} emptyMessage="No completed cases yet." />
+        </div>
+
+        {/* Dropped Cases */}
+        <div className="mb-12">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800 font-handwriting">Dropped Cases</h2>
+            <button onClick={() => handleExport(droppedCases, 'dropped_cases.csv')} className="text-sm text-gray-500 hover:text-gray-800 flex items-center border px-3 py-1 rounded bg-white">
+              <FontAwesomeIcon icon={faDownload} className="mr-2" /> Export CSV
+            </button>
+          </div>
+          <HistoryTable data={droppedCases} emptyMessage="No dropped cases found." isDropped />
+        </div>
+
+      </div>
+
+      {/* --- MODALS --- */}
+
+      {/* 1. Create Case Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-800">Create New Case</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
+                <FontAwesomeIcon icon={faTimesCircle} size="lg" />
               </button>
             </div>
-
-            <div className="flex-1 overflow-auto p-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Post Image */}
-                <div className="space-y-4">
-                  <div className="relative h-64 rounded-lg overflow-hidden">
-                    <img
-                      src={selectedPost.image}
-                      alt={selectedPost.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = '/default-post-image.jpg';
-                      }}
-                    />
-                  </div>
-                  
-                  {/* Post Status */}
-                  <div className="flex items-center justify-between">
-                    <span className={`px-4 py-2 text-sm rounded-full font-medium ${
-                      selectedPost.isPublished 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {selectedPost.isPublished ? 'Published' : 'Draft'}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      Created: {new Date(selectedPost.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
+            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Case Number</label>
+                  <input type="text" value={newCaseForm.caseNo} disabled className="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-500" />
                 </div>
-
-                {/* Post Information */}
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">{selectedPost.name}</h3>
-                    <p className="text-gray-600 leading-relaxed">{selectedPost.description}</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-blue-100 p-3 rounded-lg">
-                        <FontAwesomeIcon icon={faUser} className="text-blue-600 w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 uppercase tracking-wide">Author</p>
-                        <p className="font-semibold text-gray-800">{selectedPost.author || 'Unknown Author'}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-green-100 p-3 rounded-lg">
-                        <FontAwesomeIcon icon={faCalendarAlt} className="text-green-600 w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 uppercase tracking-wide">Publication Date</p>
-                        <p className="font-semibold text-gray-800">
-                          {new Date(selectedPost.publicationDate).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex space-x-3 pt-4 border-t">
-                    <Link
-                      to={`/Admin/Posts/Update/${selectedPost.id}`}
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-                    >
-                      <FontAwesomeIcon icon={faPen} />
-                      <span>Edit Post</span>
-                    </Link>
-                   
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
+                  <select
+                    className="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={newCaseForm.category}
+                    onChange={(e) => setNewCaseForm({ ...newCaseForm, category: e.target.value })}
+                  >
+                    <option>Financial Help</option>
+                    <option>Fee Assistance</option>
+                    <option>Medical Assistance</option>
+                    <option>Other</option>
+                  </select>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Date</label>
+                  <input type="date" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.date} onChange={e => setNewCaseForm({ ...newCaseForm, date: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Amount Required</label>
+                  <input type="number" placeholder="$0.00" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.amountRequired} onChange={e => setNewCaseForm({ ...newCaseForm, amountRequired: e.target.value })} required />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
+                <input type="text" placeholder="e.g. Heart Surgery Support" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.title} onChange={e => setNewCaseForm({ ...newCaseForm, title: e.target.value })} required />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Description</label>
+                <textarea rows="3" placeholder="Case details..." className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.description} onChange={e => setNewCaseForm({ ...newCaseForm, description: e.target.value })} required ></textarea>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Picture (Optional)</label>
+                <div className="border border-dashed border-gray-300 rounded p-4 text-center text-gray-400 text-sm hover:bg-gray-50 cursor-pointer">
+                  <FontAwesomeIcon icon={faFileUpload} className="mr-2" />
+                  Click to upload image
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button type="submit" className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-black transition-colors">
+                  Create Case
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Case Details Modal (View/Drop/Complete) */}
+      {showDetailModal && selectedCase && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">Details</h3>
+                  <p className="text-xs text-gray-400 font-bold">CASE #{selectedCase.caseNo}</p>
+                </div>
+                <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <FontAwesomeIcon icon={faTimesCircle} size="lg" />
+                </button>
+              </div>
+
+              <div className="space-y-4 mb-8">
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-sm text-gray-500">Category</span>
+                  <span className="text-sm font-medium text-gray-800">{selectedCase.category}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-sm text-gray-500">Date Started</span>
+                  <span className="text-sm font-medium text-gray-800">{new Date(selectedCase.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div className="bg-gray-50 p-3 rounded text-sm text-gray-600 text-sm leading-relaxed">
+                  {selectedCase.description}
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Amount Required</span>
+                  <span className="font-bold text-gray-800">${selectedCase.amountRequired}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Amount Collected</span>
+                  <span className="font-bold text-green-600">${selectedCase.amountCollected}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDropCase}
+                  className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium transition-colors border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1"
+                >
+                  Drop
+                </button>
+                <button
+                  onClick={handleCompleteStart}
+                  className="flex-1 bg-amber-800 hover:bg-amber-900 text-white py-2 rounded-lg font-medium transition-colors border-b-4 border-amber-950 active:border-b-0 active:translate-y-1"
+                >
+                  Complete
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
-};
 
-const Posts = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [postsData, setPostsData] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [sortOption, setSortOption] = useState("newest");
-  const itemsPerPage = 8;
+      {/* 3. Completion Process Modal */}
+      {showCompleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in-up">
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-1">Completion Process</h3>
+              <p className="text-xs text-gray-400 mb-6 font-bold uppercase">Finalizing Case #{selectedCase.caseNo}</p>
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+              <form onSubmit={handleCompleteSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Total Amount Collected</label>
+                  <input
+                    type="number"
+                    className="w-full border border-gray-300 rounded p-2 text-sm font-bold text-gray-800"
+                    value={completionForm.finalAmount}
+                    onChange={(e) => setCompletionForm({ ...completionForm, finalAmount: e.target.value })}
+                    required
+                  />
+                </div>
 
-        const response = await axios.get('http://localhost:8000/api/blogs/getallblog');
-        console.log('API Response:', response);
-        console.log('Response Data:', response.data);
-        console.log('Data Type:', typeof response.data);
-        if (!response.data || !response.data.blogs) {
-          throw new Error('No posts data received');
-        }
-        console.log('API Response:', response);
-        const transformedData = response.data.blogs.map(post => ({
-          id: post._id,
-          name: post.name,
-          title: post.name,
-          description: post.description,
-          image: post.image
-            ? `http://localhost:8000/uploads/images/${post.image}`
-            : '/default-post-image.jpg',
-          isPublished: post.isPublished || false,
-          publicationDate: post.publicationDate,
-          author: post.author,
-          createdAt: post.createdAt || new Date().toISOString()
-        }));
-        console.log('Transformed Data:', transformedData);
+                <div className="border border-dashed border-gray-300 rounded p-3 text-center text-gray-500 text-xs hover:bg-gray-50 cursor-pointer transition-colors">
+                  <FontAwesomeIcon icon={faFileUpload} className="mb-1 block mx-auto text-lg text-gray-300" />
+                  Upload Documents
+                </div>
 
-        setPostsData(transformedData);
-      } catch (err) {
-        console.error('Fetch posts error:', err);
-        setError(err.message || 'Failed to load posts');
-      } finally {
-        setLoading(false);
-      }
-    };
+                <div className="border border-dashed border-gray-300 rounded p-3 text-center text-gray-500 text-xs hover:bg-gray-50 cursor-pointer transition-colors">
+                  <FontAwesomeIcon icon={faFileUpload} className="mb-1 block mx-auto text-lg text-gray-300" />
+                  Upload Receipt
+                </div>
 
-    fetchPosts();
-  }, []);
-
-  const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
-  };
-
-  const clearSearch = () => {
-    setSearchQuery("");
-  };
-
-  const handleSortChange = (e) => {
-    setSortOption(e.target.value);
-  };
-
-  const sortPosts = (posts) => {
-    const sorted = [...posts];
-    switch (sortOption) {
-      case "newest":
-        return sorted.sort((a, b) => new Date(b.publicationDate) - new Date(a.publicationDate));
-      case "oldest":
-        return sorted.sort((a, b) => new Date(a.publicationDate) - new Date(b.publicationDate));
-      case "published":
-        return sorted.sort((a, b) => (b.isPublished === a.isPublished) ? 0 : b.isPublished ? 1 : -1);
-      case "drafts":
-        return sorted.sort((a, b) => (a.isPublished === b.isPublished) ? 0 : a.isPublished ? 1 : -1);
-      default:
-        return sorted;
-    }
-  };
-
-  const filteredPosts = postsData.filter(post =>
-    post.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.author?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const sortedAndFilteredPosts = sortPosts(filteredPosts);
-  const totalPages = Math.ceil(sortedAndFilteredPosts.length / itemsPerPage);
-
-  return (
-    <AdminLayout>
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <h1 className="text-2xl font-bold text-gray-800">Manage Posts</h1>
-          <Link
-            to="/Admin/Post/New"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
-          >
-            <FontAwesomeIcon icon={faPlus} className="mr-2" />
-            New Post
-          </Link>
-        </div>
-
-        {/* Search and Filter */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-grow">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FontAwesomeIcon icon={faSearch} className="text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search posts..."
-                value={searchQuery}
-                onChange={handleSearch}
-                className="pl-10 pr-10 py-2 w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600"
-                >
-                  <FontAwesomeIcon icon={faTimes} className="text-gray-400" />
-                </button>
-              )}
+                <div className="pt-2">
+                  <button type="submit" className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-black transition-colors">
+                    Submit & Close Case
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <select
-              value={sortOption}
-              onChange={handleSortChange}
-              className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-            >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="published">Published</option>
-              <option value="drafts">Drafts</option>
-            </select>
           </div>
         </div>
+      )}
 
-        {/* Content */}
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <FontAwesomeIcon icon={faSpinner} spin size="2x" className="text-blue-500" />
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-            <div className="flex items-center text-red-700">
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span className="font-medium">Error: {error}</span>
-            </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-2 bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-sm"
-            >
-              Retry
-            </button>
-          </div>
-        ) : sortedAndFilteredPosts.length === 0 ? (
-          <div className="bg-white p-8 rounded-lg shadow-sm border text-center">
-            <div className="text-gray-400 mb-4">
-              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-700 mb-1">
-              {searchQuery ? 'No matching posts found' : 'No posts available'}
-            </h3>
-            <p className="text-gray-500 mb-4">
-              {searchQuery ? 'Try a different search term' : 'Create your first post to get started'}
-            </p>
-            {!searchQuery && (
-              <Link
-                to="/Admin/Post/New"
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm"
-              >
-                Create New Post
-              </Link>
-            )}
-          </div>
-        ) : (
-          <>
-            <PostsData
-              postsData={sortedAndFilteredPosts}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
-              setPostsData={setPostsData}
-            />
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-8">
-                <nav className="flex items-center gap-1">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 border rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 border rounded-md ${currentPage === page ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 border rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </nav>
-              </div>
-            )}
-          </>
-        )}
-      </div>
     </AdminLayout>
   );
 };

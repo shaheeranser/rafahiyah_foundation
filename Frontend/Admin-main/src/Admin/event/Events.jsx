@@ -1,624 +1,401 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from "react-router-dom";
-import Swal from "sweetalert2";
+import Swal from 'sweetalert2';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
   faSearch,
-  faEye,
-  faTrash,
-  faPen,
-  faTimes,
-  faSpinner,
   faCalendarAlt,
-  faUser,
   faMapMarkerAlt,
   faClock,
-  faUsers
+  faEye,
+  faEdit,
+  faTrash,
+  faDownload,
+  faTimes,
+  faFileUpload,
+  faCheckCircle
 } from "@fortawesome/free-solid-svg-icons";
 import AdminLayout from "../../layouts/AdminLayout";
 
-const EventsData = ({ eventsData, currentPage, itemsPerPage, setEventsData }) => {
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const eventsToDisplay = eventsData.slice(startIndex, endIndex);
+// --- Components ---
 
-  const [showParticipantsModal, setShowParticipantsModal] = useState(false);
-  const [participants, setParticipants] = useState([]);
-  const [participantsLoading, setParticipantsLoading] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [showEventDetailsModal, setShowEventDetailsModal] = useState(false);
-  const [selectedEventDetails, setSelectedEventDetails] = useState(null);
+// 1. Recent Event Card
+const EventCard = ({ event, onView, onDelete }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all group relative">
+      <div className="h-40 bg-gray-100 relative overflow-hidden">
+        <img
+          src={event.image}
+          alt={event.title}
+          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+          onError={(e) => e.target.src = '/default-event.jpg'}
+        />
+        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-md text-xs font-bold text-gray-800 shadow-sm">
+          {new Date(event.date).toLocaleDateString()}
+        </div>
+      </div>
 
-  const handleDelete = async (eventId) => {
-    const result = await Swal.fire({
-      icon: 'warning',
-      title: 'Delete Event?',
-      text: 'This action cannot be undone!',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Delete',
-      cancelButtonText: 'Cancel'
-    });
+      <div className="p-5">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-bold text-gray-800 text-lg truncate pr-2">{event.title}</h3>
+        </div>
 
-    if (result.isConfirmed) {
-      try {
-        await axios.delete(`http://localhost:8000/api/events/delete/${eventId}`);
+        <div className="flex items-center text-gray-500 text-sm mb-1">
+          <FontAwesomeIcon icon={faClock} className="w-4 mr-2 text-indigo-400" />
+          {event.time}
+        </div>
+        <div className="flex items-center text-gray-500 text-sm mb-4">
+          <FontAwesomeIcon icon={faMapMarkerAlt} className="w-4 mr-2 text-pink-500" />
+          {event.location}
+        </div>
 
-        const updatedEvents = eventsData.filter(event => event.id !== eventId);
-        setEventsData(updatedEvents);
-        Swal.fire('Deleted!', 'The event has been deleted.', 'success');
-      } catch (error) {
-        Swal.fire('Error', 'Failed to delete event', 'error');
-        console.error('Delete error:', error);
-      }
-    }
-  };
+        <div className="flex gap-2 pt-3 border-t border-gray-50">
+          <button
+            onClick={() => onView(event)}
+            className="flex-1 bg-gray-50 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            <FontAwesomeIcon icon={faEye} /> View
+          </button>
+          <button
+            onClick={() => onDelete(event.id)}
+            className="w-10 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 py-2 rounded-lg transition-colors flex items-center justify-center"
+          >
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-  const handleViewParticipants = async (eventId) => {
-    setShowParticipantsModal(true);
-    setParticipantsLoading(true);
-    setSelectedEvent(eventId);
-    try {
-      const response = await axios.get(`http://localhost:8000/api/events/${eventId}/getallparticipants`);
-      setParticipants(response.data.participants || []);
-    } catch (error) {
-      setParticipants([]);
-    }
-    setParticipantsLoading(false);
-  };
-
-  const handleViewEventDetails = (event) => {
-    setSelectedEventDetails(event);
-    setShowEventDetailsModal(true);
-  };
-
-  const [deletingId, setDeletingId] = useState(null);
-  const handleDeleteParticipant = async (participantId) => {
-    if (!selectedEvent) return;
-    setDeletingId(participantId);
-    try {
-      await axios.delete(`http://localhost:8000/api/events/${selectedEvent}/participants`, {
-        data: { participantId }
-      });
-      setParticipants(prev => prev.filter(p => p._id !== participantId && p.id !== participantId));
-    } catch (error) {
-      alert('Failed to delete participant');
-    }
-    setDeletingId(null);
-  };
-
-  // CSV download helper
-  const downloadCSV = () => {
-    if (!participants || participants.length === 0) return;
-    const keys = Object.keys(participants[0]);
-    const csvRows = [
-      keys.join(','),
-      ...participants.map(row => keys.map(k => '"' + (row[k] ? String(row[k]).replace(/"/g, '""') : '') + '"').join(','))
-    ];
-    const csvContent = csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'participants.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+// 2. Completed Events Table
+const CompletedTable = ({ events, onExport }) => {
+  if (!events || events.length === 0) {
+    return <div className="p-12 text-center text-gray-400 border border-dashed rounded-xl bg-gray-50">No completed events found.</div>;
+  }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {eventsToDisplay.map(event => (
-        <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
-          <div className="relative h-48 overflow-hidden">
-            <img
-              className="w-full h-full object-cover"
-              src={event.image}
-              alt={event.name}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/default-event-image.jpg';
-              }}
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-              <h3 className="text-white font-semibold text-lg truncate">{event.name}</h3>
-            </div>
-          </div>
-
-          <div className="p-4 flex flex-col flex-grow">
-            <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">
-              {event.description || 'No description available'}
-            </p>
-
-            <div className="mt-auto">
-              <div className="flex items-center text-sm text-gray-500 mb-2">
-                <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
-                {new Date(event.date).toLocaleDateString()}
-              </div>
-
-              <div className="flex items-center text-sm text-gray-500 mb-2">
-                <FontAwesomeIcon icon={faClock} className="mr-2" />
-                {event.time || 'TBD'}
-              </div>
-
-              <div className="flex items-center text-sm text-gray-500 mb-4">
-                <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2" />
-                {event.location || 'Location not specified'}
-              </div>
-
-              <div className="flex justify-between items-center border-t pt-3">
-                <span className={`px-3 py-1 text-xs rounded-full ${
-                  new Date(event.date) > new Date() 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {new Date(event.date) > new Date() ? 'Upcoming' : 'Past Event'}
-                </span>
-
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => handleViewEventDetails(event)}
-                    className="text-blue-500 hover:text-blue-700 transition-colors"
-                    title="View Details"
-                  >
-                    <FontAwesomeIcon icon={faEye} />
-                  </button>
-                  <Link
-                    to={`/Admin/Event/Update/${event.id}`}
-                    className="text-yellow-500 hover:text-yellow-700 transition-colors"
-                    title="Edit"
-                  >
-                    <FontAwesomeIcon icon={faPen} />
-                  </Link>
-                                   <Link
-                    to={`/Admin/Event/Participants/${event.id}`}
-                    className="text-indigo-500 hover:text-indigo-700 transition-colors"
-                    title="Manage Participants"
-                  >
-                    <FontAwesomeIcon icon={faUsers} />
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(event.id)}
-                    className="text-red-500 hover:text-red-700 transition-colors"
-                    title="Delete"
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-
-      {/* Participants Modal */}
-      {showParticipantsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl w-full relative">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-bold">Participants</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={downloadCSV}
-                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs"
-                  disabled={!participants || participants.length === 0}
-                  title="Download as CSV"
-                >
-                  Download CSV
-                </button>
-                <button onClick={() => setShowParticipantsModal(false)} className="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
-              </div>
-            </div>
-            {participantsLoading ? (
-              <div>Loading...</div>
-            ) : participants.length === 0 ? (
-              <div>No participants found.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-                      {/* Render other keys dynamically if present */}
-                      {participants[0] && Object.keys(participants[0]).filter(key => !['name','email','phone','id','_id'].includes(key)).map(key => (
-                        <th key={key} className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{key}</th>
-                      ))}
-                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {participants.map((p, idx) => (
-                      <tr key={p.id || p._id || idx}>
-                        <td className="px-4 py-2">{p.name}</td>
-                        <td className="px-4 py-2">{p.email || 'N/A'}</td>
-                        <td className="px-4 py-2">{p.phone || 'N/A'}</td>
-                        {/* Render other keys dynamically if present */}
-                        {participants[0] && Object.keys(participants[0]).filter(key => !['name','email','phone','id','_id'].includes(key)).map(key => (
-                          <td key={key} className="px-4 py-2 text-xs text-gray-600">{p[key]}</td>
-                        ))}
-                        <td className="px-4 py-2 text-right">
-                          <button
-                            onClick={() => handleDeleteParticipant(p._id || p.id)}
-                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs"
-                            disabled={deletingId === (p._id || p.id)}
-                          >
-                            {deletingId === (p._id || p.id) ? 'Deleting...' : 'Delete'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Event Details Modal */}
-      {showEventDetailsModal && selectedEventDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
-            <div className="flex justify-between items-start mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Event Details</h2>
-              <button 
-                onClick={() => setShowEventDetailsModal(false)} 
-                className="text-gray-400 hover:text-gray-700 text-2xl"
-              >
-                &times;
-              </button>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Event Image */}
-              <div className="space-y-4">
-                <div className="relative h-64 rounded-lg overflow-hidden">
-                  <img
-                    src={selectedEventDetails.image}
-                    alt={selectedEventDetails.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = '/default-event-image.jpg';
-                    }}
-                  />
-                </div>
-                
-                {/* Event Status */}
-                <div className="flex items-center justify-between">
-                  <span className={`px-4 py-2 text-sm rounded-full font-medium ${
-                    new Date(selectedEventDetails.date) > new Date() 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {new Date(selectedEventDetails.date) > new Date() ? 'Upcoming Event' : 'Past Event'}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-100">
+              <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Event Title</th>
+              <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Date Held</th>
+              <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Location</th>
+              <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Total Budget</th>
+              <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((event, index) => (
+              <tr key={event.id || index} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                <td className="py-4 px-6">
+                  <div className="font-bold text-gray-800 text-sm">{event.title}</div>
+                </td>
+                <td className="py-4 px-6 text-sm text-gray-600">
+                  {new Date(event.date).toLocaleDateString()}
+                </td>
+                <td className="py-4 px-6 text-sm text-gray-600">
+                  {event.location}
+                </td>
+                <td className="py-4 px-6 text-sm text-gray-600 font-medium">
+                  {event.budgetRaised ? `$${event.budgetRaised}` : 'N/A'}
+                </td>
+                <td className="py-4 px-6">
+                  <span className="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-600 border border-green-200 flex items-center w-fit gap-1">
+                    <FontAwesomeIcon icon={faCheckCircle} /> Completed
                   </span>
-                  <span className="text-sm text-gray-500">
-                    Created: {new Date(selectedEventDetails.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Event Information */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{selectedEventDetails.name}</h3>
-                  <p className="text-gray-600 leading-relaxed">{selectedEventDetails.description}</p>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-blue-100 p-3 rounded-lg">
-                      <FontAwesomeIcon icon={faCalendarAlt} className="text-blue-600 w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 uppercase tracking-wide">Date</p>
-                      <p className="font-semibold text-gray-800">
-                        {new Date(selectedEventDetails.date).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-green-100 p-3 rounded-lg">
-                      <FontAwesomeIcon icon={faClock} className="text-green-600 w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 uppercase tracking-wide">Time</p>
-                      <p className="font-semibold text-gray-800">{selectedEventDetails.time || 'TBD'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-purple-100 p-3 rounded-lg">
-                      <FontAwesomeIcon icon={faMapMarkerAlt} className="text-purple-600 w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 uppercase tracking-wide">Location</p>
-                      <p className="font-semibold text-gray-800">{selectedEventDetails.location || 'Location not specified'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-3 pt-4 border-t">
-                  <Link
-                    to={`/Admin/Event/Update/${selectedEventDetails.id}`}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-                  >
-                    <FontAwesomeIcon icon={faPen} />
-                    <span>Edit Event</span>
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setShowEventDetailsModal(false);
-                      handleViewParticipants(selectedEventDetails.id);
-                    }}
-                    className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-                  >
-                    <FontAwesomeIcon icon={faUsers} />
-                    <span>View Participants</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
 
 const Events = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [eventsData, setEventsData] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [sortOption, setSortOption] = useState("upcoming");
-  const itemsPerPage = 8;
+  // State
+  const [recentEvents, setRecentEvents] = useState([]);
+  const [completedEvents, setCompletedEvents] = useState([]);
 
+  // Modals
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
+  // Forms
+  const [createForm, setCreateForm] = useState({
+    title: '',
+    description: '',
+    location: '',
+    date: '',
+    time: '',
+    image: null,
+    requiredAmount: ''
+  });
+
+  const [editForm, setEditForm] = useState({
+    location: '',
+    requiredAmount: ''
+  });
+
+  // Init Mock Data
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    const mockRecent = [
+      { id: 1, title: 'Charity Gala Dinner', description: 'Annual fundraising dinner.', location: 'Grand Hotel, NY', date: '2025-12-25', time: '18:00', image: 'https://images.unsplash.com/photo-1511578314322-379afb476865', requiredAmount: 5000 },
+      { id: 2, title: 'Community Cleanup', description: 'Cleaning the local park.', location: 'Central Park', date: '2026-01-10', time: '09:00', image: 'https://images.unsplash.com/photo-1552664730-d307ca884978', requiredAmount: 200 }
+    ];
+    const mockCompleted = [
+      { id: 3, title: 'Winter Clothing Drive', description: 'Collecting coats for the homeless.', location: 'Community Center', date: '2024-11-15', time: '10:00', budgetRaised: 1500 }
+    ];
 
-        const response = await axios.get('http://localhost:8000/api/events/getallevent');
-        console.log('API Response:', response);
-        
-        // Handle different possible response structures
-        let eventsArray = [];
-        if (response.data && Array.isArray(response.data)) {
-          // Direct array response
-          eventsArray = response.data;
-        } else if (response.data && response.data.events && Array.isArray(response.data.events)) {
-          // Nested events array
-          eventsArray = response.data.events;
-        } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-          // Nested data array
-          eventsArray = response.data.data;
-        } else {
-          throw new Error('No events data received or invalid data structure');
-        }
-
-        console.log('Events array from API:', eventsArray);
-        
-        const transformedData = eventsArray.map(event => {
-          console.log('Processing event:', event);
-          return {
-            id: event._id || event.id,
-            name: event.name,
-            description: event.description,
-            image: event.image
-              ? (event.image.startsWith('http') ? event.image : `http://localhost:8000/uploads/images/${event.image}`)
-              : '/default-event-image.jpg',
-            date: event.date,
-            time: event.time,
-            location: event.location,
-            createdAt: event.createdAt || new Date().toISOString()
-          };
-        });
-
-        console.log('Transformed events data:', transformedData);
-        setEventsData(transformedData);
-      } catch (err) {
-        console.error('Fetch events error:', err);
-        setError(err.message || 'Failed to load events');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
+    setRecentEvents(mockRecent);
+    setCompletedEvents(mockCompleted);
   }, []);
 
-  const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
+  // Handlers
+  const handleCreateOpen = () => {
+    setCreateForm({ title: '', description: '', location: '', date: '', time: '', image: null, requiredAmount: '' });
+    setShowCreateModal(true);
   };
 
-  const clearSearch = () => {
-    setSearchQuery("");
+  const handleCreateSubmit = (e) => {
+    e.preventDefault();
+    const newEvent = {
+      id: Date.now(),
+      ...createForm,
+      image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30' // Placeholder for uploaded img
+    };
+    setRecentEvents([newEvent, ...recentEvents]);
+    setShowCreateModal(false);
+    Swal.fire('Success', 'Event created successfully!', 'success');
   };
 
-  const handleSortChange = (e) => {
-    setSortOption(e.target.value);
+  const handleView = (event) => {
+    setSelectedEvent(event);
+    setEditForm({ location: event.location, requiredAmount: event.requiredAmount || '' });
+    setShowDetailModal(true);
   };
 
-  const sortEvents = (events) => {
-    const sorted = [...events];
-    switch (sortOption) {
-      case "upcoming":
-        return sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
-      case "past":
-        return sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
-      case "newest":
-        return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      case "oldest":
-        return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-      default:
-        return sorted;
-    }
+  const handleDelete = (id) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setRecentEvents(recentEvents.filter(e => e.id !== id));
+        Swal.fire('Deleted!', 'Event has been deleted.', 'success');
+      }
+    });
   };
 
-  const filteredEvents = eventsData.filter(event =>
-    event.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.location?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleComplete = () => {
+    // Move to completed
+    const completed = { ...selectedEvent, location: editForm.location, budgetRaised: editForm.requiredAmount }; // Assuming raised = required for simplicity or user edits it
+    setCompletedEvents([completed, ...completedEvents]);
+    setRecentEvents(recentEvents.filter(e => e.id !== selectedEvent.id));
+    setShowDetailModal(false);
+    Swal.fire('Completed!', 'Event marked as completed.', 'success');
+  };
 
-  const sortedAndFilteredEvents = sortEvents(filteredEvents);
-  const totalPages = Math.ceil(sortedAndFilteredEvents.length / itemsPerPage);
+  const handleExport = () => {
+    const headers = ['Title', 'Date', 'Location', 'Budget Raised'];
+    const rows = completedEvents.map(e => [`"${e.title}"`, `"${e.date}"`, `"${e.location}"`, `"${e.budgetRaised || 0}"`]);
+    const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", "completed_events.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <h1 className="text-2xl font-bold text-gray-800">Manage Events</h1>
-          <Link
-            to="/Admin/Event/New"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+      <div className="container mx-auto px-6 py-8">
+
+        {/* Header */}
+        <div className="flex justify-between items-center mb-10">
+          <div>
+            <h1 className="text-3xl font-handwriting text-gray-800" style={{ fontFamily: '"Patrick Hand", cursive' }}>Events Management</h1>
+          </div>
+          <button
+            onClick={handleCreateOpen}
+            className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center transition-colors shadow-lg shadow-gray-200"
           >
             <FontAwesomeIcon icon={faPlus} className="mr-2" />
-            New Event
-          </Link>
+            Create Event
+          </button>
         </div>
 
-        {/* Search and Filter */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-grow">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FontAwesomeIcon icon={faSearch} className="text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search events..."
-                value={searchQuery}
-                onChange={handleSearch}
-                className="pl-10 pr-10 py-2 w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600"
-                >
-                  <FontAwesomeIcon icon={faTimes} className="text-gray-400" />
-                </button>
-              )}
-            </div>
-
-            <select
-              value={sortOption}
-              onChange={handleSortChange}
-              className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-            >
-              <option value="upcoming">Upcoming First</option>
-              <option value="past">Past First</option>
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-            </select>
+        {/* Recent Events Grid */}
+        <div className="mb-12">
+          <h2 className="text-xl font-bold text-gray-800 mb-6 font-handwriting">Recent Events</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recentEvents.map(event => (
+              <EventCard key={event.id} event={event} onView={handleView} onDelete={handleDelete} />
+            ))}
           </div>
         </div>
 
-        {/* Content */}
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <FontAwesomeIcon icon={faSpinner} spin size="2x" className="text-blue-500" />
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-            <div className="flex items-center text-red-700">
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span className="font-medium">Error: {error}</span>
-            </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-2 bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-sm"
-            >
-              Retry
+        {/* Completed Events Table */}
+        <div className="mb-12">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800 font-handwriting">Completed Events</h2>
+            <button onClick={handleExport} className="text-sm text-gray-500 hover:text-gray-800 flex items-center border px-3 py-1 rounded bg-white">
+              <FontAwesomeIcon icon={faDownload} className="mr-2" /> Export CSV
             </button>
           </div>
-        ) : sortedAndFilteredEvents.length === 0 ? (
-          <div className="bg-white p-8 rounded-lg shadow-sm border text-center">
-            <div className="text-gray-400 mb-4">
-              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-700 mb-1">
-              {searchQuery ? 'No matching events found' : 'No events available'}
-            </h3>
-            <p className="text-gray-500 mb-4">
-              {searchQuery ? 'Try a different search term' : 'Create your first event to get started'}
-            </p>
-            {!searchQuery && (
-              <Link
-                to="/Admin/Event/New"
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm"
-              >
-                Create New Event
-              </Link>
-            )}
-          </div>
-        ) : (
-          <>
-            <EventsData
-              eventsData={sortedAndFilteredEvents}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
-              setEventsData={setEventsData}
-            />
+          <CompletedTable events={completedEvents} />
+        </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-8">
-                <nav className="flex items-center gap-1">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 border rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 border rounded-md ${currentPage === page ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 border rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </nav>
-              </div>
-            )}
-          </>
-        )}
       </div>
+
+      {/* --- MODALS --- */}
+
+      {/* 1. Create Event Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-800">Create New Event</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
+                <FontAwesomeIcon icon={faTimes} size="lg" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
+                <input type="text" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.title} onChange={e => setCreateForm({ ...createForm, title: e.target.value })} required />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Description</label>
+                <textarea rows="2" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.description} onChange={e => setCreateForm({ ...createForm, description: e.target.value })} required></textarea>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Date</label>
+                  <input type="date" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.date} onChange={e => setCreateForm({ ...createForm, date: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Time</label>
+                  <input type="time" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.time} onChange={e => setCreateForm({ ...createForm, time: e.target.value })} required />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Location</label>
+                  <input type="text" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.location} onChange={e => setCreateForm({ ...createForm, location: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Budget Required (Opt)</label>
+                  <input type="number" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.requiredAmount} onChange={e => setCreateForm({ ...createForm, requiredAmount: e.target.value })} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Picture (Optional)</label>
+                <div className="border border-dashed border-gray-300 rounded p-4 text-center text-gray-400 text-sm hover:bg-gray-50 cursor-pointer">
+                  <FontAwesomeIcon icon={faFileUpload} className="mr-2" />
+                  Click to upload image
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button type="submit" className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-black transition-colors">
+                  Create Event
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Event Details Modal */}
+      {showDetailModal && selectedEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <h3 className="text-2xl font-bold text-gray-800 font-handwriting">Event Details</h3>
+                <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <FontAwesomeIcon icon={faTimes} size="lg" />
+                </button>
+              </div>
+
+              <div className="space-y-4 mb-8">
+                {/* Read Only Fields */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase">Title</label>
+                  <div className="text-gray-800 font-medium">{selectedEvent.title}</div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase">Description</label>
+                  <div className="text-gray-600 text-sm">{selectedEvent.description}</div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase">Date</label>
+                    <div className="text-gray-800">{selectedEvent.date}</div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase">Time</label>
+                    <div className="text-gray-800">{selectedEvent.time}</div>
+                  </div>
+                </div>
+
+                {/* Editable Fields */}
+                <div>
+                  <label className="block text-xs font-bold text-blue-500 uppercase mb-1 flex items-center gap-1">
+                    <FontAwesomeIcon icon={faEdit} /> Location (Editable)
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-blue-100 bg-blue-50 rounded p-2 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-300"
+                    value={editForm.location}
+                    onChange={e => setEditForm({ ...editForm, location: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-blue-500 uppercase mb-1 flex items-center gap-1">
+                    <FontAwesomeIcon icon={faEdit} /> Budget Required (Editable)
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full border border-blue-100 bg-blue-50 rounded p-2 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-300"
+                    value={editForm.requiredAmount}
+                    onChange={e => setEditForm({ ...editForm, requiredAmount: e.target.value })}
+                  />
+                </div>
+
+                <div className="border border-dashed border-gray-300 rounded p-3 text-center text-gray-500 text-xs hover:bg-gray-50 cursor-pointer transition-colors mt-2">
+                  <FontAwesomeIcon icon={faFileUpload} className="mb-1 block mx-auto text-lg text-gray-300" />
+                  Upload Documents (If any)
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={handleComplete}
+                  className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+                >
+                  Mark as Complete
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </AdminLayout>
   );
 };

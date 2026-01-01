@@ -1,20 +1,83 @@
 import React from 'react';
 import AdminLayout from "../../layouts/AdminLayout";
 import { Download, MoreHorizontal } from "lucide-react";
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js';
 
-// Mock Data for Charts (Simple SVG Paths)
-const Sparkline = ({ color = "#10B981", data }) => (
-  <svg width="100%" height="40" viewBox="0 0 100 40" className="overflow-visible">
-    <path
-      d={data}
-      fill="none"
-      stroke={color}
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
 );
+
+// Sparkline Component using Chart.js
+const Sparkline = ({ color = "#10B981", data }) => {
+  const chartData = {
+    labels: data.map((_, i) => i), // Dummy labels
+    datasets: [
+      {
+        data: data,
+        borderColor: color,
+        backgroundColor: (context) => {
+          const ctx = context.chart.ctx;
+          const gradient = ctx.createLinearGradient(0, 0, 0, 100);
+          gradient.addColorStop(0, `${color}33`); // ~20% opacity
+          gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+          return gradient;
+        },
+        fill: true,
+        borderWidth: 2,
+        tension: 0.4, // Smooth curve
+        pointRadius: 0,
+        pointHoverRadius: 0,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: false },
+    },
+    scales: {
+      x: { display: false },
+      y: {
+        display: false,
+        min: Math.min(...data) - (Math.max(...data) - Math.min(...data)) * 0.1, // Add slight padding
+        max: Math.max(...data) + (Math.max(...data) - Math.min(...data)) * 0.1
+      },
+    },
+    elements: {
+      line: {
+        borderJoinStyle: 'round',
+        capBezierPoints: true,
+      }
+    }
+  };
+
+  return (
+    <div style={{ height: '50px', width: '120px' }}>
+      <Line data={chartData} options={options} />
+    </div>
+  );
+};
 
 const StatCard = ({ title, value, subtext, trend, trendType, chartData, chartColor }) => (
   <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-40 relative overflow-hidden group hover:shadow-md transition-shadow">
@@ -33,7 +96,7 @@ const StatCard = ({ title, value, subtext, trend, trendType, chartData, chartCol
         </div>
         <span className="text-xs text-gray-400 mt-1 block">{subtext}</span>
       </div>
-      <div className="w-24 h-10 mb-1">
+      <div className="mb-2">
         <Sparkline color={chartColor} data={chartData} />
       </div>
     </div>
@@ -126,7 +189,8 @@ function Dashboard() {
             subtext="Target Audience"
             trend="+12.5%"
             trendType="up"
-            chartData="M0 35 L15 32 L30 38 L45 25 L60 30 L75 20 L90 25 L100 15"
+            // SVG: 35->15 (Up). ChartJS: 5->25
+            chartData={[5, 8, 2, 15, 10, 20, 15, 25]}
             chartColor="#10B981"
           />
           <StatCard
@@ -135,7 +199,8 @@ function Dashboard() {
             subtext="Overall"
             trend="+8.2%"
             trendType="up"
-            chartData="M0 35 L20 35 L40 30 L60 32 L80 20 L100 15"
+            // SVG: 35->15 (Up). ChartJS: 5->25
+            chartData={[5, 5, 10, 8, 20, 25]}
             chartColor="#10B981"
           />
           <StatCard
@@ -144,7 +209,8 @@ function Dashboard() {
             subtext="Completed"
             trend="+4.6%"
             trendType="up"
-            chartData="M0 38 L30 38 L50 30 L70 25 L85 20 L100 15"
+            // SVG: 38->15 (Up). ChartJS: 2->25
+            chartData={[2, 2, 10, 15, 20, 25]}
             chartColor="#10B981"
           />
           <StatCard
@@ -153,7 +219,8 @@ function Dashboard() {
             subtext="Pending"
             trend="-2.4%"
             trendType="down"
-            chartData="M0 10 L15 12 L30 10 L45 25 L60 15 L75 28 L90 30 L100 35"
+            // SVG: 10->35 (Down). ChartJS: 30->5
+            chartData={[30, 28, 30, 15, 25, 12, 10, 5]}
             chartColor="#F43F5E"
           />
           <StatCard
@@ -162,7 +229,8 @@ function Dashboard() {
             subtext="Active"
             trend="+18%"
             trendType="up"
-            chartData="M0 35 L20 32 L40 28 L60 20 L80 15 L90 18 L100 10"
+            // SVG: 35->10 (Up). ChartJS: 5->30
+            chartData={[5, 8, 12, 20, 25, 22, 30]}
             chartColor="#10B981"
           />
         </div>
