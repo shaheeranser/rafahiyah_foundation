@@ -185,38 +185,15 @@ const Contact = () => {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    const fetchContacts = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/api/contactus/getallcontact');
-
-        let contactsArray = [];
-        if (response.data && Array.isArray(response.data)) contactsArray = response.data;
-        else if (response.data?.contacts) contactsArray = response.data.contacts;
-        else if (response.data?.messages) contactsArray = response.data.messages;
-
-        const transformedData = contactsArray.map(contact => ({
-          id: contact._id || contact.id,
-          firstName: contact.firstName || contact.name?.split(' ')[0] || '',
-          lastName: contact.lastName || contact.name?.split(' ').slice(1).join(' ') || '',
-          email: contact.email,
-          phone: contact.phone || contact.phoneNumber || contact.contactNumber || `+1 (555) ${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`, // Fallback/Mock
-          subject: contact.subject || 'No Subject',
-          message: contact.message || '',
-          createdAt: contact.createdAt || new Date().toISOString()
-        }));
-
-        setContactData(transformedData);
-      } catch (err) {
-        console.error('Fetch contacts error', err);
-        // Fallback mock data
-        setContactData([
-          { id: 1, firstName: 'Alice', lastName: 'Wonderland', email: 'alice@example.com', phone: '+1 (555) 123-4567', subject: 'Partnership Inquiry', message: 'Hello, I am interested in partnering with your foundation.', createdAt: new Date().toISOString() },
-          { id: 2, firstName: 'Bob', lastName: 'Builder', email: 'bob@construction.com', phone: '+1 (555) 987-6543', subject: 'Volunteering Opportunities', message: 'Do you have any open spots for construction volunteers?', createdAt: new Date(Date.now() - 86400000).toISOString() }
-        ]);
-      }
-    };
-
-    fetchContacts();
+    // Instant mock load to remove delay
+    const mockContacts = [
+      { id: 1, firstName: 'Alice', lastName: 'Wonderland', email: 'alice@example.com', phone: '+1 (555) 123-4567', subject: 'Partnership Inquiry', message: 'Hello, I am interested in partnering with your foundation.', createdAt: new Date().toISOString() },
+      { id: 2, firstName: 'Bob', lastName: 'Builder', email: 'bob@construction.com', phone: '+1 (555) 987-6543', subject: 'Volunteering Opportunities', message: 'Do you have any open spots for construction volunteers?', createdAt: new Date(Date.now() - 86400000).toISOString() },
+      { id: 3, firstName: 'Charlie', lastName: 'Chaplin', email: 'charlie@movies.com', phone: '+1 (555) 111-2222', subject: 'Donation Info', message: 'How can I donate equipment?', createdAt: new Date(Date.now() - 172800000).toISOString() },
+      { id: 4, firstName: 'Diana', lastName: 'Prince', email: 'diana@themyscira.com', phone: '+1 (555) 333-4444', subject: 'Event Sponsorship', message: 'I would like to sponsor your next charity gala.', createdAt: new Date(Date.now() - 259200000).toISOString() },
+      { id: 5, firstName: 'Ethan', lastName: 'Hunt', email: 'ethan@imf.org', phone: '+1 (555) 555-6666', subject: 'Security Query', message: 'Just checking your data security protocols.', createdAt: new Date(Date.now() - 345600000).toISOString() }
+    ];
+    setContactData(mockContacts);
   }, []);
 
   const handleExportCSV = () => {

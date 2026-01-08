@@ -5,6 +5,7 @@ import Nav from "./Nav";
 
 function AdminLayout({ Content, children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -15,7 +16,7 @@ function AdminLayout({ Content, children }) {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50 font-sans">
       <Nav onToggleSidebar={toggleSidebar} />
       <div className="flex flex-1 relative overflow-hidden">
         {/* Mobile Overlay */}
@@ -27,11 +28,16 @@ function AdminLayout({ Content, children }) {
         )}
 
         {/* Reusable Sidebar Component */}
-        <SideBar isOpen={sidebarOpen} onClose={closeSidebar} />
+        <SideBar
+          isOpen={sidebarOpen}
+          onClose={closeSidebar}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+        />
 
         {/* Content area */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 lg:p-6 bg-gray-50">
-          <div className="max-w-7xl mx-auto">
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 transition-all duration-300 ${isCollapsed ? 'lg:ml-20' : ''}`}>
+          <div className="p-4 lg:p-8 w-full">
             {Content || children}
           </div>
         </main>

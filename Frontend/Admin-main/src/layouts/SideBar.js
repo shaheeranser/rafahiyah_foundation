@@ -1,101 +1,127 @@
 import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faHome,
-  faCalendarAlt,
-  faFileAlt,
-  faUsers,
-  faProjectDiagram,
-  faEnvelope,
-  faSignOutAlt,
-  faTimes
-} from "@fortawesome/free-solid-svg-icons";
 import { Link, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Calendar,
+  FileText,
+  Users,
+  Phone,
+  ChevronLeft,
+  ChevronRight,
+  HeartHandshake
+} from "lucide-react";
 
-function SideBar({ isOpen, onClose }) {
+function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
   const location = useLocation();
 
   const links = [
-    { to: "/Admin/Dashboard", label: "Dashboard" },
-    { to: "/Admin/Program", label: "Programs" },
-    { to: "/Admin/Events", label: "Events" },
-    { to: "/Admin/Posts", label: "Cases" },
-    { to: "/Admin/Team", label: "Volunteers" },
-    { to: "/Admin/contact", label: "Contact Us" }
+    { to: "/Admin/Dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/Admin/Program", label: "Programs", icon: FileText },
+    { to: "/Admin/Events", label: "Events", icon: Calendar },
+    { to: "/Admin/Posts", label: "Cases", icon: HeartHandshake },
+    { to: "/Admin/Team", label: "Volunteers", icon: Users },
+    { to: "/Admin/contact", label: "Contact Us", icon: Phone }
   ];
 
   return (
     <aside
       className={`
-        fixed lg:static lg:translate-x-0 z-50
-        w-64 h-full
-        transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-50
+        bg-[#5D1910] text-white
+        transition-all duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:block
-        border-none
+        lg:relative lg:translate-x-0
+        ${isCollapsed ? 'w-20' : 'w-64'}
+        flex flex-col border-r border-[#6B2414] shadow-xl
       `}
-      style={{
-        background: 'linear-gradient(180deg, #6B2414 0%, #852D1A 35%, #6D2617 100%)'
-      }}
     >
-      {/* Logo Area */}
-      <div className="flex justify-center pt-8 pb-4">
-        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center p-1 shadow-lg">
-          <img
-            src="/rafahiyah logo.png"
-            alt="Rafahiyah Logo"
-            className="w-full h-full object-contain rounded-full"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "https://via.placeholder.com/150?text=Logo"
-            }}
-          />
-        </div>
-      </div>
+      {/* Header / Logo */}
+      <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-[#6B2414]/50`}>
+        {!isCollapsed && (
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+              <img src="/rafahiyah logo.png" alt="Logo" className="w-6 h-6 object-contain" />
+            </div>
+            <span className="font-bold text-lg tracking-wide font-sans">RAFAHIYAH</span>
+          </div>
+        )}
+        {isCollapsed && (
+          <img src="/rafahiyah logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+        )}
 
-      {/* Mobile Close Button */}
-      <div className="lg:hidden absolute top-4 right-4">
+        {/* Collapse Toggle (Desktop) */}
         <button
-          onClick={onClose}
-          className="p-1 rounded-md text-white/70 hover:text-white transition-colors"
-          aria-label="Close sidebar"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className={`hidden lg:flex items-center justify-center w-6 h-6 rounded-md bg-[#852D1A] text-white hover:bg-[#A33822] transition-colors ${isCollapsed ? 'absolute -right-3 top-7 shadow-md' : ''}`}
         >
-          <FontAwesomeIcon icon={faTimes} size="lg" />
+          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
       </div>
 
-      <nav className="px-6 py-6 flex flex-col items-center">
+      {/* Navigation */}
+      <nav className="flex-1 py-6 px-3 space-y-1">
         {links.map((link) => {
           // Normalize paths
           const isDashboard = link.to === "/Admin/Dashboard" && (location.pathname === "/" || location.pathname === "/Admin" || location.pathname === "/Admin/Dashboard");
           const isActive = isDashboard || location.pathname.startsWith(link.to) && link.to !== "/Admin/Dashboard";
+          const Icon = link.icon;
 
           return (
             <Link
               key={link.to}
               to={link.to === "/Admin/Dashboard" ? "/" : link.to}
-              aria-label={link.label}
-              onClick={onClose}
-              className="w-full text-center mb-5"
+              onClick={() => {
+                if (window.innerWidth < 1024) onClose();
+              }}
+              className={`
+                flex items-center
+                ${isCollapsed ? 'justify-center px-0' : 'px-4'}
+                py-3 rounded-lg
+                transition-all duration-200 group relative
+                ${isActive
+                  ? 'bg-white/10 text-white shadow-sm'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                }
+              `}
+              title={isCollapsed ? link.label : ""}
             >
-              <div
+              <Icon
+                size={22}
                 className={`
-                    text-xl font-bold tracking-wide transition-all duration-200
-                    ${isActive ? "text-white scale-105" : "text-gray-200 hover:text-white hover:scale-105"}
+                    transition-transform duration-200 
+                    ${isActive ? 'text-white' : 'text-white/60 group-hover:text-white'}
                 `}
-                style={{
-                  fontFamily: '"Odibee Sans", cursive',
-                  fontSize: '1.5rem',
-                  letterSpacing: '1px',
-                  textShadow: isActive ? '0px 2px 4px rgba(0,0,0,0.3)' : 'none'
-                }}
-              >
-                {link.label}
-              </div>
+              />
+
+              {!isCollapsed && (
+                <span className={`ml-3 font-medium text-sm tracking-wide font-sans`}>
+                  {link.label}
+                </span>
+              )}
+
+              {/* Active Indicator Strip */}
+              {isActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#E64833] rounded-r-md" />
+              )}
             </Link>
           );
         })}
       </nav>
+
+      {/* Footer / User Profile (Optional) */}
+      <div className={`p-4 border-t border-[#6B2414]/50 ${isCollapsed ? 'flex justify-center' : ''}`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-full bg-gradient-to-tr from-[#E64833] to-[#FF8C66] flex items-center justify-center text-white font-bold shadow-md`}>
+            A
+          </div>
+          {!isCollapsed && (
+            <div className="overflow-hidden">
+              <p className="text-sm font-semibold text-white truncate">Admin User</p>
+              <p className="text-xs text-white/50 truncate">admin@rafahiyah.org</p>
+            </div>
+          )}
+        </div>
+      </div>
     </aside>
   );
 }
