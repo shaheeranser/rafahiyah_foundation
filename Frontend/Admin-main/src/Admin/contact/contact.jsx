@@ -223,7 +223,7 @@ const Contact = () => {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-6 py-8">
+      <div className="w-full px-6 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-10">
           <div>
