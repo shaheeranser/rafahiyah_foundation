@@ -24,35 +24,50 @@ const CaseCard = ({ data, onClick }) => {
   return (
     <div
       onClick={() => onClick(data)}
-      className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-all transform hover:-translate-y-1 relative overflow-hidden group"
+      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all group relative cursor-pointer"
     >
-      <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-      <div className="flex justify-between items-start mb-3 pl-3">
-        <span className="text-xs font-bold text-gray-400">#{data.caseNo}</span>
-        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
-          {data.category || 'General'}
-        </span>
-      </div>
-
-      <h3 className="text-lg font-bold text-gray-800 mb-2 pl-3 line-clamp-1">{data.title}</h3>
-
-      <div className="pl-3 mb-4">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
-          <span>Raised: ${data.amountCollected}</span>
-          <span>Goal: ${data.amountRequired}</span>
+      <div className="h-40 bg-gray-100 relative overflow-hidden">
+        <img
+          src={data.image}
+          alt={data.title}
+          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+          onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1932&auto=format&fit=crop'}
+        />
+        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-md text-xs font-bold text-gray-800 shadow-sm">
+          #{data.caseNo}
         </div>
-        <div className="w-full bg-gray-100 rounded-full h-2">
-          <div
-            className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${percentage}%` }}
-          ></div>
+        <div className="absolute top-3 right-3">
+          <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-50/90 backdrop-blur-sm text-blue-600 border border-blue-100 shadow-sm">
+            {data.category || 'General'}
+          </span>
         </div>
       </div>
 
-      <div className="flex -space-x-2 pl-3 overflow-hidden">
-        <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/women/1.jpg" alt="" />
-        <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/men/2.jpg" alt="" />
-        <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/women/3.jpg" alt="" />
+      <div className="p-5">
+        <div className="flex justify-between items-start mb-2">
+          {/* Title now below image */}
+        </div>
+
+        <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-1">{data.title}</h3>
+
+        <div className="mb-4">
+          <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <span>Raised: ${data.amountCollected}</span>
+            <span>Goal: ${data.amountRequired}</span>
+          </div>
+          <div className="w-full bg-gray-100 rounded-full h-2">
+            <div
+              className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+              style={{ width: `${percentage}%` }}
+            ></div>
+          </div>
+        </div>
+
+        <div className="flex -space-x-2 overflow-hidden">
+          <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/women/1.jpg" alt="" />
+          <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/men/2.jpg" alt="" />
+          <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/women/3.jpg" alt="" />
+        </div>
       </div>
     </div>
   );
@@ -83,7 +98,7 @@ const HistoryTable = ({ data, emptyMessage, isDropped }) => {
                 <td className="py-4 px-6 text-sm text-gray-600">#{item.caseNo}</td>
                 <td className="py-4 px-6 text-sm font-medium text-gray-800">{item.title}</td>
                 <td className="py-4 px-6 text-sm text-gray-600">{item.category}</td>
-                <td className="py-4 px-6 text-sm text-gray-600">{new Date(item.updatedAt || Date.now()).toLocaleDateString()}</td>
+                <td className="py-4 px-6 text-sm text-gray-600">{new Date(item.updatedAt || Date.now()).toLocaleDateString('en-GB')}</td>
                 <td className="py-4 px-6 text-sm text-gray-600">
                   {isDropped ? 'Cancelled by Admin' : `$${item.amountCollected}`}
                 </td>
@@ -95,7 +110,6 @@ const HistoryTable = ({ data, emptyMessage, isDropped }) => {
     </div>
   );
 };
-
 
 const Posts = () => {
   // State
@@ -130,11 +144,11 @@ const Posts = () => {
 
   // Mock Initialization
   useEffect(() => {
-    // Generate some starter data
+    // Generate some starter data with images
     const startData = [
-      { id: 1, caseNo: '1001', category: 'Medical Assistance', title: 'Urgent Surgery for Child', description: 'Requires heart surgery immediately.', amountRequired: 5000, amountCollected: 3200, createdAt: new Date().toISOString(), status: 'active' },
-      { id: 2, caseNo: '1002', category: 'Fee Assistance', title: 'University Fees Support', description: 'Student needs help with semester fees.', amountRequired: 1200, amountCollected: 450, createdAt: new Date().toISOString(), status: 'active' },
-      { id: 3, caseNo: '1003', category: 'Financial Help', title: 'Widow Support Fund', description: 'Monthly ration support.', amountRequired: 300, amountCollected: 300, createdAt: new Date().toISOString(), status: 'completed' }
+      { id: 1, caseNo: '1001', category: 'Medical Assistance', title: 'Urgent Surgery for Child', description: 'Requires heart surgery immediately.', amountRequired: 5000, amountCollected: 3200, createdAt: new Date().toISOString(), status: 'active', image: 'https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?q=80&w=2070&auto=format&fit=crop' },
+      { id: 2, caseNo: '1002', category: 'Fee Assistance', title: 'University Fees Support', description: 'Student needs help with semester fees.', amountRequired: 1200, amountCollected: 450, createdAt: new Date().toISOString(), status: 'active', image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop' },
+      { id: 3, caseNo: '1003', category: 'Financial Help', title: 'Widow Support Fund', description: 'Monthly ration support.', amountRequired: 300, amountCollected: 300, createdAt: new Date().toISOString(), status: 'completed', image: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?q=80&w=2070&auto=format&fit=crop' }
     ];
 
     setActiveCases(startData.filter(c => c.status === 'active'));
@@ -164,7 +178,8 @@ const Posts = () => {
       ...newCaseForm,
       amountCollected: 0,
       status: 'active',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop' // Default image for new cases
     };
     setActiveCases([newCase, ...activeCases]);
     setShowCreateModal(false);

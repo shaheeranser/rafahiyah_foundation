@@ -182,13 +182,11 @@ const ContactData = ({ contactData, currentPage, itemsPerPage }) => {
 const Contact = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [contactData, setContactData] = useState([]);
-  const [loading, setLoading] = useState(true);
   const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchContacts = async () => {
       try {
-        setLoading(true);
         const response = await axios.get('http://localhost:8000/api/contactus/getallcontact');
 
         let contactsArray = [];
@@ -215,8 +213,6 @@ const Contact = () => {
           { id: 1, firstName: 'Alice', lastName: 'Wonderland', email: 'alice@example.com', phone: '+1 (555) 123-4567', subject: 'Partnership Inquiry', message: 'Hello, I am interested in partnering with your foundation.', createdAt: new Date().toISOString() },
           { id: 2, firstName: 'Bob', lastName: 'Builder', email: 'bob@construction.com', phone: '+1 (555) 987-6543', subject: 'Volunteering Opportunities', message: 'Do you have any open spots for construction volunteers?', createdAt: new Date(Date.now() - 86400000).toISOString() }
         ]);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -267,17 +263,11 @@ const Contact = () => {
         </div>
 
         {/* Contact Table */}
-        {loading ? (
-          <div className="flex justify-center p-12">
-            <FontAwesomeIcon icon={faSpinner} spin className="text-gray-300 text-3xl" />
-          </div>
-        ) : (
-          <ContactData
-            contactData={contactData}
-            currentPage={currentPage}
-            itemsPerPage={itemsPerPage}
-          />
-        )}
+        <ContactData
+          contactData={contactData}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+        />
       </div>
     </AdminLayout>
   );

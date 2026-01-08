@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from "react-router-dom";
-import Swal from "sweetalert2";
+import Swal from 'sweetalert2';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
@@ -10,633 +9,457 @@ import {
   faTrash,
   faPen,
   faTimes,
-  faSpinner,
   faCalendarAlt,
-  
   faMapMarkerAlt,
   faClock,
   faUsers,
-  faBookOpen
+  faBookOpen,
+  faCheckCircle,
+  faLayerGroup,
+  faCalendarCheck
 } from "@fortawesome/free-solid-svg-icons";
 import AdminLayout from "../../layouts/AdminLayout";
-import { AuthToken } from '../../Api/Api';
 
-const ProgramsData = ({ programsData, currentPage, itemsPerPage, setProgramsData }) => {
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const programsToDisplay = programsData.slice(startIndex, endIndex);
+// --- Mock Data Providers ---
+const MOCK_EVENTS = [
+  { id: 101, title: 'Charity Gala Dinner', date: '2025-12-25' },
+  { id: 102, title: 'Community Cleanup', date: '2026-01-10' },
+  { id: 103, title: 'Winter Clothing Drive', date: '2024-11-15' },
+  { id: 104, title: 'Health Awareness Camp', date: '2026-02-20' },
+];
 
-  const [showParticipantsModal, setShowParticipantsModal] = useState(false);
-  const [participants, setParticipants] = useState([]);
-  const [participantsLoading, setParticipantsLoading] = useState(false);
-  const [selectedProgram, setSelectedProgram] = useState(null);
+const MOCK_CASES = [
+  { id: 201, title: 'Urgent Surgery for Child', caseNo: '1001' },
+  { id: 202, title: 'University Fees Support', caseNo: '1002' },
+  { id: 203, title: 'Widow Support Fund', caseNo: '1003' },
+  { id: 204, title: 'Emergency Ration Pack', caseNo: '1004' },
+];
 
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [viewProgram, setViewProgram] = useState(null);
-  const [viewLoading, setViewLoading] = useState(false);
+// --- Components ---
 
-  const handleDelete = async (programId) => {
-    const result = await Swal.fire({
-      icon: 'warning',
-      title: 'Delete Program?',
-      text: 'This action cannot be undone!',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Delete',
-      cancelButtonText: 'Cancel'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await axios.delete(`http://localhost:8000/api/programs/delete/${programId}`, {
-          headers: { 'Authorization': `Bearer ${AuthToken()}` }
-        });
-
-        const updatedPrograms = programsData.filter(program => program.id !== programId);
-        setProgramsData(updatedPrograms);
-        Swal.fire('Deleted!', 'The program has been deleted.', 'success');
-      } catch (error) {
-        Swal.fire('Error', 'Failed to delete program', 'error');
-        console.error('Delete error:', error);
-      }
-    }
-  };
-
-  const handleViewParticipants = async (programId) => {
-    setShowParticipantsModal(true);
-    setParticipantsLoading(true);
-    setSelectedProgram(programId);
-    try {
-      const response = await axios.get(`http://localhost:8000/api/programs/${programId}/participants`, {
-        headers: { 'Authorization': `Bearer ${AuthToken()}` }
-      });
-      setParticipants(response.data.participants || []);
-    } catch (error) {
-      setParticipants([]);
-    }
-    setParticipantsLoading(false);
-  };
-
-  const handleView = async (programId) => {
-    setShowViewModal(true);
-    setViewLoading(true);
-    try {
-      const response = await axios.get(`http://localhost:8000/api/programs/getprogram/${programId}`, {
-        headers: { 'Authorization': `Bearer ${AuthToken()}` }
-      });
-      setViewProgram(response.data.program || response.data);
-    } catch (error) {
-      setViewProgram(null);
-    }
-    setViewLoading(false);
-  };
-
-  const [deletingId, setDeletingId] = useState(null);
-  const handleDeleteParticipant = async (participantId) => {
-    if (!selectedProgram) return;
-    setDeletingId(participantId);
-    try {
-      await axios.delete(`http://localhost:8000/api/programs/${selectedProgram}/deleteparticipants`, {
-        data: { participantId },
-        headers: { 'Authorization': `Bearer ${AuthToken()}` }
-      });
-      setParticipants(prev => prev.filter(p => p._id !== participantId && p.id !== participantId));
-    } catch (error) {
-      alert('Failed to delete participant');
-    }
-    setDeletingId(null);
-  };
-
-  // CSV download helper
-  const downloadCSV = () => {
-    if (!participants || participants.length === 0) return;
-    const keys = Object.keys(participants[0]);
-    const csvRows = [
-      keys.join(','),
-      ...participants.map(row => keys.map(k => '"' + (row[k] ? String(row[k]).replace(/"/g, '""') : '') + '"').join(','))
-    ];
-    const csvContent = csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'program_participants.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
+// 1. Program Card
+const ProgramCard = ({ program, onView, onEdit, onDelete }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {programsToDisplay.map(program => (
-        <div key={program.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
-          <div className="relative h-48 overflow-hidden">
-            <img
-              className="w-full h-full object-cover"
-              src={program.image}
-              alt={program.name}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/default-program-image.jpg';
-              }}
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-              <h3 className="text-white font-semibold text-lg truncate">{program.name}</h3>
-              <p className="text-white/80 text-sm">{program.category}</p>
-              {program.companyName && (
-                <p className="text-white/60 text-xs mt-1">By: {program.companyName}</p>
-              )}
-            </div>
-          </div>
+    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col h-full border border-gray-100 relative">
+      <div className="relative h-56 overflow-hidden">
+        <img
+          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+          src={program.image}
+          alt={program.name}
+          onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop'; }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-5">
+          <h3 className="text-white font-bold text-2xl leading-tight mb-1 shadow-sm">{program.name}</h3>
+          <p className="text-white/90 text-sm font-medium flex items-center">
+            <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2 text-red-400" />
+            {program.venue || 'Multiple Locations'}
+          </p>
+        </div>
+        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-lg text-xs font-bold text-gray-800 flex flex-col items-center min-w-[60px]">
+          <span className="text-red-500 uppercase tracking-wider text-[10px]">Start</span>
+          <span className="text-lg">{new Date(program.startDate).getDate()}</span>
+          <span className="text-gray-500 uppercase">{new Date(program.startDate).toLocaleString('default', { month: 'short' })}</span>
+        </div>
+      </div>
 
-          <div className="p-4 flex flex-col flex-grow">
-            <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">
-              {program.description || 'No description available'}
-            </p>
-
-            <div className="mt-auto">
-              <div className="flex items-center text-sm text-gray-500 mb-2">
-                <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
-                {new Date(program.startDate).toLocaleDateString()} - {program.endDate ? new Date(program.endDate).toLocaleDateString() : 'Ongoing'}
-              </div>
-
-              <div className="flex items-center text-sm text-gray-500 mb-2">
-                <FontAwesomeIcon icon={faClock} className="mr-2" />
-                {program.schedule || 'Schedule varies'}
-              </div>
-
-              <div className="flex items-center text-sm text-gray-500 mb-4">
-                <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2" />
-                {program.location || 'Multiple locations'}
-              </div>
-
-              <div className="flex justify-between items-center border-t pt-3">
-                <span className={`px-3 py-1 text-xs rounded-full ${
-                  program.status === 'active' 
-                    ? 'bg-green-100 text-green-800' 
-                    : program.status === 'upcoming'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {program.status ? program.status.charAt(0).toUpperCase() + program.status.slice(1) : 'Inactive'}
-                </span>
-
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => handleView(program.id)}
-                    className="text-blue-500 hover:text-blue-700 transition-colors"
-                    title="View"
-                  >
-                    <FontAwesomeIcon icon={faEye} />
-                  </button>
-                  <Link
-                    to={`/Admin/Program/Update/${program.id}`}
-                    className="text-yellow-500 hover:text-yellow-700 transition-colors"
-                    title="Edit"
-                  >
-                    <FontAwesomeIcon icon={faPen} />
-                  </Link>
-                  <Link
-                    to={`/Admin/Program/Participants/${program.id}`}
-                    className="text-indigo-500 hover:text-indigo-700 transition-colors"
-                    title="Manage Participants"
-                  >
-                    <FontAwesomeIcon icon={faUsers} />
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(program.id)}
-                    className="text-red-500 hover:text-red-700 transition-colors"
-                    title="Delete"
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                </div>
-              </div>
-            </div>
+      <div className="p-6 flex flex-col flex-grow">
+        <div className="mb-4">
+          <div className="flex items-center text-sm text-gray-500 mb-2">
+            <FontAwesomeIcon icon={faCalendarAlt} className="w-4 mr-2 text-blue-500" />
+            <span className="font-medium">
+              {new Date(program.startDate).toLocaleDateString('en-GB')} - {program.endDate ? new Date(program.endDate).toLocaleDateString('en-GB') : 'Ongoing'}
+            </span>
           </div>
         </div>
-      ))}
 
-      {/* Participants Modal */}
-      {showParticipantsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
-          <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
-            {/* Header */}
-            <div className="flex justify-between items-start p-6 border-b">
-              <h2 className="text-xl font-bold">Program Participants</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={downloadCSV}
-                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs"
-                  disabled={!participants || participants.length === 0}
-                  title="Download as CSV"
-                >
-                  Download CSV
-                </button>
-                <button onClick={() => setShowParticipantsModal(false)} className="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
-              </div>
-            </div>
+        <p className="text-gray-600 mb-6 text-sm line-clamp-3 leading-relaxed flex-grow">
+          {program.description || 'No description available for this program.'}
+        </p>
 
-            {/* Content with Scroll */}
-            <div className="flex-1 overflow-hidden">
-              {participantsLoading ? (
-                <div className="flex justify-center items-center h-32">
-                  <FontAwesomeIcon icon={faSpinner} spin className="text-blue-500 text-xl" />
-                </div>
-              ) : participants.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No participants enrolled in this program yet.
-                </div>
-              ) : (
-                <div className="h-full overflow-auto">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50 sticky top-0 z-10">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Name</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Email</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Phone</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Enrollment Date</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {participants.map((p, idx) => (
-                          <tr key={p.id || p._id || idx} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{p.name}</td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{p.email || 'N/A'}</td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{p.phone || 'N/A'}</td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                              {p.enrollmentDate ? new Date(p.enrollmentDate).toLocaleDateString() : 'N/A'}
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
-                              <button
-                                onClick={() => handleDeleteParticipant(p._id || p.id)}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors"
-                                disabled={deletingId === (p._id || p.id)}
-                              >
-                                {deletingId === (p._id || p.id) ? 'Removing...' : 'Remove'}
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer with participant count */}
-            {participants.length > 0 && (
-              <div className="p-4 border-t bg-gray-50">
-                <p className="text-sm text-gray-600 text-center">
-                  Total Participants: <span className="font-semibold">{participants.length}</span>
-                </p>
-              </div>
-            )}
+        {/* Stats Row */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="bg-purple-50 rounded-lg p-2.5 flex items-center justify-center gap-2 border border-purple-100">
+            <FontAwesomeIcon icon={faCalendarCheck} className="text-purple-500" />
+            <span className="text-xs font-bold text-purple-700">{program.linkedEvents?.length || 0} Events</span>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-2.5 flex items-center justify-center gap-2 border border-orange-100">
+            <FontAwesomeIcon icon={faLayerGroup} className="text-orange-500" />
+            <span className="text-xs font-bold text-orange-700">{program.linkedCases?.length || 0} Cases</span>
           </div>
         </div>
-      )}
 
-      {/* View Program Modal */}
-      {showViewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl w-full relative">
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
-              onClick={() => setShowViewModal(false)}
-            >
-              &times;
+        <div className="flex justify-between items-center pt-4 border-t border-gray-100 mt-auto">
+          <span className={`px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1 ${program.status === 'active'
+              ? 'bg-green-100 text-green-700 border border-green-200'
+              : 'bg-gray-100 text-gray-700 border border-gray-200'
+            }`}>
+            <span className={`w-2 h-2 rounded-full ${program.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}`}></span>
+            {program.status ? program.status.toUpperCase() : 'INACTIVE'}
+          </span>
+
+          <div className="flex gap-2">
+            <button onClick={() => onView(program)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition-colors shadow-sm" title="View Details">
+              <FontAwesomeIcon icon={faEye} size="sm" />
             </button>
-            {viewLoading ? (
-              <div className="flex justify-center items-center h-32">
-                <FontAwesomeIcon icon={faSpinner} spin size="2x" className="text-blue-500" />
-              </div>
-            ) : viewProgram ? (
-              <div>
-                <h2 className="text-2xl font-bold mb-4 text-gray-800">{viewProgram.name || viewProgram.title}</h2>
-                <img
-                  src={viewProgram.image ? `http://localhost:8000/uploads/images/${viewProgram.image}` : '/default-program-image.jpg'}
-                  alt={viewProgram.name || viewProgram.title}
-                  className="h-48 w-full object-cover rounded mb-4"
-                  onError={e => { e.target.onerror = null; e.target.src = '/default-program-image.jpg'; }}
-                />
-                <p className="mb-2"><strong>Description:</strong> {viewProgram.description}</p>
-                <p className="mb-2"><strong>Category:</strong> {viewProgram.category || 'General Program'}</p>
-                <p className="mb-2"><strong>Start Date:</strong> {viewProgram.startDate ? new Date(viewProgram.startDate).toLocaleDateString() : 'N/A'}</p>
-                <p className="mb-2"><strong>End Date:</strong> {viewProgram.endDate ? new Date(viewProgram.endDate).toLocaleDateString() : 'Ongoing'}</p>
-                <p className="mb-2"><strong>Schedule:</strong> {viewProgram.schedule || 'Schedule varies'}</p>
-                <p className="mb-2"><strong>Location:</strong> {viewProgram.location || 'Multiple locations'}</p>
-                <p className="mb-2"><strong>Status:</strong> {viewProgram.status ? viewProgram.status.charAt(0).toUpperCase() + viewProgram.status.slice(1) : 'Inactive'}</p>
-              </div>
-            ) : (
-              <div className="text-center text-gray-500">Failed to load program details.</div>
-            )}
+            <button onClick={() => onEdit(program)} className="w-8 h-8 rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100 flex items-center justify-center transition-colors shadow-sm" title="Edit Program">
+              <FontAwesomeIcon icon={faPen} size="sm" />
+            </button>
+            <button onClick={() => onDelete(program.id)} className="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors shadow-sm" title="Delete Program">
+              <FontAwesomeIcon icon={faTrash} size="sm" />
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
+
 const Programs = () => {
-  const [currentPage, setCurrentPage] = useState(1);
+  // State
   const [programsData, setProgramsData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [sortOption, setSortOption] = useState("active");
-  const itemsPerPage = 8;
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedProgram, setSelectedProgram] = useState(null);
 
+  // Forms
+  const [programForm, setProgramForm] = useState({
+    name: '',
+    description: '',
+    venue: '',
+    startDate: '',
+    endDate: '',
+    status: 'active',
+    image: null,
+    selectedEventIds: [], // Array of IDs
+    selectedCaseIds: []   // Array of IDs
+  });
+
+  // Mock Data Init
   useEffect(() => {
-    const fetchPrograms = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Debug: Check if token exists
-        const token = AuthToken();
-        console.log('AuthToken value:', token);
-        console.log('Token type:', typeof token);
-        console.log('Token length:', token ? token.length : 0);
-
-        if (!token) {
-          throw new Error('No authentication token found. Please log in again.');
-        }
-
-        const response = await axios.get('http://localhost:8000/api/programs/admin/getallprograms', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (!response.data || !response.data.programs) {
-          throw new Error('No programs data received');
-        }
-
-        const transformedData = response.data.programs.map(program => ({
-          id: program._id,
-          name: program.title,
-          description: program.description,
-          category: program.category,
-          companyName: program.companyId ? program.companyId.name : 'Admin Created',
-          image: program.image
-            ? `http://localhost:8000/uploads/images/${program.image}`
-            : '/default-program-image.jpg',
-          startDate: program.startingDate,
-          endDate: program.endingDate,
-          schedule: program.schedule,
-          location: program.location,
-          status: program.status || 'active',
-          createdAt: program.createdAt || new Date().toISOString()
-        }));
-
-        setProgramsData(transformedData);
-      } catch (err) {
-        console.error('Fetch programs error:', err);
-        setError(err.message || 'Failed to load programs');
-        
-        // Fallback to mock data if API fails (for demo purposes)
-        const mockPrograms = [
-          {
-            id: 1,
-            name: 'Youth Leadership Program',
-            description: 'A comprehensive leadership development program for young adults',
-            category: 'Leadership',
-            image: '/default-program-image.jpg',
-            startDate: '2023-09-01',
-            endDate: '2023-12-15',
-            schedule: 'Every Saturday 10am-2pm',
-            location: 'Community Center',
-            status: 'active',
-            createdAt: '2023-06-15T10:00:00Z'
-          },
-          {
-            id: 2,
-            name: 'Coding Bootcamp',
-            description: 'Intensive 12-week web development training program',
-            category: 'Technology',
-            image: '/default-program-image.jpg',
-            startDate: '2023-10-01',
-            endDate: '2023-12-31',
-            schedule: 'Mon-Fri 9am-5pm',
-            location: 'Tech Hub',
-            status: 'upcoming',
-            createdAt: '2023-07-20T10:00:00Z'
-          },
-          {
-            id: 3,
-            name: 'Women Entrepreneurship',
-            description: 'Supporting women in starting and growing their businesses',
-            category: 'Business',
-            image: '/default-program-image.jpg',
-            startDate: '2023-01-15',
-            endDate: null,
-            schedule: 'Bi-weekly workshops',
-            location: 'Various locations',
-            status: 'active',
-            createdAt: '2022-11-10T10:00:00Z'
-          },
-        ];
-        setProgramsData(mockPrograms);
-      } finally {
-        setLoading(false);
+    const mockPrograms = [
+      {
+        id: 1,
+        name: 'Ramadan Charity Campaign',
+        description: 'A comprehensive month-long campaign to provide food, shelter, and medical aid to the needy during the holy month.',
+        venue: 'City Wide',
+        startDate: '2025-03-01',
+        endDate: '2025-03-30',
+        status: 'active',
+        image: 'https://images.unsplash.com/photo-1576487248805-cf45f6bcc67f?q=80&w=2148&auto=format&fit=crop',
+        linkedEvents: [101, 103],
+        linkedCases: [201, 203, 204]
+      },
+      {
+        id: 2,
+        name: 'Youth Education Initiative',
+        description: 'Empowering the next generation through scholarships, bootcamps, and mentorship programs.',
+        venue: 'Community Center',
+        startDate: '2025-06-01',
+        endDate: '2025-12-31',
+        status: 'upcoming',
+        image: 'https://images.unsplash.com/photo-1529390079861-591de354faf5?q=80&w=2070&auto=format&fit=crop',
+        linkedEvents: [102],
+        linkedCases: [202]
       }
-    };
-
-    fetchPrograms();
+    ];
+    setProgramsData(mockPrograms);
   }, []);
 
-  const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
+  // Handlers
+  const handleSearch = (e) => setSearchQuery(e.target.value);
+
+  const resetForm = () => {
+    setProgramForm({
+      name: '',
+      description: '',
+      venue: '',
+      startDate: '',
+      endDate: '',
+      status: 'active',
+      image: null,
+      selectedEventIds: [],
+      selectedCaseIds: []
+    });
   };
 
-  const clearSearch = () => {
-    setSearchQuery("");
+  const handleCreateOpen = () => {
+    resetForm();
+    setShowCreateModal(true);
   };
 
-  const handleSortChange = (e) => {
-    setSortOption(e.target.value);
+  const handleEditOpen = (program) => {
+    setSelectedProgram(program);
+    setProgramForm({
+      name: program.name,
+      description: program.description,
+      venue: program.venue,
+      startDate: program.startDate,
+      endDate: program.endDate || '',
+      status: program.status,
+      image: program.image,
+      selectedEventIds: program.linkedEvents || [],
+      selectedCaseIds: program.linkedCases || []
+    });
+    setShowEditModal(true);
   };
 
-  const sortPrograms = (programs) => {
-    const sorted = [...programs];
-    switch (sortOption) {
-      case "active":
-        return sorted.sort((a, b) => (a.status === 'active' && b.status !== 'active') ? -1 : 
-          (a.status !== 'active' && b.status === 'active') ? 1 : 0);
-      case "upcoming":
-        return sorted.sort((a, b) => (a.status === 'upcoming' && b.status !== 'upcoming') ? -1 : 
-          (a.status !== 'upcoming' && b.status === 'upcoming') ? 1 : 0);
-      case "newest":
-        return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      case "oldest":
-        return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-      case "name-asc":
-        return sorted.sort((a, b) => a.name.localeCompare(b.name));
-      case "name-desc":
-        return sorted.sort((a, b) => b.name.localeCompare(a.name));
-      case "company-asc":
-        return sorted.sort((a, b) => (a.companyName || '').localeCompare(b.companyName || ''));
-      case "company-desc":
-        return sorted.sort((a, b) => (b.companyName || '').localeCompare(a.companyName || ''));
-      default:
-        return sorted;
-    }
+  const handleViewOpen = (program) => {
+    setSelectedProgram(program);
+    setShowViewModal(true);
   };
 
-  const filteredPrograms = programsData.filter(program =>
-    program.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    program.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    program.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    program.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    program.companyName?.toLowerCase().includes(searchQuery.toLowerCase())
+  const handleDelete = (id) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setProgramsData(prev => prev.filter(p => p.id !== id));
+        Swal.fire('Deleted!', 'Program has been deleted.', 'success');
+      }
+    });
+  };
+
+  const handleCreateSubmit = (e) => {
+    e.preventDefault();
+    const newProgram = {
+      id: Date.now(),
+      ...programForm,
+      image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop', // Default/Placeholder
+      linkedEvents: programForm.selectedEventIds,
+      linkedCases: programForm.selectedCaseIds
+    };
+    setProgramsData([newProgram, ...programsData]);
+    setShowCreateModal(false);
+    Swal.fire('Success', 'Program created successfully', 'success');
+  };
+
+  const handleEditSubmit = (e) => {
+    e.preventDefault();
+    setProgramsData(prev => prev.map(p => p.id === selectedProgram.id ? {
+      ...p,
+      ...programForm,
+      linkedEvents: programForm.selectedEventIds,
+      linkedCases: programForm.selectedCaseIds
+    } : p));
+    setShowEditModal(false);
+    Swal.fire('Updated', 'Program updated successfully', 'success');
+  };
+
+  const toggleSelection = (id, field) => {
+    setProgramForm(prev => {
+      const list = prev[field];
+      if (list.includes(id)) {
+        return { ...prev, [field]: list.filter(item => item !== id) };
+      } else {
+        return { ...prev, [field]: [...list, id] };
+      }
+    });
+  };
+
+
+  const filteredPrograms = programsData.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.venue.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const sortedAndFilteredPrograms = sortPrograms(filteredPrograms);
-  const totalPages = Math.ceil(sortedAndFilteredPrograms.length / itemsPerPage);
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <h1 className="text-2xl font-bold text-gray-800">Manage Programs</h1>
-          <Link
-            to="/Admin/Program/New"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+      <div className="container mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-10">
+          <div>
+            <h1 className="text-3xl font-handwriting text-gray-800" style={{ fontFamily: '"Patrick Hand", cursive' }}>Program Management</h1>
+            <p className="text-gray-500 text-sm mt-1">Manage comprehensive programs, associated events, and cases.</p>
+          </div>
+          <button
+            onClick={handleCreateOpen}
+            className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center transition-colors shadow-lg shadow-gray-200"
           >
             <FontAwesomeIcon icon={faPlus} className="mr-2" />
-            New Program
-          </Link>
+            Create Program
+          </button>
         </div>
 
-        {/* Search and Filter */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-grow">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FontAwesomeIcon icon={faSearch} className="text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search programs..."
-                value={searchQuery}
-                onChange={handleSearch}
-                className="pl-10 pr-10 py-2 w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600"
-                >
-                  <FontAwesomeIcon icon={faTimes} className="text-gray-400" />
-                </button>
-              )}
-            </div>
-
-            <select
-              value={sortOption}
-              onChange={handleSortChange}
-              className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-            >
-              <option value="active">Active First</option>
-              <option value="upcoming">Upcoming First</option>
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="name-asc">Name (A-Z)</option>
-              <option value="name-desc">Name (Z-A)</option>
-              <option value="company-asc">Company (A-Z)</option>
-              <option value="company-desc">Company (Z-A)</option>
-            </select>
+        {/* Search */}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex gap-4">
+          <div className="relative flex-grow">
+            <FontAwesomeIcon icon={faSearch} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search programs by name or venue..."
+              value={searchQuery}
+              onChange={handleSearch}
+              className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            />
           </div>
         </div>
 
-        {/* Content */}
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <FontAwesomeIcon icon={faSpinner} spin size="2x" className="text-blue-500" />
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-            <div className="flex items-center text-red-700">
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span className="font-medium">Error: {error}</span>
-            </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-2 bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-sm"
-            >
-              Retry
-            </button>
-          </div>
-        ) : sortedAndFilteredPrograms.length === 0 ? (
-          <div className="bg-white p-8 rounded-lg shadow-sm border text-center">
-            <div className="text-gray-400 mb-4">
-              <FontAwesomeIcon icon={faBookOpen} className="text-4xl" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-700 mb-1">
-              {searchQuery ? 'No matching programs found' : 'No programs available'}
-            </h3>
-            <p className="text-gray-500 mb-4">
-              {searchQuery ? 'Try a different search term' : 'Create your first program to get started'}
-            </p>
-            {!searchQuery && (
-              <Link
-                to="/Admin/Program/New"
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm"
-              >
-                Create New Program
-              </Link>
-            )}
+        {/* Grid */}
+        {filteredPrograms.length === 0 ? (
+          <div className="text-center py-20 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+            <div className="text-gray-300 text-6xl mb-4"><FontAwesomeIcon icon={faBookOpen} /></div>
+            <h3 className="text-lg font-bold text-gray-600">No Programs Found</h3>
+            <p className="text-gray-400 text-sm mt-1">Try a different search term or create a new program.</p>
           </div>
         ) : (
-          <>
-            <ProgramsData
-              programsData={sortedAndFilteredPrograms}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
-              setProgramsData={setProgramsData}
-            />
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-8">
-                <nav className="flex items-center gap-1">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 border rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 border rounded-md ${currentPage === page ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 border rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </nav>
-              </div>
-            )}
-          </>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredPrograms.map(program => (
+              <ProgramCard
+                key={program.id}
+                program={program}
+                onView={handleViewOpen}
+                onEdit={handleEditOpen}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
         )}
+
       </div>
+
+      {/* --- MODALS --- */}
+
+      {/* 1. Create/Edit Logic reused via state content */}
+      {(showCreateModal || showEditModal) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fade-in-up my-4">
+            <div className="bg-gray-50 px-8 py-5 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-800">
+                {showCreateModal ? 'Create New Program' : 'Edit Program'}
+              </h3>
+              <button onClick={() => { setShowCreateModal(false); setShowEditModal(false); }} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <FontAwesomeIcon icon={faTimes} size="lg" />
+              </button>
+            </div>
+
+            <form onSubmit={showCreateModal ? handleCreateSubmit : handleEditSubmit} className="p-8 space-y-6">
+              {/* Name & Venue */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Program Name</label>
+                  <input type="text" className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Winter Relief" value={programForm.name} onChange={e => setProgramForm({ ...programForm, name: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Venue</label>
+                  <input type="text" className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. City Hall / Multiple" value={programForm.venue} onChange={e => setProgramForm({ ...programForm, venue: e.target.value })} required />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Description</label>
+                <textarea rows="3" className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Detailed description of the program..." value={programForm.description} onChange={e => setProgramForm({ ...programForm, description: e.target.value })} required></textarea>
+              </div>
+
+              {/* Dates */}
+              <div className="grid grid-cols-2 gap-6 bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <div>
+                  <label className="block text-xs font-bold text-blue-700 uppercase mb-1.5">Start Date</label>
+                  <input type="date" className="w-full border border-blue-200 rounded-lg p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none" value={programForm.startDate} onChange={e => setProgramForm({ ...programForm, startDate: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-blue-700 uppercase mb-1.5">End Date</label>
+                  <input type="date" className="w-full border border-blue-200 rounded-lg p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none" value={programForm.endDate} onChange={e => setProgramForm({ ...programForm, endDate: e.target.value })} />
+                </div>
+              </div>
+
+              {/* Linked Items Selection */}
+              <div className="grid grid-cols-2 gap-6">
+                {/* Events Selection */}
+                <div className="border border-gray-200 rounded-xl p-4">
+                  <label className="block text-xs font-bold text-purple-600 uppercase mb-3 flex items-center gap-2">
+                    <FontAwesomeIcon icon={faCalendarCheck} /> Link Events
+                  </label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                    {MOCK_EVENTS.map(ev => (
+                      <div key={ev.id}
+                        onClick={() => toggleSelection(ev.id, 'selectedEventIds')}
+                        className={`p-2 rounded-lg text-xs cursor-pointer border transition-all flex justify-between items-center ${programForm.selectedEventIds.includes(ev.id) ? 'bg-purple-100 border-purple-300 text-purple-900' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}
+                      >
+                        <div className="font-medium truncate pr-2">{ev.title}</div>
+                        {programForm.selectedEventIds.includes(ev.id) && <FontAwesomeIcon icon={faCheckCircle} />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Cases Selection */}
+                <div className="border border-gray-200 rounded-xl p-4">
+                  <label className="block text-xs font-bold text-orange-600 uppercase mb-3 flex items-center gap-2">
+                    <FontAwesomeIcon icon={faLayerGroup} /> Link Cases
+                  </label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                    {MOCK_CASES.map(c => (
+                      <div key={c.id}
+                        onClick={() => toggleSelection(c.id, 'selectedCaseIds')}
+                        className={`p-2 rounded-lg text-xs cursor-pointer border transition-all flex justify-between items-center ${programForm.selectedCaseIds.includes(c.id) ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}
+                      >
+                        <div className="font-medium truncate pr-2">{c.title}</div>
+                        {programForm.selectedCaseIds.includes(c.id) && <FontAwesomeIcon icon={faCheckCircle} />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button type="button" onClick={() => { setShowCreateModal(false); setShowEditModal(false); }} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-bold transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" className="flex-1 bg-gray-900 hover:bg-black text-white py-3 rounded-xl font-bold transition-colors shadow-lg shadow-gray-300">
+                  {showCreateModal ? 'Detailed Program Creation' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Modal */}
+      {showViewModal && selectedProgram && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-md p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
+            <div className="relative h-48">
+              <img src={selectedProgram.image} className="w-full h-full object-cover" alt="" />
+              <button onClick={() => setShowViewModal(false)} className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm transition-all">
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            </div>
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedProgram.name}</h2>
+              <p className="text-sm text-gray-500 font-medium mb-4 flex items-center gap-2">
+                <FontAwesomeIcon icon={faMapMarkerAlt} className="text-red-500" /> {selectedProgram.venue}
+                <span className="mx-2">|</span>
+                <FontAwesomeIcon icon={faCalendarAlt} className="text-blue-500" /> {new Date(selectedProgram.startDate).toLocaleDateString()}
+              </p>
+
+              <p className="text-gray-600 text-sm leading-relaxed mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                {selectedProgram.description}
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="border border-purple-100 bg-purple-50 rounded-xl p-3">
+                  <h4 className="text-xs font-bold text-purple-500 uppercase mb-2">Linked Events</h4>
+                  <div className="text-2xl font-bold text-purple-900">{selectedProgram.linkedEvents?.length || 0}</div>
+                </div>
+                <div className="border border-orange-100 bg-orange-50 rounded-xl p-3">
+                  <h4 className="text-xs font-bold text-orange-500 uppercase mb-2">Linked Cases</h4>
+                  <div className="text-2xl font-bold text-orange-900">{selectedProgram.linkedCases?.length || 0}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </AdminLayout>
   );
 };

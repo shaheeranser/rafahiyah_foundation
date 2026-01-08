@@ -32,7 +32,7 @@ const EventCard = ({ event, onView, onDelete }) => {
           onError={(e) => e.target.src = '/default-event.jpg'}
         />
         <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-md text-xs font-bold text-gray-800 shadow-sm">
-          {new Date(event.date).toLocaleDateString()}
+          {new Date(event.date).toLocaleDateString('en-GB')}
         </div>
       </div>
 
@@ -95,7 +95,7 @@ const CompletedTable = ({ events, onExport }) => {
                   <div className="font-bold text-gray-800 text-sm">{event.title}</div>
                 </td>
                 <td className="py-4 px-6 text-sm text-gray-600">
-                  {new Date(event.date).toLocaleDateString()}
+                  {new Date(event.date).toLocaleDateString('en-GB')}
                 </td>
                 <td className="py-4 px-6 text-sm text-gray-600">
                   {event.location}
