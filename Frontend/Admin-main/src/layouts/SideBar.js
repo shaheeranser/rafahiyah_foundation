@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Calendar,
@@ -8,11 +8,24 @@ import {
   Phone,
   ChevronLeft,
   ChevronRight,
-  HeartHandshake
+  HeartHandshake,
+  LogOut,
+  Settings
 } from "lucide-react";
 
 function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Clear auth data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    sessionStorage.clear();
+
+    // Redirect to login
+    navigate('/Login');
+  };
 
   const links = [
     { to: "/Admin/Dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -20,7 +33,8 @@ function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
     { to: "/Admin/Events", label: "Events", icon: Calendar },
     { to: "/Admin/Posts", label: "Cases", icon: HeartHandshake },
     { to: "/Admin/Team", label: "Volunteers", icon: Users },
-    { to: "/Admin/contact", label: "Contact Us", icon: Phone }
+    { to: "/Admin/contact", label: "Contact Us", icon: Phone },
+    { to: "/Admin/Settings", label: "Settings", icon: Settings }
   ];
 
   return (
@@ -108,10 +122,11 @@ function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
         })}
       </nav>
 
-      {/* Footer / User Profile (Optional) */}
-      <div className={`p-4 border-t border-[#6B2414]/50 ${isCollapsed ? 'flex justify-center' : ''}`}>
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full bg-gradient-to-tr from-[#E64833] to-[#FF8C66] flex items-center justify-center text-white font-bold shadow-md`}>
+      {/* Footer / User Profile & Logout */}
+      <div className={`p-4 border-t border-[#6B2414]/50 flex flex-col gap-4`}>
+        {/* Profile Info */}
+        <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center' : ''}`}>
+          <div className={`w-10 h-10 rounded-full bg-gradient-to-tr from-[#E64833] to-[#FF8C66] flex items-center justify-center text-white font-bold shadow-md shrink-0`}>
             A
           </div>
           {!isCollapsed && (
@@ -121,6 +136,22 @@ function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
             </div>
           )}
         </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className={`
+            flex items-center
+            ${isCollapsed ? 'justify-center' : 'justify-center w-full'}
+            py-2 rounded-lg
+            bg-red-500/10 text-red-200 hover:bg-red-500 hover:text-white
+            transition-colors duration-200 mt-2
+          `}
+          title="Logout"
+        >
+          <LogOut size={20} />
+          {!isCollapsed && <span className="ml-2 font-medium text-sm">Logout</span>}
+        </button>
       </div>
     </aside>
   );

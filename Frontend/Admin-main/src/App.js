@@ -35,6 +35,7 @@ import Jobs from "./Admin/Jobs/jobs.jsx";
 import AwarenessEnhanced from "./Admin/awareness/AwarenessEnhanced";
 
 import Donations from "./Admin/Donation/Donation.jsx";
+import Settings from "./Admin/Settings/Settings";
 
 
 
@@ -49,6 +50,7 @@ function App() {
 
         {/* Protected Admin Pages */}
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/Admin/Settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/Admin/Posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
         <Route path="/Admin/Post/New" element={<ProtectedRoute><Add /></ProtectedRoute>} />
         <Route path="/Admin/Posts/Update/:id" element={<ProtectedRoute><UpdatePost /></ProtectedRoute>} />
@@ -76,7 +78,7 @@ function App() {
         <Route path="/Admin/Podcast/New" element={<ProtectedRoute><AddPodcast /></ProtectedRoute>} />
         <Route path="/Admin/Podcast/Update/:id" element={<ProtectedRoute><UpdatePodcast /></ProtectedRoute>} />
         <Route path="/Admin/Awareness" element={<ProtectedRoute><AwarenessEnhanced /></ProtectedRoute>} />
-        
+
         {/* Participant Management Routes */}
         <Route path="/Admin/Event/Participants/:eventId" element={<ProtectedRoute><EventParticipants /></ProtectedRoute>} />
         <Route path="/Admin/Program/Participants/:programId" element={<ProtectedRoute><ProgramParticipants /></ProtectedRoute>} />

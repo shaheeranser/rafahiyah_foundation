@@ -1,10 +1,21 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-// Replace this with your actual authentication logic
+// Check if user is authenticated and has admin role
 const isAuthenticated = () => {
-  // Authentication disabled for now
-  return true; 
+  const token = localStorage.getItem('authToken');
+  const userDataString = localStorage.getItem('userData');
+
+  if (!token || !userDataString) {
+    return false;
+  }
+
+  try {
+    const userData = JSON.parse(userDataString);
+    return userData.role === 'admin';
+  } catch (e) {
+    return false;
+  }
 };
 
 const ProtectedRoute = ({ children }) => {
@@ -14,4 +25,4 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-export default ProtectedRoute; 
+export default ProtectedRoute;

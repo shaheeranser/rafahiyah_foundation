@@ -1,50 +1,36 @@
 import mongoose from 'mongoose';
-import User from './models/userModel.js';
-import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
+import connectDB from './config/db.js';
+import User from './models/userModel.js';
 
 dotenv.config();
 
-const createAdminUser = async () => {
-  try {
-    // Connect to MongoDB
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('Connected to MongoDB');
+connectDB();
 
-    // Check if admin already exists
-    const existingAdmin = await User.findOne({ role: 'admin' });
-    
-    if (existingAdmin) {
-      console.log('Admin user already exists:', existingAdmin.email);
-      return;
+const createAdmin = async () => {
+    try {
+        const userExists = await User.findOne({ username: 'admin' });
+
+        if (userExists) {
+            console.log('Admin user already exists');
+            process.exit();
+        }
+
+        const user = await User.create({
+            username: 'admin',
+            password: 'admin', // Will be hashed by pre-save middleware
+            role: 'admin',
+        });
+
+        console.log('Admin user created successfully');
+        console.log(`Username: ${user.username}`);
+        console.log('Password: admin (hashed)');
+
+        process.exit();
+    } catch (error) {
+        console.error(`Error: ${error.message}`);
+        process.exit(1);
     }
-
-    // Create admin user
-    const hashedPassword = await bcrypt.hash('admin123', 10);
-    
-    const adminUser = new User({
-      name: 'Admin User',
-      email: 'admin@example.com',
-      password: hashedPassword,
-      role: 'admin',
-      phone: '+1234567890',
-      address: 'Admin Address',
-      isApproved: true,
-      approvalStatus: 'approved'
-    });
-
-    await adminUser.save();
-    console.log('Admin user created successfully!');
-    console.log('Email: admin@example.com');
-    console.log('Password: admin123');
-    console.log('Please change the password after first login.');
-
-  } catch (error) {
-    console.error('Error creating admin user:', error);
-  } finally {
-    await mongoose.disconnect();
-    console.log('Disconnected from MongoDB');
-  }
 };
 
-createAdminUser(); 
+createAdmin();

@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -16,55 +16,47 @@ function Login() {
 
     try {
       const response = await axios.post("http://localhost:8000/api/users/login", {
-        email,
+        username,
         password,
       });
 
-      // Debug: log the full response data
       console.log('Login response data:', response.data);
 
-      // Check if response contains required data
       if (!response.data || !response.data.token) {
         throw new Error("Invalid response from server");
       }
 
-      // Prepare user data safely
       const userData = {
-        email: response.data.email || email, // Fallback to form email if not in response
-        role: response.data.role || 'member', // Default role if not provided
-        ...(response.data.user || {}) // Spread any additional user data if exists
+        username: response.data.user?.username || username,
+        role: response.data.user?.role || 'member',
+        id: response.data.user?.id
       };
 
-      // Only allow admin role
       if (userData.role !== 'admin') {
         setError('Access denied: Only admin can log in.');
         setIsLoading(false);
         return;
       }
 
-      // Store the token and user data in localStorage
       localStorage.setItem('authToken', response.data.token);
       localStorage.setItem('userData', JSON.stringify(userData));
 
-      // Redirect to home page
       navigate('/');
 
       console.log("Login successful:", response.data);
     } catch (error) {
       console.error("Login error:", error);
-      
+
       let errorMessage = "Login failed. Please check your credentials and try again.";
-      
+
       if (error.response) {
-        // Server responded with error status
-        errorMessage = error.response.data.message || 
-                      error.response.data.error || 
-                      errorMessage;
+        errorMessage = error.response.data.msg ||
+          error.response.data.message ||
+          error.response.data.error ||
+          errorMessage;
       } else if (error.request) {
-        // Request was made but no response received
         errorMessage = "No response from server. Please try again later.";
       } else if (error.message) {
-        // Something happened in setting up the request
         errorMessage = error.message;
       }
 
@@ -77,20 +69,20 @@ function Login() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-6 bg-white rounded shadow-md" style={{ marginTop: "-50px" }}>
-        <h2 className="text-2xl font-semibold mb-4">Login</h2>
+        <h2 className="text-2xl font-semibold mb-4">Admin Login</h2>
 
         <form onSubmit={handleLogin}>
           <div className="mb-4">
-            <label htmlFor="email" className="block font-medium text-gray-700">
-              Email
+            <label htmlFor="username" className="block font-medium text-gray-700">
+              Username
             </label>
             <input
-              type="email"
-              name="email"
-              id="email"
+              type="text"
+              name="username"
+              id="username"
               className="mt-1 p-2 border rounded w-full"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
@@ -113,7 +105,7 @@ function Login() {
           {error && <p className="text-red-500 mb-4">{error}</p>}
 
           <div className="text-center">
-            <button 
+            <button
               className={`w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               type="submit"
               disabled={isLoading}

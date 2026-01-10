@@ -34,11 +34,11 @@ export interface Program {
 export interface Job {
   _id: string;
   position: string;
-  jobLink:string;
-  location:string;
+  jobLink: string;
+  location: string;
   description: string;
   workMode: string;
-  postedAt:String
+  postedAt: String
 
   companyName: string;
   companyEmail: string;
@@ -49,8 +49,8 @@ export interface Donation {
   amount: number;
   date: string;
   method: string;
- receiptUrl: string;
- approved: boolean;
+  receiptUrl: string;
+  approved: boolean;
 }
 export interface JobType {
   id: string;
@@ -73,7 +73,7 @@ export interface UserData {
 // API Types
 export interface ApiResponse<T = any> {
   success: boolean;
-  data: T;
+  data: T | ApiErrorResponse;
   status: number;
   error?: string;
 }
@@ -90,4 +90,4 @@ export interface ApiCallOptions {
   requiresAuth?: boolean;
 }
 
-export type TabType = 'dashboard' | 'profile' | 'courses' |'events' | 'programs' | 'donations' | 'jobs' | 'jobType';
+export type TabType = 'dashboard' | 'profile' | 'courses' | 'events' | 'programs' | 'donations' | 'jobs' | 'jobType';

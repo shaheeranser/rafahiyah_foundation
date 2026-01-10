@@ -1,26 +1,48 @@
 import mongoose from 'mongoose';
 
-const jobSchema = new mongoose.Schema({
-  position: { type: String, required: true },
-  jobLink: { type: String, required: true },
-  description: { type: String, required: true },
-  location: {type:String, required:true},
-  workMode: {
-    type: String,
-    enum: ['Remote', 'On-site', 'Hybrid'],
-    default: 'onsite'
-  },
-  postedAt: { type: Date, default: Date.now },
-
-  // Reference to company
-  company: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-
-  companyName: { type: String },
-  companyEmail: { type: String }
+const jobSchema = mongoose.Schema({
+    position: {
+        type: String,
+        required: true,
+    },
+    company: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    companyName: {
+        type: String,
+        required: true,
+    },
+    companyEmail: {
+        type: String,
+        required: true,
+    },
+    jobLink: {
+        type: String,
+        required: true,
+    },
+    description: {
+        type: String,
+        required: true,
+    },
+    location: {
+        type: String,
+        required: true,
+    },
+    workMode: {
+        type: String,
+        enum: ['onsite', 'remote', 'hybrid'],
+        required: true,
+    },
+    postedAt: {
+        type: Date,
+        default: Date.now,
+    },
+}, {
+    timestamps: true,
 });
 
-export default mongoose.model('Job', jobSchema);
+const Job = mongoose.model('Job', jobSchema);
+
+export default Job;

@@ -14,9 +14,59 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { apiCall } from "@/api/apiCall";
+import toast from "react-hot-toast";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 const Contact = () => {
   const { hash } = useLocation();
+
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    contactNumber: "",
+    subject: "",
+    message: ""
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await apiCall({
+        url: `${API_BASE_URL}/messages`,
+        method: 'POST',
+        data: formData
+      });
+
+      if (response.success) {
+        toast.success("Message sent successfully!");
+        setFormData({
+          fullName: "",
+          email: "",
+          contactNumber: "",
+          subject: "",
+          message: ""
+        });
+      } else {
+        const errorMessage = response.data?.message || response.data?.msg || "Failed to send message";
+        toast.error(errorMessage);
+        console.error("Contact Form Error:", response);
+      }
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     if (hash) {
@@ -109,20 +159,53 @@ const Contact = () => {
 
             {/* Right side form */}
             <div className="bg-gradient-to-b from-[#252E4C] via-[#384B8A] to-[#252E4C] p-10 rounded-[2.5rem] shadow-2xl min-h-[700px]">
-              <form className="space-y-6">
-                <Input placeholder="Full Name" className="h-14 rounded-xl border-none bg-white text-black placeholder:text-gray-400" />
-                <Input placeholder="Email Address" type="email" className="h-14 rounded-xl border-none bg-white text-black placeholder:text-gray-400" />
-                <Input placeholder="Contact Number" className="h-14 rounded-xl border-none bg-white text-black placeholder:text-gray-400" />
-                <Input placeholder="Subject" className="h-14 rounded-xl border-none bg-white text-black placeholder:text-gray-400" />
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                <Input
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="Full Name"
+                  className="h-14 rounded-xl border-none bg-white text-black placeholder:text-gray-400"
+                  required
+                />
+                <Input
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Email Address"
+                  type="email"
+                  className="h-14 rounded-xl border-none bg-white text-black placeholder:text-gray-400"
+                  required
+                />
+                <Input
+                  name="contactNumber"
+                  value={formData.contactNumber}
+                  onChange={handleChange}
+                  placeholder="Contact Number"
+                  className="h-14 rounded-xl border-none bg-white text-black placeholder:text-gray-400"
+                  required
+                />
+                <Input
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  placeholder="Subject"
+                  className="h-14 rounded-xl border-none bg-white text-black placeholder:text-gray-400"
+                  required
+                />
                 <div className="relative">
                   <Textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
                     placeholder="Message"
                     className="min-h-[180px] rounded-xl border-none bg-white text-black placeholder:text-gray-400 resize-none pt-4"
+                    required
                   />
-                  <span className="absolute bottom-4 right-4 text-[10px] text-gray-400">0/150</span>
+                  <span className="absolute bottom-4 right-4 text-[10px] text-gray-400">{formData.message.length}/150</span>
                 </div>
-                <Button className="w-full h-14 rounded-xl bg-white hover:bg-gray-100 hover:text-rafahiyah-dark-blue text-rafahiyah-dark-blue text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg">
-                  Send Message
+                <Button disabled={loading} className="w-full h-14 rounded-xl bg-white hover:bg-gray-100 hover:text-rafahiyah-dark-blue text-rafahiyah-dark-blue text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg">
+                  {loading ? "Sending..." : "Send Message"}
                 </Button>
               </form>
             </div>
