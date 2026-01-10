@@ -16,6 +16,7 @@ import contactUsRoute from './routes/contactUsRoute.js';
 import messageRoutes from './routes/messageRoutes.js';
 import jobRoutes from './routes/jobRoute.js';
 import volunteerRoutes from './routes/volunteerRoutes.js';
+import caseRoutes from './routes/caseRoutes.js';
 
 import fs from 'fs';
 
@@ -46,6 +47,7 @@ app.use('/api/uploads', express.static('uploads'));
 
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoute);
+app.use('/api/cases', caseRoutes);
 // app.use('/api/blogs', blogRoute);
 // app.use('/api/teams', teamRoute);
 // app.use('/api/programs', programRoute);
