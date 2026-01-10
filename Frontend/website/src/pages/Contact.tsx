@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PhoneCall, MessageSquare, Users, Heart, Coins, Sparkles, Handshake, User } from "lucide-react";
+import { PhoneCall, MessageSquare, Users, Heart, Coins, Sparkles, Handshake, User, Paperclip, Upload } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -29,10 +29,41 @@ const Contact = () => {
     subject: "",
     message: ""
   });
+  const [joinData, setJoinData] = useState({
+    fullName: "",
+    contactNumber: "",
+    age: "",
+    city: "",
+    occupation: "",
+    team: "",
+    eventName: ""
+  });
+  const [isAgreed, setIsAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Donation States
+  const [donationData, setDonationData] = useState({
+    fullName: "",
+    email: "",
+    contactNumber: "",
+    cause: "",
+    paymentMethod: "",
+  });
+  const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [donationLoading, setDonationLoading] = useState(false);
+
+  const location = useLocation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleJoinChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setJoinData({ ...joinData, [e.target.name]: e.target.value });
+  };
+
+  const handleJoinSelectChange = (name: string, value: string) => {
+    setJoinData({ ...joinData, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,7 +72,7 @@ const Contact = () => {
 
     try {
       const response = await apiCall({
-        url: `${API_BASE_URL}/messages`,
+        url: `${API_BASE_URL}/contactus/addcontact`,
         method: 'POST',
         data: formData
       });
@@ -67,6 +98,109 @@ const Contact = () => {
     }
   };
 
+  const handleJoinSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isAgreed) {
+      toast.error("Please agree to the terms and conditions");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await apiCall({
+        url: `${API_BASE_URL}/volunteers`,
+        method: 'POST',
+        data: joinData
+      });
+
+      if (response.success) {
+        toast.success("Join Request Sent Successfully!");
+        setJoinData({
+          fullName: "",
+          contactNumber: "",
+          age: "",
+          city: "",
+          occupation: "",
+          team: "",
+          eventName: ""
+        });
+      } else {
+        const errorMessage = response.data?.message || response.data?.msg || "Failed to submit request";
+        toast.error(errorMessage);
+        console.error("Join Form Error:", response);
+      }
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Donation Handlers
+  const handleDonationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDonationData({ ...donationData, [e.target.name]: e.target.value });
+  };
+
+  const handleDonationSelectChange = (name: string, value: string) => {
+    setDonationData({ ...donationData, [name]: value });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setPaymentProof(e.target.files[0]);
+    }
+  };
+
+  const handleDonationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDonationLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("fullName", donationData.fullName);
+      formData.append("email", donationData.email);
+      formData.append("contactNumber", donationData.contactNumber);
+      formData.append("cause", donationData.cause);
+      formData.append("paymentMethod", donationData.paymentMethod);
+      if (paymentProof) {
+        formData.append("receipt", paymentProof);
+      } else {
+        toast.error("Please upload a payment screenshot/receipt");
+        setDonationLoading(false);
+        return;
+      }
+
+      const response = await apiCall({
+        url: `${API_BASE_URL}/donations`,
+        method: 'POST',
+        data: formData
+      });
+
+      if (response.success) {
+        toast.success("Donation submitted successfully! We will verify it shortly.");
+        setDonationData({
+          fullName: "",
+          email: "",
+          contactNumber: "",
+          cause: "",
+          paymentMethod: "",
+        });
+        setPaymentProof(null);
+      } else {
+        const errorMessage = response.data?.message || response.data?.msg || "Failed to submit donation";
+        console.error("Donation Error Response:", response);
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      console.error("Donation Submit Error:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setDonationLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     if (hash) {
@@ -76,10 +210,27 @@ const Contact = () => {
           element.scrollIntoView({ behavior: "smooth" });
         }, 100);
       }
+    } else if (location.state?.section) {
+      // Handle navigation state
+      const { section, role, eventName } = location.state;
+      if (section === 'join-us') {
+        const element = document.getElementById('join-us');
+        if (element) {
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: "smooth" });
+          }, 100);
+        }
+
+        setJoinData(prev => ({
+          ...prev,
+          team: role || "",
+          eventName: eventName || ""
+        }));
+      }
     } else {
       window.scrollTo(0, 0);
     }
-  }, [hash]);
+  }, [hash, location.state]);
 
   return (
     <div className="min-h-screen font-sans bg-white">
@@ -219,12 +370,36 @@ const Contact = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             {/* Left side form */}
             <div className="bg-gradient-to-b from-[#85291A] via-[#45120A] to-[#85291A] p-10 rounded-[2.5rem] shadow-2xl min-h-[700px]">
-              <form className="space-y-4">
-                <Input placeholder="Full Name" className="h-12 rounded-xl border-none bg-white" />
-                <Input placeholder="Contact Number" className="h-12 rounded-xl border-none bg-white" />
-                <Input placeholder="Age" className="h-12 rounded-xl border-none bg-white" />
-                <Input placeholder="City" className="h-12 rounded-xl border-none bg-white" />
-                <Select>
+              <form className="space-y-4" onSubmit={handleJoinSubmit}>
+                <Input
+                  name="fullName"
+                  value={joinData.fullName}
+                  onChange={handleJoinChange}
+                  placeholder="Full Name"
+                  className="h-12 rounded-xl border-none bg-white"
+                />
+                <Input
+                  name="contactNumber"
+                  value={joinData.contactNumber}
+                  onChange={handleJoinChange}
+                  placeholder="Contact Number"
+                  className="h-12 rounded-xl border-none bg-white"
+                />
+                <Input
+                  name="age"
+                  value={joinData.age}
+                  onChange={handleJoinChange}
+                  placeholder="Age"
+                  className="h-12 rounded-xl border-none bg-white"
+                />
+                <Input
+                  name="city"
+                  value={joinData.city}
+                  onChange={handleJoinChange}
+                  placeholder="City"
+                  className="h-12 rounded-xl border-none bg-white"
+                />
+                <Select name="occupation" onValueChange={(val) => handleJoinSelectChange("occupation", val)} value={joinData.occupation}>
                   <SelectTrigger className="h-12 rounded-xl border-none bg-white">
                     <SelectValue placeholder="Select Your Occupation" />
                   </SelectTrigger>
@@ -236,7 +411,7 @@ const Contact = () => {
                     <SelectItem value="other">Other...</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select>
+                <Select name="team" onValueChange={(val) => handleJoinSelectChange("team", val)} value={joinData.team}>
                   <SelectTrigger className="h-12 rounded-xl border-none bg-white">
                     <SelectValue placeholder="Select The Team You Want To Join" />
                   </SelectTrigger>
@@ -248,8 +423,22 @@ const Contact = () => {
                     <SelectItem value="onsite_volunteer">Onsite Volunteer</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* Event Name - Pre-filled or Manual Entry */}
+                <Input
+                  name="eventName"
+                  value={joinData.eventName}
+                  onChange={handleJoinChange}
+                  placeholder="Event/Program Name (if applicable)"
+                  className="h-12 rounded-xl border-none bg-white"
+                />
+
                 <div className="flex items-start gap-3 pt-2">
-                  <Checkbox className="mt-1 border-white data-[state=checked]:bg-white data-[state=checked]:text-[#8B2D1B]" />
+                  <Checkbox
+                    checked={isAgreed}
+                    onCheckedChange={(checked) => setIsAgreed(checked as boolean)}
+                    className="mt-1 border-white data-[state=checked]:bg-white data-[state=checked]:text-[#8B2D1B]"
+                  />
                   <p className="text-[9px] text-white/80 leading-snug">
                     By submitting this form, I acknowledge and agree to volunteer my time and services without any financial benefit. I understand that this is a voluntary role and does not constitute employment.
                   </p>
@@ -437,22 +626,111 @@ const Contact = () => {
 
             {/* Right side form */}
             <div className="bg-gradient-to-b from-[#806306] via-[#E6B10A] to-[#806306] p-10 rounded-[2.5rem] shadow-2xl min-h-[700px]">
-              <form className="space-y-6">
-                <Input placeholder="Full Name" className="h-14 rounded-xl border-none bg-white" />
-                <Input placeholder="Email Address" type="email" className="h-14 rounded-xl border-none bg-white" />
-                <Input placeholder="Contact Number" className="h-14 rounded-xl border-none bg-white" />
-                <Select>
-                  <SelectTrigger className="h-14 rounded-xl border-none bg-white">
+              <form className="space-y-6" onSubmit={handleDonationSubmit}>
+                <Input
+                  name="fullName"
+                  value={donationData.fullName}
+                  onChange={handleDonationChange}
+                  placeholder="Full Name"
+                  className="h-14 rounded-xl border-none bg-white font-sans text-gray-800"
+                  required
+                />
+                <Input
+                  name="email"
+                  value={donationData.email}
+                  onChange={handleDonationChange}
+                  placeholder="Email Address"
+                  type="email"
+                  className="h-14 rounded-xl border-none bg-white font-sans text-gray-800"
+                  required
+                />
+                <Input
+                  name="contactNumber"
+                  value={donationData.contactNumber}
+                  onChange={handleDonationChange}
+                  placeholder="Contact Number"
+                  className="h-14 rounded-xl border-none bg-white font-sans text-gray-800"
+                  required
+                />
+                <Select
+                  name="cause"
+                  value={donationData.cause}
+                  onValueChange={(val) => handleDonationSelectChange("cause", val)}
+                >
+                  <SelectTrigger className="h-14 rounded-xl border-none bg-white font-sans text-gray-500">
                     <SelectValue placeholder="Select A Cause To Donate" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="education">Education</SelectItem>
                     <SelectItem value="healthcare">Healthcare</SelectItem>
                     <SelectItem value="food">Food Security</SelectItem>
+                    <SelectItem value="general">General Donation</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button className="w-full h-14 rounded-xl bg-white hover:bg-gray-100 hover:text-[#806306] text-[#806306] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg">
-                  Donate Now
+
+                {/* Payment Method Selection */}
+                <Select
+                  name="paymentMethod"
+                  value={donationData.paymentMethod}
+                  onValueChange={(val) => handleDonationSelectChange("paymentMethod", val)}
+                >
+                  <SelectTrigger className="h-14 rounded-xl border-none bg-white font-sans text-gray-500">
+                    <SelectValue placeholder="Select Payment Method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Easypaisa">Easypaisa</SelectItem>
+                    <SelectItem value="JazzCash">JazzCash</SelectItem>
+                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Account Details Display */}
+                {donationData.paymentMethod && (
+                  <div className="bg-white/20 p-4 rounded-xl border border-white/30 text-white backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                    <p className="text-sm font-semibold mb-1 opacity-90">Please transfer funds to:</p>
+                    {donationData.paymentMethod === "Easypaisa" && (
+                      <div className="font-mono text-lg">
+                        <p>0300-1234567</p>
+                        <p className="text-xs opacity-75">Title: Rafahiyah</p>
+                      </div>
+                    )}
+                    {donationData.paymentMethod === "JazzCash" && (
+                      <div className="font-mono text-lg">
+                        <p>0301-7654321</p>
+                        <p className="text-xs opacity-75">Title: Rafahiyah</p>
+                      </div>
+                    )}
+                    {donationData.paymentMethod === "Bank Transfer" && (
+                      <div className="font-mono text-md">
+                        <p>HBL 1234 5678 9012 3456</p>
+                        <p className="text-xs opacity-75">Title: Rafahiyah Foundation</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Screenshot Upload */}
+                <div className="relative">
+                  <Input
+                    type="file"
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
+                    id="screenshot-upload"
+                  />
+                  <label
+                    htmlFor="screenshot-upload"
+                    className="flex items-center justify-between w-full h-14 px-4 bg-white rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    <span className={`text-sm ${paymentProof ? 'text-green-600 font-semibold truncate' : 'text-gray-400'}`}>
+                      {paymentProof ? paymentProof.name : "Upload Payment Screenshot"}
+                    </span>
+                    <Upload className="w-5 h-5 text-gray-400" />
+                  </label>
+                </div>
+
+                <Button disabled={donationLoading} className="w-full h-14 rounded-xl bg-white hover:bg-gray-100 hover:text-[#806306] text-[#806306] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg mt-4">
+                  {donationLoading ? "Processing..." : "Donate Now"}
                 </Button>
               </form>
             </div>

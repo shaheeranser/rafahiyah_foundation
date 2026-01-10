@@ -3,14 +3,14 @@ import ContactUs from '../models/contactUsModel.js';
 // Add a new contact message
 export const addContactMessage = async (req, res) => {
   try {
-    const { subject, firstName, lastName, email, message } = req.body;
+    const { subject, fullName, email, message, contactNumber } = req.body;
 
     const contact = await ContactUs.create({
       subject,
-      firstName,
-      lastName,
+      fullName,
       email,
-      message
+      message,
+      contactNumber
     });
 
     res.status(201).json({

@@ -1,91 +1,108 @@
 import Donation from '../models/donationModel.js';
 import User from '../models/userModel.js';
 
+// @desc    Create a new donation (Public or Authenticated)
+// @route   POST /api/donations
+// @access  Public
 export const createDonation = async (req, res) => {
-    console.log("req hit cd")
-    try {
-        const { userId } = req.body;
-        console.log(userId)
-        const { amount, date, method, campaign } = req.body;
-        const receiptUrl = req.file?.path; // if using multer
+  try {
+    const { fullName, email, contactNumber, cause, paymentMethod, amount, userId } = req.body;
+    const paymentProof = req.file ? req.file.path : null;
 
-        if (!receiptUrl) {
-            return res.status(400).json({ msg: "Receipt file is required" });
-        }
-
-        const donation = await Donation.create({
-            amount,
-            date,
-            method,
-            campaign,
-            receiptUrl,
-            user: userId,
-        });
-
-        await User.findByIdAndUpdate(userId, {
-            $push: { donations: donation._id },
-        });
-
-        res.status(201).json({ msg: 'Donation created', donation });
-    } catch (err) {
-        res.status(500).json({ msg: err.message });
+    // Basic validation for public form
+    if (!fullName || !email || !contactNumber || !cause || !paymentMethod) {
+      return res.status(400).json({ message: 'Please fill in all required fields' });
     }
+
+    const donationData = {
+      fullName,
+      email,
+      contactNumber,
+      cause,
+      paymentMethod,
+      amount,
+      paymentProof,
+      user: userId || undefined // Link user if provided
+    };
+
+    const newDonation = await Donation.create(donationData);
+
+    // If user is linked, update their donation history
+    if (userId) {
+      const user = await User.findById(userId);
+      if (user) {
+        user.donations.push(newDonation._id);
+        await user.save();
+      }
+    }
+
+    res.status(201).json({
+      success: true,
+      data: newDonation,
+      message: "Donation submitted successfully"
+    });
+
+  } catch (error) {
+    console.error("Create Donation Error:", error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 };
 
+// @desc    Get all donations (Admin)
+// @route   GET /api/donations/all
+// @access  Private/Admin
 export const getAllDonations = async (req, res) => {
-   console.log("get all donations")
-    const donations = await Donation.find().populate('user', 'name email');
+  try {
+    const donations = await Donation.find().populate('user', 'name email').sort({ createdAt: -1 });
     res.json(donations);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
 };
 
+// @desc    Get user donations
+// @route   GET /api/donations/user
+// @access  Private
 export const getUserDonations = async (req, res) => {
   try {
-    console.log("getUserDonations request hit");
-
     const { userId } = req.body;
-
-    // Input validation
     if (!userId) {
       return res.status(400).json({ success: false, msg: "User ID is required" });
     }
-
-    // Only fetch approved donations for the user
-    const donations = await Donation.find({ user: userId, approved: true });
-
-    if (!donations || donations.length === 0) {
-      console.log("No approved donations found");
-      return res.status(404).json({ success: false, msg: "No approved donations found for this user" });
-    }
-
-    console.log("Approved donations found:", donations);
-    return res.status(200).json({ success: true, data: donations });
-
+    const donations = await Donation.find({ user: userId });
+    res.status(200).json({ success: true, data: donations });
   } catch (error) {
-    console.error("Error fetching user donations:", error);
-    return res.status(500).json({ success: false, msg: "Internal server error" });
+    res.status(500).json({ success: false, msg: "Internal server error" });
   }
 };
 
 export const getDonationById = async (req, res) => {
+  try {
     const donation = await Donation.findById(req.params.id).populate('user', 'name');
     if (!donation) return res.status(404).json({ msg: 'Donation not found' });
     res.json(donation);
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
 };
 
 export const approveDonation = async (req, res) => {
+  try {
     const donation = await Donation.findByIdAndUpdate(req.params.id, {
-        approved: true,
+      status: 'Verified',
+      // approved: true // Keeping backward compatibility if needed, but switching to 'status' as per new model
     }, { new: true });
 
     if (!donation) return res.status(404).json({ msg: 'Donation not found' });
-
     res.json({ msg: 'Donation approved', donation });
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
 };
-
 
 export const getUnapprovedDonations = async (req, res) => {
   try {
-    const unapprovedDonations = await Donation.find({ approved: false }).populate('user', 'name email');
+    const unapprovedDonations = await Donation.find({ status: 'Pending' }).populate('user', 'name email');
     res.status(200).json(unapprovedDonations);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch unapproved donations', error });
@@ -95,15 +112,11 @@ export const getUnapprovedDonations = async (req, res) => {
 export const rejectDonation = async (req, res) => {
   try {
     const donation = await Donation.findById(req.params.id);
-
     if (!donation) {
       return res.status(404).json({ message: 'Donation not found' });
     }
-
-    donation.rejected = true;
-    donation.approved = false; // Make sure it's not approved
+    donation.status = 'Rejected';
     await donation.save();
-
     res.status(200).json({ message: 'Donation rejected successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Failed to reject donation', error });

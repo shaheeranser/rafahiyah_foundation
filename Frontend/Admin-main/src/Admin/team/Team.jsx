@@ -16,6 +16,7 @@ import {
   faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 import AdminLayout from '../../layouts/AdminLayout';
+import Domain from '../../Api/Api';
 
 const ViewVolunteerModal = ({ showModal, setShowModal, member }) => {
   if (!showModal || !member) return null;
@@ -31,15 +32,12 @@ const ViewVolunteerModal = ({ showModal, setShowModal, member }) => {
         </div>
 
         <div className="flex flex-col items-center mb-6">
-          <img
-            src={member.pic}
-            alt={member.name}
-            className="w-24 h-24 rounded-full object-cover shadow-md mb-3"
-            onError={(e) => e.target.src = '/default-profile.jpg'}
-          />
-          <h3 className="text-xl font-bold text-gray-900">{member.name}</h3>
+          <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-3xl uppercase mb-3 shadow-md">
+            {member.fullName?.charAt(0) || 'U'}
+          </div>
+          <h3 className="text-xl font-bold text-gray-900">{member.fullName}</h3>
           <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium mt-1">
-            {member.position || 'Volunteer'}
+            {member.team || 'Volunteer'}
           </span>
         </div>
 
@@ -61,19 +59,13 @@ const ViewVolunteerModal = ({ showModal, setShowModal, member }) => {
             </div>
           </div>
 
-          <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-            <FontAwesomeIcon icon={faEnvelope} className="text-gray-400 w-5 mr-3" />
-            <div>
-              <p className="text-xs text-gray-400 uppercase font-bold">Email</p>
-              <p className="text-gray-700">{member.email}</p>
-            </div>
-          </div>
+          {/* Email removed as it's not in the backend data */}
 
           <div className="flex items-center p-3 bg-gray-50 rounded-lg">
             <FontAwesomeIcon icon={faPhone} className="text-gray-400 w-5 mr-3" />
             <div>
               <p className="text-xs text-gray-400 uppercase font-bold">Phone</p>
-              <p className="text-gray-700">{member.phone}</p>
+              <p className="text-gray-700">{member.contactNumber}</p>
             </div>
           </div>
 
@@ -81,13 +73,15 @@ const ViewVolunteerModal = ({ showModal, setShowModal, member }) => {
             <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-400 w-5 mr-3" />
             <div>
               <p className="text-xs text-gray-400 uppercase font-bold">City/Location</p>
-              <p className="text-gray-700">{member.location || 'N/A'}</p>
+              <p className="text-gray-700">{member.city || 'N/A'}</p>
             </div>
           </div>
 
           <div className="p-3 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-400 uppercase font-bold mb-1">Bio</p>
-            <p className="text-gray-600 text-sm">{member.bio || 'No details provided.'}</p>
+            <p className="text-xs text-gray-400 uppercase font-bold mb-1">Event / Additional Info</p>
+            <p className="text-gray-600 text-sm">
+              {member.eventName ? `Joined for event: ${member.eventName}` : 'No specific event mentioned.'}
+            </p>
           </div>
         </div>
 
@@ -108,7 +102,7 @@ const TeamData = ({ teamData, setTeamData }) => {
   const [selectedMember, setSelectedMember] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
 
-  // Simplified Delete (Mocking backend effect)
+  // Delete Volunteer
   const handleDelete = (id) => {
     Swal.fire({
       title: 'Are you sure?',
@@ -118,10 +112,18 @@ const TeamData = ({ teamData, setTeamData }) => {
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        setTeamData(teamData.filter(m => m.id !== id));
-        Swal.fire('Deleted!', 'Volunteer has been removed.', 'success');
+        try {
+          const response = await axios.delete(`${Domain()}/volunteers/${id}`);
+          if (response.data.success) {
+            setTeamData(teamData.filter(m => m._id !== id));
+            Swal.fire('Deleted!', 'Volunteer has been removed.', 'success');
+          }
+        } catch (error) {
+          Swal.fire('Error', 'Failed to delete volunteer', 'error');
+          console.error(error);
+        }
       }
     });
   };
@@ -156,47 +158,44 @@ const TeamData = ({ teamData, setTeamData }) => {
                 </tr>
               ) : (
                 teamData.map((member, index) => (
-                  <tr key={member.id || index} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                  <tr key={member._id || index} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                     {/* Full Name */}
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={member.pic}
-                          alt={member.name}
-                          className="w-8 h-8 rounded-full object-cover"
-                          onError={(e) => e.target.src = '/default-profile.jpg'}
-                        />
-                        <div className="font-bold text-gray-800 text-sm">{member.name}</div>
+                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs uppercase">
+                          {member.fullName?.charAt(0) || 'U'}
+                        </div>
+                        <div className="font-bold text-gray-800 text-sm">{member.fullName}</div>
                       </div>
                     </td>
 
                     {/* Contact Number */}
                     <td className="py-4 px-6 text-sm text-gray-600">
-                      {member.phone}
+                      {member.contactNumber}
                     </td>
 
                     {/* Age */}
                     <td className="py-4 px-6 text-sm text-gray-600">
-                      {member.age}
+                      {member.age || '-'}
                     </td>
 
                     {/* City */}
                     <td className="py-4 px-6 text-sm text-gray-600">
-                      {member.location}
+                      {member.city || '-'}
                     </td>
 
                     {/* Occupation */}
                     <td className="py-4 px-6 text-sm text-gray-600">
                       <div className="flex items-center gap-2">
                         <FontAwesomeIcon icon={faBriefcase} className="text-gray-300 text-xs" />
-                        {member.occupation}
+                        {member.occupation || '-'}
                       </div>
                     </td>
 
                     {/* Team */}
                     <td className="py-4 px-6">
                       <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-semibold border border-blue-100">
-                        {member.position || 'Volunteer'}
+                        {member.team || 'General'}
                       </span>
                     </td>
 
@@ -210,7 +209,7 @@ const TeamData = ({ teamData, setTeamData }) => {
                         <FontAwesomeIcon icon={faEye} size="sm" />
                       </button>
                       <button
-                        onClick={() => handleDelete(member.id)}
+                        onClick={() => handleDelete(member._id)}
                         className="text-red-400 hover:text-red-600 ml-3 transition-colors"
                         title="Delete Volunteer"
                       >
@@ -236,75 +235,35 @@ const TeamData = ({ teamData, setTeamData }) => {
 
 const Team = () => {
   const [teamData, setTeamData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Use dummy data directly for now as requested
-  useEffect(() => {
-    const dummyData = [
-      {
-        id: 1,
-        name: 'Alice Wonderland',
-        position: 'Event Team',
-        pic: 'https://randomuser.me/api/portraits/women/44.jpg',
-        bio: 'Passionate about organizing events.',
-        createdAt: new Date().toISOString(),
-        location: 'New York',
-        email: 'alice@example.com',
-        phone: '+1 (555) 123-4567',
-        age: 24,
-        occupation: 'Event Planner'
-      },
-      {
-        id: 2,
-        name: 'Bob Builder',
-        position: 'Logistics',
-        pic: 'https://randomuser.me/api/portraits/men/32.jpg',
-        bio: 'Can fix anything!',
-        createdAt: new Date().toISOString(),
-        location: 'Chicago',
-        email: 'bob@example.com',
-        phone: '+1 (555) 987-6543',
-        age: 35,
-        occupation: 'Contractor'
-      },
-      {
-        id: 3,
-        name: 'Charlie Chaplin',
-        position: 'Media',
-        pic: 'https://randomuser.me/api/portraits/men/51.jpg',
-        bio: 'Love making people laugh.',
-        createdAt: new Date().toISOString(),
-        location: 'Los Angeles',
-        email: 'charlie@example.com',
-        phone: '+1 (555) 555-5555',
-        age: 28,
-        occupation: 'Actor'
-      },
-      {
-        id: 4,
-        name: 'Diana Prince',
-        position: 'Security',
-        pic: 'https://randomuser.me/api/portraits/women/68.jpg',
-        bio: 'Protecting the innocent.',
-        createdAt: new Date().toISOString(),
-        location: 'Washington DC',
-        email: 'diana@example.com',
-        phone: '+1 (555) 000-0000',
-        age: 30,
-        occupation: 'Museum Curator'
+  const fetchVolunteers = async () => {
+    try {
+      const response = await axios.get(`${Domain()}/volunteers`);
+      if (response.data.success) {
+        setTeamData(response.data.data);
       }
-    ];
-    setTeamData(dummyData);
+    } catch (error) {
+      console.error("Error fetching volunteers:", error);
+      Swal.fire('Error', 'Failed to fetch volunteers', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVolunteers();
   }, []);
 
   const handleExportCSV = () => {
     const headers = ['Full Name', 'Contact Number', 'Age', 'City', 'Occupation', 'Team', 'Joined On'];
     const rows = teamData.map(m => [
-      `"${m.name}"`,
-      `"${m.phone}"`,
-      `"${m.age}"`,
-      `"${m.location}"`,
-      `"${m.occupation}"`,
-      `"${m.position}"`,
+      `"${m.fullName}"`,
+      `"${m.contactNumber}"`,
+      `"${m.age || ''}"`,
+      `"${m.city || ''}"`,
+      `"${m.occupation || ''}"`,
+      `"${m.team || ''}"`,
       `"${new Date(m.createdAt).toLocaleDateString()}"`
     ]);
 

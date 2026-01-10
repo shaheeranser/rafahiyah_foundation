@@ -14,12 +14,18 @@ import {
   faTrash
 } from "@fortawesome/free-solid-svg-icons";
 import AdminLayout from "../../layouts/AdminLayout";
+import Domain from "../../Api/Api";
 
 // --- Components ---
 
 // 1. Current Cases Card
 const CaseCard = ({ data, onClick }) => {
   const percentage = Math.min(100, Math.round((data.amountCollected / data.amountRequired) * 100)) || 0;
+
+  // Image handling
+  const imageUrl = data.image
+    ? `http://localhost:8000/${data.image.replace(/\\/g, '/')}`
+    : 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1932&auto=format&fit=crop';
 
   return (
     <div
@@ -28,7 +34,7 @@ const CaseCard = ({ data, onClick }) => {
     >
       <div className="h-40 bg-gray-100 relative overflow-hidden">
         <img
-          src={data.image}
+          src={imageUrl}
           alt={data.title}
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
           onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1932&auto=format&fit=crop'}
@@ -63,10 +69,33 @@ const CaseCard = ({ data, onClick }) => {
           </div>
         </div>
 
-        <div className="flex -space-x-2 overflow-hidden">
-          <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/women/1.jpg" alt="" />
-          <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/men/2.jpg" alt="" />
-          <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/women/3.jpg" alt="" />
+      </div>
+
+      {/* Footer with Actions */}
+      <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-between items-center">
+        <button
+          onClick={(e) => { e.stopPropagation(); onClick(data, 'view'); }}
+          className="text-gray-500 hover:text-blue-600 transition-colors text-sm font-medium flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded"
+          title="View Details"
+        >
+          <FontAwesomeIcon icon={faEye} />
+          <span>View</span>
+        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); onClick(data, 'edit'); }}
+            className="text-gray-400 hover:text-green-600 transition-colors p-2 hover:bg-green-50 rounded-full"
+            title="Edit Case"
+          >
+            <FontAwesomeIcon icon={faEdit} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onClick(data, 'delete'); }}
+            className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full"
+            title="Delete Case"
+          >
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
         </div>
       </div>
     </div>
@@ -94,7 +123,7 @@ const HistoryTable = ({ data, emptyMessage, isDropped }) => {
           </thead>
           <tbody>
             {data.map((item) => (
-              <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+              <tr key={item._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                 <td className="py-4 px-6 text-sm text-gray-600">#{item.caseNo}</td>
                 <td className="py-4 px-6 text-sm font-medium text-gray-800">{item.title}</td>
                 <td className="py-4 px-6 text-sm text-gray-600">{item.category}</td>
@@ -116,6 +145,7 @@ const Posts = () => {
   const [activeCases, setActiveCases] = useState([]);
   const [completedCases, setCompletedCases] = useState([]);
   const [droppedCases, setDroppedCases] = useState([]);
+  const [editId, setEditId] = useState(null);
 
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -129,8 +159,8 @@ const Posts = () => {
   const [newCaseForm, setNewCaseForm] = useState({
     caseNo: '',
     category: 'Financial Help',
-    date: new Date().toISOString().split('T')[0],
     amountRequired: '',
+    amountCollected: '',
     title: '',
     description: '',
     picture: null
@@ -142,27 +172,34 @@ const Posts = () => {
     receipt: null
   });
 
-  // Mock Initialization
-  useEffect(() => {
-    // Generate some starter data with images
-    const startData = [
-      { id: 1, caseNo: '1001', category: 'Medical Assistance', title: 'Urgent Surgery for Child', description: 'Requires heart surgery immediately.', amountRequired: 5000, amountCollected: 3200, createdAt: new Date().toISOString(), status: 'active', image: 'https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?q=80&w=2070&auto=format&fit=crop' },
-      { id: 2, caseNo: '1002', category: 'Fee Assistance', title: 'University Fees Support', description: 'Student needs help with semester fees.', amountRequired: 1200, amountCollected: 450, createdAt: new Date().toISOString(), status: 'active', image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop' },
-      { id: 3, caseNo: '1003', category: 'Financial Help', title: 'Widow Support Fund', description: 'Monthly ration support.', amountRequired: 300, amountCollected: 300, createdAt: new Date().toISOString(), status: 'completed', image: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?q=80&w=2070&auto=format&fit=crop' }
-    ];
+  // Fetch Cases
+  const fetchCases = async () => {
+    try {
+      const response = await axios.get(`${Domain()}/cases`);
+      if (response.data.success) {
+        const allCases = response.data.data;
+        setActiveCases(allCases.filter(c => c.status === 'active'));
+        setCompletedCases(allCases.filter(c => c.status === 'completed'));
+        setDroppedCases(allCases.filter(c => c.status === 'dropped'));
+      }
+    } catch (error) {
+      console.error("Error fetching cases:", error);
+      Swal.fire('Error', 'Failed to fetch cases.', 'error');
+    }
+  };
 
-    setActiveCases(startData.filter(c => c.status === 'active'));
-    setCompletedCases(startData.filter(c => c.status === 'completed'));
-    setDroppedCases(startData.filter(c => c.status === 'dropped'));
+  useEffect(() => {
+    fetchCases();
   }, []);
 
   // Handlers
   const handleCreateOpen = () => {
+    setEditId(null);
     setNewCaseForm({
       caseNo: Math.floor(1000 + Math.random() * 9000), // Auto-generate
       category: 'Financial Help',
-      date: new Date().toISOString().split('T')[0],
       amountRequired: '',
+      amountCollected: '',
       title: '',
       description: '',
       picture: null
@@ -170,25 +207,79 @@ const Posts = () => {
     setShowCreateModal(true);
   };
 
-  const handleCreateSubmit = (e) => {
+  const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    // Logic to add to active cases
-    const newCase = {
-      id: Date.now(),
-      ...newCaseForm,
-      amountCollected: 0,
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop' // Default image for new cases
-    };
-    setActiveCases([newCase, ...activeCases]);
-    setShowCreateModal(false);
-    Swal.fire('Created!', 'New case has been created successfully.', 'success');
+
+    const formData = new FormData();
+    formData.append('caseNo', newCaseForm.caseNo);
+    formData.append('category', newCaseForm.category);
+    formData.append('amountRequired', newCaseForm.amountRequired);
+    formData.append('amountCollected', newCaseForm.amountCollected || 0);
+    formData.append('title', newCaseForm.title);
+    formData.append('description', newCaseForm.description);
+    if (newCaseForm.picture instanceof File) {
+      formData.append('image', newCaseForm.picture);
+    }
+
+    try {
+      if (editId) {
+        // Update
+        await axios.put(`${Domain()}/cases/${editId}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        Swal.fire('Updated!', 'Case has been updated successfully.', 'success');
+      } else {
+        // Create
+        await axios.post(`${Domain()}/cases`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        Swal.fire('Created!', 'New case has been created successfully.', 'success');
+      }
+      setShowCreateModal(false);
+      fetchCases();
+    } catch (error) {
+      console.error("Error saving case:", error);
+      Swal.fire('Error', 'Failed to save case.', 'error');
+    }
   };
 
-  const handleCardClick = (caseItem) => {
-    setSelectedCase(caseItem);
-    setShowDetailModal(true);
+  const handleCardAction = (caseItem, action = 'view') => {
+    if (action === 'view') {
+      setSelectedCase(caseItem);
+      setShowDetailModal(true);
+    } else if (action === 'edit') {
+      setEditId(caseItem._id);
+      setNewCaseForm({
+        caseNo: caseItem.caseNo,
+        category: caseItem.category,
+        amountRequired: caseItem.amountRequired,
+        amountCollected: caseItem.amountCollected,
+        title: caseItem.title,
+        description: caseItem.description,
+        picture: null // Reset picture input, user can upload new one if they want
+      });
+      setShowCreateModal(true);
+    } else if (action === 'delete') {
+      Swal.fire({
+        title: 'Delete Case?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            await axios.delete(`${Domain()}/cases/${caseItem._id}`);
+            Swal.fire('Deleted!', 'Case has been deleted.', 'success');
+            fetchCases();
+          } catch (error) {
+            console.error("Error deleting case:", error);
+            Swal.fire('Error', 'Failed to delete case.', 'error');
+          }
+        }
+      });
+    }
   };
 
   const handleDropCase = () => {
@@ -199,13 +290,17 @@ const Posts = () => {
       showCancelButton: true,
       confirmButtonColor: '#d33',
       confirmButtonText: 'Yes, Drop it'
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        // Move from active to dropped
-        setDroppedCases([selectedCase, ...droppedCases]);
-        setActiveCases(activeCases.filter(c => c.id !== selectedCase.id));
-        setShowDetailModal(false);
-        Swal.fire('Dropped!', 'Case has been moved to dropped list.', 'success');
+        try {
+          await axios.patch(`${Domain()}/cases/${selectedCase._id}/status`, { status: 'dropped' });
+          Swal.fire('Dropped!', 'Case has been moved to dropped list.', 'success');
+          setShowDetailModal(false);
+          fetchCases();
+        } catch (error) {
+          console.error("Error dropping case:", error);
+          Swal.fire('Error', 'Failed to drop case.', 'error');
+        }
       }
     })
   };
@@ -216,14 +311,20 @@ const Posts = () => {
     setShowCompleteModal(true);
   };
 
-  const handleCompleteSubmit = (e) => {
+  const handleCompleteSubmit = async (e) => {
     e.preventDefault();
-    // Move from active to completed
-    const completedCase = { ...selectedCase, amountCollected: completionForm.finalAmount, status: 'completed', updatedAt: new Date().toISOString() };
-    setCompletedCases([completedCase, ...completedCases]);
-    setActiveCases(activeCases.filter(c => c.id !== selectedCase.id));
-    setShowCompleteModal(false);
-    Swal.fire('Completed!', 'Case closed successfully.', 'success');
+    try {
+      await axios.patch(`${Domain()}/cases/${selectedCase._id}/status`, {
+        status: 'completed',
+        finalAmount: completionForm.finalAmount
+      });
+      Swal.fire('Completed!', 'Case closed successfully.', 'success');
+      setShowCompleteModal(false);
+      fetchCases();
+    } catch (error) {
+      console.error("Error completing case:", error);
+      Swal.fire('Error', 'Failed to complete case.', 'error');
+    }
   };
 
   const handleExport = (data, filename) => {
@@ -265,7 +366,7 @@ const Posts = () => {
             <div className="p-8 text-center text-gray-400 border border-dashed rounded-xl bg-gray-50">No active cases. Create one to get started.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {activeCases.map(c => <CaseCard key={c.id} data={c} onClick={handleCardClick} />)}
+              {activeCases.map(c => <CaseCard key={c._id} data={c} onClick={handleCardAction} />)}
             </div>
           )}
         </div>
@@ -301,7 +402,7 @@ const Posts = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-800">Create New Case</h3>
+              <h3 className="text-lg font-bold text-gray-800">{editId ? 'Edit Case' : 'Create New Case'}</h3>
               <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
                 <FontAwesomeIcon icon={faTimesCircle} size="lg" />
               </button>
@@ -313,34 +414,9 @@ const Posts = () => {
                   <input type="text" value={newCaseForm.caseNo} disabled className="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-500" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
-                  <select
-                    className="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={newCaseForm.category}
-                    onChange={(e) => setNewCaseForm({ ...newCaseForm, category: e.target.value })}
-                  >
-                    <option>Financial Help</option>
-                    <option>Fee Assistance</option>
-                    <option>Medical Assistance</option>
-                    <option>Other</option>
-                  </select>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
+                  <input type="text" placeholder="e.g. Heart Surgery Support" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.title} onChange={e => setNewCaseForm({ ...newCaseForm, title: e.target.value })} required />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Date</label>
-                  <input type="date" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.date} onChange={e => setNewCaseForm({ ...newCaseForm, date: e.target.value })} required />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Amount Required</label>
-                  <input type="number" placeholder="$0.00" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.amountRequired} onChange={e => setNewCaseForm({ ...newCaseForm, amountRequired: e.target.value })} required />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
-                <input type="text" placeholder="e.g. Heart Surgery Support" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.title} onChange={e => setNewCaseForm({ ...newCaseForm, title: e.target.value })} required />
               </div>
 
               <div>
@@ -349,16 +425,54 @@ const Posts = () => {
               </div>
 
               <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
+                <select
+                  className="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={newCaseForm.category}
+                  onChange={(e) => setNewCaseForm({ ...newCaseForm, category: e.target.value })}
+                >
+                  <option>Financial Help</option>
+                  <option>Fee Assistance</option>
+                  <option>Medical Assistance</option>
+                  <option>Other</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Amount Required</label>
+                  <input type="number" placeholder="$0.00" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.amountRequired} onChange={e => setNewCaseForm({ ...newCaseForm, amountRequired: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Amount Raised</label>
+                  <input type="number" placeholder="$0.00" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.amountCollected} onChange={e => setNewCaseForm({ ...newCaseForm, amountCollected: e.target.value })} required />
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Picture (Optional)</label>
-                <div className="border border-dashed border-gray-300 rounded p-4 text-center text-gray-400 text-sm hover:bg-gray-50 cursor-pointer">
+                <div
+                  className="border border-dashed border-gray-300 rounded p-4 text-center text-gray-400 text-sm hover:bg-gray-50 cursor-pointer relative"
+                  onClick={() => document.getElementById('file-upload').click()}
+                >
                   <FontAwesomeIcon icon={faFileUpload} className="mr-2" />
-                  Click to upload image
+                  {newCaseForm.picture ? newCaseForm.picture.name : "Click to upload image"}
+                  <input
+                    id="file-upload"
+                    type="file"
+                    className="hidden"
+                    onChange={e => {
+                      if (e.target.files[0]) {
+                        setNewCaseForm({ ...newCaseForm, picture: e.target.files[0] });
+                      }
+                    }}
+                  />
                 </div>
               </div>
 
               <div className="pt-2">
                 <button type="submit" className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-black transition-colors">
-                  Create Case
+                  {editId ? 'Update Case' : 'Create Case'}
                 </button>
               </div>
             </form>
@@ -384,7 +498,9 @@ const Posts = () => {
               {/* Image Box */}
               <div className="bg-gray-200 rounded-xl w-full aspect-video flex items-center justify-center overflow-hidden relative group">
                 <img
-                  src={selectedCase.image}
+                  src={selectedCase.image
+                    ? `http://localhost:8000/${selectedCase.image.replace(/\\/g, '/')}`
+                    : 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1932&auto=format&fit=crop'}
                   alt={selectedCase.title}
                   className="w-full h-full object-cover"
                   onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1932&auto=format&fit=crop'}

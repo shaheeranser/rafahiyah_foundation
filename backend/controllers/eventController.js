@@ -12,27 +12,39 @@ export const createEvent = async (req, res) => {
       body: req.body,
       file: req.file
     });
-    
-    const { title, description, date, day, time } = req.body;
-    
+
+    const { title, description, date, time, location, requiredAmount, collectedAmount } = req.body;
+
     // Validate required fields
-    if (!title || !description || !date || !day || !time) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "All fields (title, description, date, day, time) are required" 
+    if (!title || !description || !date || !time || !location) {
+      console.log('Validation failed: Missing required fields');
+      return res.status(400).json({
+        success: false,
+        message: "All fields (title, description, date, time, location) are required"
       });
     }
-    
+
     let image = null;
     if (req.file) {
-      image = req.file.filename;
-      console.log('Image uploaded:', req.file.filename);
+      image = req.file.path.replace(/\\/g, "/"); // Store full path for consistency with other modules
+      console.log('Image uploaded:', image);
     }
-    
-    const event = new Event({ title, description, date, image, day, time });
+
+    console.log('Creating event with financial data:', { requiredAmount, collectedAmount });
+
+    const event = new Event({
+      title,
+      description,
+      date,
+      image,
+      time,
+      location,
+      requiredAmount: requiredAmount || 0,
+      collectedAmount: collectedAmount || 0
+    });
     await event.save();
-    
-    console.log('Event created successfully:', event);
+
+    console.log('Event created successfully in DB:', event);
     res.status(201).json({ success: true, event });
   } catch (error) {
     console.error('Event creation error:', error);
@@ -49,46 +61,49 @@ export const updateEvent = async (req, res) => {
       body: req.body,
       file: req.file
     });
-    
+
     const { id } = req.params;
-    const { title, description, date, day, time, isPublished } = req.body;
-    
+    const { title, description, date, time, isPublished, location, requiredAmount, collectedAmount, status } = req.body;
+
     // Validate required fields
-    if (!title || !description || !date || !day || !time) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "All fields (title, description, date, day, time) are required" 
+    if (!title || !description || !date || !time || !location) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields (title, description, date, time) are required"
       });
     }
-    
+
     // Prepare update object
     const updateData = {
       title,
       description,
       date,
-      day,
       time,
+      location,
+      requiredAmount,
+      collectedAmount,
+      status,
       isPublished: isPublished === 'true' || isPublished === true
     };
-    
+
     // Only update image if a new file is uploaded
     if (req.file) {
-      updateData.image = req.file.filename;
-      console.log('New image uploaded:', req.file.filename);
+      updateData.image = req.file.path.replace(/\\/g, "/"); // Store full path
+      console.log('New image uploaded:', updateData.image);
     }
-    
+
     console.log('Updating event with data:', updateData);
-    
+
     const event = await Event.findByIdAndUpdate(
       id,
       updateData,
       { new: true, runValidators: true }
     );
-    
+
     if (!event) {
       return res.status(404).json({ success: false, message: "Event not found" });
     }
-    
+
     console.log('Event updated successfully:', event);
     res.status(200).json({ success: true, event });
   } catch (error) {
@@ -141,7 +156,7 @@ export const deleteEvent = async (req, res) => {
 export const addParticipant = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const {userId} = req.body
+    const { userId } = req.body
 
     const event = await Event.findById(eventId);
     if (!event) {
@@ -172,13 +187,13 @@ export const removeParticipant = async (req, res) => {
   try {
     const { eventId } = req.params;
     const { userId } = req.body;
-    
+
     const event = await Event.findByIdAndUpdate(
       eventId,
       { $pull: { participants: userId } },
       { new: true }
     ).populate('participants', 'name email phone role');
-    
+
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
@@ -196,8 +211,8 @@ export const getParticipants = async (req, res) => {
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       participants: event.participants,
       totalParticipants: event.participants.length,
       eventTitle: event.title
@@ -216,15 +231,14 @@ export const getAllEventsWithParticipants = async (req, res) => {
       title: event.title,
       description: event.description,
       date: event.date,
-      day: event.day,
       time: event.time,
       image: event.image,
       participants: event.participants,
       totalParticipants: event.participants.length
     }));
-    
-    res.status(200).json({ 
-      success: true, 
+
+    res.status(200).json({
+      success: true,
       events: eventsWithStats,
       totalEvents: events.length,
       totalParticipantsAcrossAllEvents: events.reduce((sum, event) => sum + event.participants.length, 0)

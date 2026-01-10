@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import toast from "react-hot-toast";
@@ -16,6 +16,7 @@ import caseImg3 from "@/assets/women-learning-leading.jpg";
 
 const Cases = () => {
     const { hash } = useLocation();
+    const navigate = useNavigate();
     const [selectedItem, setSelectedItem] = useState<any>(null);
 
     useEffect(() => {
@@ -155,7 +156,15 @@ const Cases = () => {
                                     </button>
                                     <button
                                         className="flex-1 bg-rafahiyah-deep-red text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#6b2416] transition-colors uppercase tracking-wider"
-                                        onClick={() => toast.success("Join Us request simulated")}
+                                        onClick={() => {
+                                            navigate('/contact', {
+                                                state: {
+                                                    section: "join-us",
+                                                    role: "onsite_volunteer",
+                                                    eventName: item.title
+                                                }
+                                            });
+                                        }}
                                     >
                                         Join Us
                                     </button>
@@ -306,8 +315,19 @@ const Cases = () => {
                                 <Button
                                     className="bg-[#852D1A] hover:bg-[#6b2416] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all"
                                     onClick={() => {
-                                        toast.success(selectedItem.goal ? "Proceeding to Donation..." : "Application Started");
-                                        setSelectedItem(null);
+                                        if (selectedItem.goal) {
+                                            toast.success("Proceeding to Donation...");
+                                            // Handle donation logic here if needed
+                                        } else {
+                                            navigate('/contact', {
+                                                state: {
+                                                    section: "join-us",
+                                                    role: "onsite_volunteer",
+                                                    eventName: selectedItem.title
+                                                }
+                                            });
+                                            setSelectedItem(null);
+                                        }
                                     }}
                                 >
                                     {selectedItem.goal ? "Donate Now" : "Join/Volounteer"}

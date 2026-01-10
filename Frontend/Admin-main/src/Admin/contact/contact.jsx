@@ -16,8 +16,9 @@ import {
   faPhone
 } from '@fortawesome/free-solid-svg-icons';
 import AdminLayout from '../../layouts/AdminLayout';
+import Domain from '../../Api/Api';
 
-const ContactData = ({ contactData, currentPage, itemsPerPage }) => {
+const ContactData = ({ contactData, setContactData, currentPage, itemsPerPage }) => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const contactsToDisplay = contactData.slice(startIndex, endIndex);
@@ -30,7 +31,22 @@ const ContactData = ({ contactData, currentPage, itemsPerPage }) => {
       title: 'Delete?',
       text: 'Are you sure you want to delete this message?',
       showCancelButton: true,
-      confirmButtonText: 'Delete'
+      confirmButtonText: 'Delete',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.delete(`${Domain()}/contactus/delete/${contactId}`);
+          if (response.data.success) {
+            Swal.fire('Deleted!', 'Message has been deleted.', 'success');
+            setContactData(prev => prev.filter(c => c._id !== contactId));
+          }
+        } catch (error) {
+          console.error("Error deleting contact:", error);
+          Swal.fire('Error', 'Failed to delete message', 'error');
+        }
+      }
     });
   };
 
@@ -55,41 +71,49 @@ const ContactData = ({ contactData, currentPage, itemsPerPage }) => {
               </tr>
             </thead>
             <tbody>
-              {contactsToDisplay.map((contact, index) => (
-                <tr key={contact.id || index} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <td className="py-4 px-6">
-                    <div className="font-bold text-gray-800 text-sm">{contact.firstName} {contact.lastName}</div>
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-600">
-                    {contact.subject}
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-600">
-                    {contact.email}
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-600">
-                    {contact.phone || 'N/A'}
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-500">
-                    {new Date(contact.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="py-4 px-6 text-right">
-                    <button
-                      onClick={() => handleView(contact)}
-                      className="text-blue-500 hover:text-blue-700 mx-2 transition-colors"
-                      title="View"
-                    >
-                      <FontAwesomeIcon icon={faEye} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(contact.id)}
-                      className="text-red-400 hover:text-red-600 mx-2 transition-colors"
-                      title="Delete"
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
+              {(!contactsToDisplay || contactsToDisplay.length === 0) ? (
+                <tr>
+                  <td colSpan="6" className="text-center py-8 text-gray-500">
+                    No messages found.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                contactsToDisplay.map((contact, index) => (
+                  <tr key={contact._id || index} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                    <td className="py-4 px-6">
+                      <div className="font-bold text-gray-800 text-sm">{contact.fullName}</div>
+                    </td>
+                    <td className="py-4 px-6 text-sm text-gray-600">
+                      {contact.subject}
+                    </td>
+                    <td className="py-4 px-6 text-sm text-gray-600">
+                      {contact.email}
+                    </td>
+                    <td className="py-4 px-6 text-sm text-gray-600">
+                      {contact.contactNumber || 'N/A'}
+                    </td>
+                    <td className="py-4 px-6 text-sm text-gray-500">
+                      {new Date(contact.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      <button
+                        onClick={() => handleView(contact)}
+                        className="text-blue-500 hover:text-blue-700 mx-2 transition-colors"
+                        title="View"
+                      >
+                        <FontAwesomeIcon icon={faEye} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(contact._id)}
+                        className="text-red-400 hover:text-red-600 mx-2 transition-colors"
+                        title="Delete"
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -116,7 +140,7 @@ const ContactData = ({ contactData, currentPage, itemsPerPage }) => {
                     <FontAwesomeIcon icon={faUser} className="text-gray-400 mr-3 w-4" />
                     <div>
                       <p className="text-xs text-gray-400 uppercase font-bold">Sender</p>
-                      <p className="text-gray-800 font-medium">{selectedContact.firstName} {selectedContact.lastName}</p>
+                      <p className="text-gray-800 font-medium">{selectedContact.fullName}</p>
                     </div>
                   </div>
 
@@ -132,7 +156,7 @@ const ContactData = ({ contactData, currentPage, itemsPerPage }) => {
                     <FontAwesomeIcon icon={faPhone} className="text-gray-400 mr-3 w-4" />
                     <div>
                       <p className="text-xs text-gray-400 uppercase font-bold">Contact Number</p>
-                      <p className="text-gray-800 font-medium">{selectedContact.phone || 'N/A'}</p>
+                      <p className="text-gray-800 font-medium">{selectedContact.contactNumber || 'N/A'}</p>
                     </div>
                   </div>
 
@@ -182,27 +206,33 @@ const ContactData = ({ contactData, currentPage, itemsPerPage }) => {
 const Contact = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [contactData, setContactData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const itemsPerPage = 10;
 
+  const fetchContacts = async () => {
+    try {
+      const response = await axios.get(`${Domain()}/contactus/getallcontact`);
+      if (response.data.success) {
+        setContactData(response.data.messages);
+      }
+    } catch (error) {
+      console.error("Error fetching contacts:", error);
+      Swal.fire('Error', 'Failed to fetch messages', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Instant mock load to remove delay
-    const mockContacts = [
-      { id: 1, firstName: 'Alice', lastName: 'Wonderland', email: 'alice@example.com', phone: '+1 (555) 123-4567', subject: 'Partnership Inquiry', message: 'Hello, I am interested in partnering with your foundation.', createdAt: new Date().toISOString() },
-      { id: 2, firstName: 'Bob', lastName: 'Builder', email: 'bob@construction.com', phone: '+1 (555) 987-6543', subject: 'Volunteering Opportunities', message: 'Do you have any open spots for construction volunteers?', createdAt: new Date(Date.now() - 86400000).toISOString() },
-      { id: 3, firstName: 'Charlie', lastName: 'Chaplin', email: 'charlie@movies.com', phone: '+1 (555) 111-2222', subject: 'Donation Info', message: 'How can I donate equipment?', createdAt: new Date(Date.now() - 172800000).toISOString() },
-      { id: 4, firstName: 'Diana', lastName: 'Prince', email: 'diana@themyscira.com', phone: '+1 (555) 333-4444', subject: 'Event Sponsorship', message: 'I would like to sponsor your next charity gala.', createdAt: new Date(Date.now() - 259200000).toISOString() },
-      { id: 5, firstName: 'Ethan', lastName: 'Hunt', email: 'ethan@imf.org', phone: '+1 (555) 555-6666', subject: 'Security Query', message: 'Just checking your data security protocols.', createdAt: new Date(Date.now() - 345600000).toISOString() }
-    ];
-    setContactData(mockContacts);
+    fetchContacts();
   }, []);
 
   const handleExportCSV = () => {
-    const headers = ['First Name', 'Last Name', 'Email', 'Contact Number', 'Subject', 'Date', 'Message'];
+    const headers = ['Full Name', 'Email', 'Contact Number', 'Subject', 'Date', 'Message'];
     const rows = contactData.map(c => [
-      `"${c.firstName}"`,
-      `"${c.lastName}"`,
+      `"${c.fullName}"`,
       `"${c.email}"`,
-      `"${c.phone}"`,
+      `"${c.contactNumber || ''}"`,
       `"${c.subject}"`,
       `"${new Date(c.createdAt).toLocaleDateString()}"`,
       `"${c.message.replace(/"/g, '""')}"`
@@ -240,11 +270,18 @@ const Contact = () => {
         </div>
 
         {/* Contact Table */}
-        <ContactData
-          contactData={contactData}
-          currentPage={currentPage}
-          itemsPerPage={itemsPerPage}
-        />
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <FontAwesomeIcon icon={faSpinner} spin size="3x" className="text-gray-400" />
+          </div>
+        ) : (
+          <ContactData
+            contactData={contactData}
+            setContactData={setContactData}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+          />
+        )}
       </div>
     </AdminLayout>
   );

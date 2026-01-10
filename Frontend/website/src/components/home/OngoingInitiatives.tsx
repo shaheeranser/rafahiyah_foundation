@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,6 +8,7 @@ import communityImg from "@/assets/women-supporting-each-other.jpg";
 import healthcareImg from "@/assets/hero-women-empowerment.jpg";
 
 const OngoingInitiatives = () => {
+    const navigate = useNavigate();
     // Mock data based on design
     const initiatives = [
         {
@@ -60,7 +62,18 @@ const OngoingInitiatives = () => {
                                 >
                                     Read More
                                 </Button>
-                                <Button className="bg-rafahiyah-deep-red text-white hover:bg-[#6b2416] transition-colors rounded-full px-6 font-odibee text-lg tracking-wide flex-1 shadow-sm">
+                                <Button
+                                    className="bg-rafahiyah-deep-red text-white hover:bg-[#6b2416] transition-colors rounded-full px-6 font-odibee text-lg tracking-wide flex-1 shadow-sm"
+                                    onClick={() => {
+                                        navigate('/contact', {
+                                            state: {
+                                                section: "join-us",
+                                                role: "onsite_volunteer",
+                                                eventName: item.title
+                                            }
+                                        });
+                                    }}
+                                >
                                     Join Now
                                 </Button>
                             </CardFooter>
@@ -111,7 +124,18 @@ const OngoingInitiatives = () => {
 
                                 {/* Bottom Section: Buttons */}
                                 <div className="flex flex-col sm:flex-row justify-end gap-4 mt-2">
-                                    <Button className="bg-[#242D4B] hover:bg-[#1a2138] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all">
+                                    <Button
+                                        className="bg-[#242D4B] hover:bg-[#1a2138] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all"
+                                        onClick={() => {
+                                            navigate('/contact', {
+                                                state: {
+                                                    section: "join-us",
+                                                    role: "onsite_volunteer",
+                                                    eventName: selectedInitiative.title
+                                                }
+                                            });
+                                        }}
+                                    >
                                         Join Now
                                     </Button>
                                     <Button className="bg-[#852D1A] hover:bg-[#6b2416] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all">

@@ -14,19 +14,22 @@ import {
   faDownload,
   faTimes,
   faFileUpload,
-  faCheckCircle
+  faCheckCircle,
+  faEllipsisV,
+  faUndo
 } from "@fortawesome/free-solid-svg-icons";
 import AdminLayout from "../../layouts/AdminLayout";
+import Domain from "../../Api/Api";
 
 // --- Components ---
 
 // 1. Recent Event Card
-const EventCard = ({ event, onView, onDelete }) => {
+const EventCard = ({ event, onView, onEdit, onDelete }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all group relative">
-      <div className="h-40 bg-gray-100 relative overflow-hidden">
+      <div className="aspect-video bg-gray-100 relative overflow-hidden">
         <img
-          src={event.image}
+          src={`http://localhost:8000/${event.image?.replace(/\\/g, '/')}`}
           alt={event.title}
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
           onError={(e) => e.target.src = '/default-event.jpg'}
@@ -41,25 +44,56 @@ const EventCard = ({ event, onView, onDelete }) => {
           <h3 className="font-bold text-gray-800 text-lg truncate pr-2">{event.title}</h3>
         </div>
 
-        <div className="flex items-center text-gray-500 text-sm mb-1">
-          <FontAwesomeIcon icon={faClock} className="w-4 mr-2 text-indigo-400" />
-          {event.time}
-        </div>
-        <div className="flex items-center text-gray-500 text-sm mb-4">
-          <FontAwesomeIcon icon={faMapMarkerAlt} className="w-4 mr-2 text-pink-500" />
-          {event.location}
-        </div>
+        {/* Progress Bar if budget exists */}
+        {(event.requiredAmount > 0) && (
+          <div className="mb-4">
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <span>Raised: ${event.collectedAmount || 0}</span>
+              <span>Goal: ${event.requiredAmount}</span>
+            </div>
+            <div className="w-full bg-gray-100 rounded-full h-2">
+              <div
+                className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.round(((event.collectedAmount || 0) / event.requiredAmount) * 100))}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
 
-        <div className="flex gap-2 pt-3 border-t border-gray-50">
+        <div className="flex items-center gap-4 text-gray-500 text-sm mb-4">
+          <div className="flex items-center">
+            <FontAwesomeIcon icon={faClock} className="w-4 mr-2 text-indigo-400" />
+            {event.time}
+          </div>
+          <div className="flex items-center">
+            <FontAwesomeIcon icon={faMapMarkerAlt} className="w-4 mr-2 text-pink-500" />
+            <span className="truncate max-w-[100px]" title={event.location}>{event.location}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer with Actions */}
+      <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-between items-center">
+        <button
+          onClick={() => onView(event)}
+          className="text-gray-500 hover:text-blue-600 transition-colors text-sm font-medium flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded"
+          title="View Details"
+        >
+          <FontAwesomeIcon icon={faEye} />
+          <span>View</span>
+        </button>
+        <div className="flex gap-2">
           <button
-            onClick={() => onView(event)}
-            className="flex-1 bg-gray-50 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            onClick={() => onEdit(event)}
+            className="text-gray-400 hover:text-green-600 transition-colors p-2 hover:bg-green-50 rounded-full"
+            title="Edit Event"
           >
-            <FontAwesomeIcon icon={faEye} /> View
+            <FontAwesomeIcon icon={faEdit} />
           </button>
           <button
             onClick={() => onDelete(event.id)}
-            className="w-10 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 py-2 rounded-lg transition-colors flex items-center justify-center"
+            className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full"
+            title="Delete Event"
           >
             <FontAwesomeIcon icon={faTrash} />
           </button>
@@ -70,14 +104,27 @@ const EventCard = ({ event, onView, onDelete }) => {
 };
 
 // 2. Completed Events Table
-const CompletedTable = ({ events, onExport }) => {
+const CompletedTable = ({ events, onExport, onView, onUndo, onEdit }) => {
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-container')) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   if (!events || events.length === 0) {
     return <div className="p-12 text-center text-gray-400 border border-dashed rounded-xl bg-gray-50">No completed events found.</div>;
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="overflow-x-auto">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible">
+      <div className="overflow-visible">
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
@@ -86,9 +133,10 @@ const CompletedTable = ({ events, onExport }) => {
               <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Location</th>
               <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Total Budget</th>
               <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+              <th className="py-4 px-6 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="overflow-visible">
             {events.map((event, index) => (
               <tr key={event.id || index} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                 <td className="py-4 px-6">
@@ -101,12 +149,44 @@ const CompletedTable = ({ events, onExport }) => {
                   {event.location}
                 </td>
                 <td className="py-4 px-6 text-sm text-gray-600 font-medium">
-                  {event.budgetRaised ? `$${event.budgetRaised}` : 'N/A'}
+                  {event.requiredAmount ? `$${event.requiredAmount}` : 'N/A'}
                 </td>
                 <td className="py-4 px-6">
                   <span className="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-600 border border-green-200 flex items-center w-fit gap-1">
                     <FontAwesomeIcon icon={faCheckCircle} /> Completed
                   </span>
+                </td>
+                <td className="py-4 px-6 text-right relative dropdown-container">
+                  <button
+                    onClick={() => setOpenDropdownId(openDropdownId === event.id ? null : event.id)}
+                    className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faEllipsisV} />
+                  </button>
+
+                  {openDropdownId === event.id && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl z-50 border border-gray-100 overflow-hidden animate-fade-in-up origin-top-right">
+                      <button
+                        onClick={() => { onView(event); setOpenDropdownId(null); }}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faEye} className="text-gray-400" /> View Details
+                      </button>
+                      <button
+                        onClick={() => { onEdit(event); setOpenDropdownId(null); }}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faEdit} className="text-blue-400" /> Edit Event
+                      </button>
+                      <div className="border-t border-gray-50"></div>
+                      <button
+                        onClick={() => { onUndo(event); setOpenDropdownId(null); }}
+                        className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faUndo} className="text-red-400" /> Mark Incomplete
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -135,51 +215,179 @@ const Events = () => {
     date: '',
     time: '',
     image: null,
-    requiredAmount: ''
+    requiredAmount: '',
+    collectedAmount: ''
   });
 
+  const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
     location: '',
-    requiredAmount: ''
+    requiredAmount: '',
+    collectedAmount: '',
+    image: null,
+    oldImage: ''
   });
 
   // Init Mock Data
-  useEffect(() => {
-    const mockRecent = [
-      { id: 1, title: 'Charity Gala Dinner', description: 'Annual fundraising dinner.', location: 'Grand Hotel, NY', date: '2025-12-25', time: '18:00', image: 'https://images.unsplash.com/photo-1511578314322-379afb476865', requiredAmount: 5000, collectedAmount: 3500 },
-      { id: 2, title: 'Community Cleanup', description: 'Cleaning the local park.', location: 'Central Park', date: '2026-01-10', time: '09:00', image: 'https://images.unsplash.com/photo-1552664730-d307ca884978', requiredAmount: 200, collectedAmount: 50 }
-    ];
-    const mockCompleted = [
-      { id: 3, title: 'Winter Clothing Drive', description: 'Collecting coats for the homeless.', location: 'Community Center', date: '2024-11-15', time: '10:00', budgetRaised: 1500, requiredAmount: 1500, collectedAmount: 1500 }
-    ];
+  // Fetch Events
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get(`${Domain()}/events/getallevent`);
+      if (response.data.success) {
+        const allEvents = response.data.events;
+        const recent = allEvents.filter(e => e.status !== 'Completed');
+        const completed = allEvents.filter(e => e.status === 'Completed');
 
-    setRecentEvents(mockRecent);
-    setCompletedEvents(mockCompleted);
+        setRecentEvents(recent);
+        setCompletedEvents(completed);
+      }
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
   }, []);
 
   // Handlers
   const handleCreateOpen = () => {
-    setCreateForm({ title: '', description: '', location: '', date: '', time: '', image: null, requiredAmount: '' });
+    setCreateForm({ title: '', description: '', location: '', date: '', time: '', image: null, requiredAmount: '', collectedAmount: '' });
     setShowCreateModal(true);
   };
 
-  const handleCreateSubmit = (e) => {
+  const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    const newEvent = {
-      id: Date.now(),
-      ...createForm,
-      image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30', // Placeholder for uploaded img
-      collectedAmount: 0 // Init with 0
-    };
-    setRecentEvents([newEvent, ...recentEvents]);
-    setShowCreateModal(false);
-    Swal.fire('Success', 'Event created successfully!', 'success');
+    try {
+      const formData = new FormData();
+      formData.append('title', createForm.title);
+      formData.append('description', createForm.description);
+      formData.append('date', createForm.date);
+      formData.append('time', createForm.time);
+      formData.append('location', createForm.location);
+      formData.append('requiredAmount', createForm.requiredAmount || 0);
+      formData.append('collectedAmount', createForm.collectedAmount || 0);
+      if (createForm.image) {
+        formData.append('image', createForm.image);
+      }
+
+      const response = await axios.post(`${Domain()}/events/create/event`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data.success) {
+        Swal.fire('Success', 'Event created and saved to database successfully!', 'success');
+        setShowCreateModal(false);
+        fetchEvents(); // Refresh list
+      }
+    } catch (error) {
+      console.error("Create event error:", error);
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
+      Swal.fire('Error', `Failed: ${errorMessage}`, 'error');
+    }
   };
 
   const handleView = (event) => {
     setSelectedEvent(event);
-    setEditForm({ location: event.location, requiredAmount: event.requiredAmount || '' });
+    setEditForm({
+      title: event.title,
+      description: event.description,
+      date: event.date ? new Date(event.date).toISOString().split('T')[0] : '',
+      time: event.time,
+      location: event.location,
+      requiredAmount: event.requiredAmount || 0,
+      collectedAmount: event.collectedAmount || 0,
+      image: null,
+      oldImage: event.image
+    });
+    setIsEditing(false);
     setShowDetailModal(true);
+  };
+
+  const handleEditOpen = (event) => {
+    setSelectedEvent(event);
+    setEditForm({
+      title: event.title,
+      description: event.description,
+      date: event.date ? new Date(event.date).toISOString().split('T')[0] : '',
+      time: event.time,
+      location: event.location,
+      requiredAmount: event.requiredAmount || 0,
+      collectedAmount: event.collectedAmount || 0,
+      image: null,
+      oldImage: event.image
+    });
+    setIsEditing(true);
+    setShowDetailModal(true);
+  };
+
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+    // Reset form if cancelling
+    if (isEditing) {
+      setEditForm({
+        title: selectedEvent.title,
+        description: selectedEvent.description,
+        date: selectedEvent.date ? new Date(selectedEvent.date).toISOString().split('T')[0] : '',
+        time: selectedEvent.time,
+        location: selectedEvent.location,
+        requiredAmount: selectedEvent.requiredAmount || 0,
+        collectedAmount: selectedEvent.collectedAmount || 0,
+        image: null,
+        oldImage: selectedEvent.image
+      });
+    }
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm({ ...editForm, [name]: value });
+  };
+
+  const handleEditImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setEditForm({ ...editForm, image: e.target.files[0] });
+    }
+  };
+
+  const handleUpdateEvent = async () => {
+    try {
+      const formData = new FormData();
+      formData.append('title', editForm.title);
+      formData.append('description', editForm.description);
+      formData.append('date', editForm.date);
+      formData.append('time', editForm.time);
+      formData.append('location', editForm.location);
+      formData.append('requiredAmount', editForm.requiredAmount || 0);
+      formData.append('collectedAmount', editForm.collectedAmount || 0);
+
+      if (editForm.image) {
+        formData.append('image', editForm.image);
+      }
+
+      const response = await axios.put(`${Domain()}/events/update/${selectedEvent._id || selectedEvent.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data.success) {
+        Swal.fire('Success', 'Event updated successfully!', 'success');
+        setIsEditing(false);
+        // Refresh full data from backend or partially update local state with response
+        setSelectedEvent(response.data.event);
+        fetchEvents(); // Refresh lists to show new image thumbnail
+      }
+    } catch (error) {
+      console.error("Error updating event:", error);
+      Swal.fire('Error', 'Failed to update event', 'error');
+    }
   };
 
   const handleDelete = (id) => {
@@ -192,19 +400,63 @@ const Events = () => {
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
-        setRecentEvents(recentEvents.filter(e => e.id !== id));
-        Swal.fire('Deleted!', 'Event has been deleted.', 'success');
+        // Assume API call here as well for real deletion if needed,
+        // for now just UI as per original snippet logic, but technically needs axios.delete
+        // setRecentEvents(recentEvents.filter(e => e.id !== id));
+        // Adding real delete for completeness since we have the ID
+        axios.delete(`${Domain()}/events/delete/${id}`).then(res => {
+          if (res.data.success) {
+            Swal.fire('Deleted!', 'Event has been deleted.', 'success');
+            fetchEvents();
+          }
+        }).catch(err => Swal.fire('Error', 'Failed to delete event', 'error'));
       }
     });
   };
 
-  const handleComplete = () => {
-    // Move to completed
-    const completed = { ...selectedEvent, location: editForm.location, budgetRaised: editForm.requiredAmount }; // Assuming raised = required for simplicity or user edits it
-    setCompletedEvents([completed, ...completedEvents]);
-    setRecentEvents(recentEvents.filter(e => e.id !== selectedEvent.id));
-    setShowDetailModal(false);
-    Swal.fire('Completed!', 'Event marked as completed.', 'success');
+  const handleComplete = async () => {
+    try {
+      const response = await axios.put(`${Domain()}/events/update/${selectedEvent._id || selectedEvent.id}`, {
+        ...selectedEvent,
+        location: editForm.location,
+        requiredAmount: editForm.requiredAmount,
+        status: 'Completed'
+      }, {
+        headers: { 'Content-Type': 'application/json' } // Ensure JSON content type if needed, though axios usually handles it
+      });
+
+      if (response.data.success) {
+        Swal.fire('Completed!', 'Event marked as completed.', 'success');
+        setShowDetailModal(false);
+        fetchEvents(); // Refresh to update lists
+      }
+    } catch (error) {
+      console.error("Error completing event:", error);
+      Swal.fire('Error', 'Failed to mark event as completed.', 'error');
+    }
+  };
+
+  const handleUndoComplete = async (event) => {
+    try {
+      const response = await axios.put(`${Domain()}/events/update/${event._id || event.id}`, {
+        ...event,
+        status: 'Incomplete'
+      });
+
+      if (response.data.success) {
+        Swal.fire('Restored!', 'Event moved back to active events.', 'success');
+        fetchEvents();
+      }
+    } catch (error) {
+      console.error("Error restoring event:", error);
+      Swal.fire('Error', 'Failed to restore event.', 'error');
+    }
+  };
+
+  const handleEditCompleted = (event) => {
+    // Just reuse view for now, usually editing completed events is same as viewing with ability to change
+    // or we can show a specific alert saying "Editing completed event"
+    handleEditOpen(event);
   };
 
   const handleExport = () => {
@@ -242,7 +494,7 @@ const Events = () => {
           <h2 className="text-xl font-bold text-gray-800 mb-6 font-handwriting">Recent Events</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recentEvents.map(event => (
-              <EventCard key={event.id} event={event} onView={handleView} onDelete={handleDelete} />
+              <EventCard key={event.id} event={event} onView={handleView} onEdit={handleEditOpen} onDelete={handleDelete} />
             ))}
           </div>
         </div>
@@ -255,7 +507,13 @@ const Events = () => {
               <FontAwesomeIcon icon={faDownload} className="mr-2" /> Export CSV
             </button>
           </div>
-          <CompletedTable events={completedEvents} />
+          <CompletedTable
+            events={completedEvents}
+            onExport={handleExport}
+            onView={handleView}
+            onUndo={handleUndoComplete}
+            onEdit={handleEditCompleted}
+          />
         </div>
 
       </div>
@@ -303,10 +561,21 @@ const Events = () => {
               </div>
 
               <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Collected Amount (Opt)</label>
+                <input type="number" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.collectedAmount} onChange={e => setCreateForm({ ...createForm, collectedAmount: e.target.value })} />
+              </div>
+
+              <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Picture (Optional)</label>
-                <div className="border border-dashed border-gray-300 rounded p-4 text-center text-gray-400 text-sm hover:bg-gray-50 cursor-pointer">
+                <div className="border border-dashed border-gray-300 rounded p-4 text-center text-gray-400 text-sm hover:bg-gray-50 cursor-pointer relative">
+                  <input
+                    type="file"
+                    onChange={(e) => setCreateForm({ ...createForm, image: e.target.files[0] })}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    accept="image/*"
+                  />
                   <FontAwesomeIcon icon={faFileUpload} className="mr-2" />
-                  Click to upload image
+                  {createForm.image ? createForm.image.name : "Click to upload image"}
                 </div>
               </div>
 
@@ -338,19 +607,30 @@ const Events = () => {
 
               {/* Image Box */}
               <div className="bg-gray-200 rounded-xl w-full aspect-video flex items-center justify-center overflow-hidden relative group">
-                {selectedEvent.image ? (
-                  <img
-                    src={selectedEvent.image}
-                    alt={selectedEvent.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => e.target.src = '/default-event.jpg'}
-                  />
-                ) : (
-                  <span className="text-gray-500 font-medium">relevant picture</span>
+                <img
+                  src={
+                    editForm.image && editForm.image instanceof File
+                      ? URL.createObjectURL(editForm.image)
+                      : `http://localhost:8000/${(editForm.image || selectedEvent.image || '').replace(/\\/g, '/')}`
+                  }
+                  alt={selectedEvent.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => e.target.src = '/default-event.jpg'}
+                />
+
+                {isEditing && (
+                  <label className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="bg-white/90 text-gray-800 px-4 py-2 rounded-lg font-bold shadow-sm hover:scale-105 transition-transform flex items-center gap-2">
+                      <FontAwesomeIcon icon={faFileUpload} /> Change
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleEditImageChange}
+                      className="hidden"
+                    />
+                  </label>
                 )}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <button className="bg-white/90 text-gray-800 px-3 py-1 rounded shadow-sm text-xs font-bold">Change</button>
-                </div>
               </div>
 
               {/* Description Box */}
@@ -363,36 +643,89 @@ const Events = () => {
 
             </div>
 
-            {/* Right Column: Details & Actions */}
-            <div className="w-full md:w-1/2 p-8 flex flex-col justify-between overflow-y-auto">
-
-              <div className="space-y-6">
-                {/* Header (Title) */}
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">Title:</span>
-                    <h2 className="text-3xl font-bold text-gray-900 mt-1">{selectedEvent.title}</h2>
-                  </div>
-                  <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600 hidden md:block">
-                    <FontAwesomeIcon icon={faTimes} size="lg" />
-                  </button>
+            {/* Right Column: Details & Form */}
+            <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col h-full overflow-y-auto">
+              {/* Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex-1 mr-4">
+                  <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">TITLE:</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="title"
+                      value={editForm.title}
+                      onChange={handleEditChange}
+                      className="w-full border-b border-gray-300 focus:border-indigo-500 outline-none py-1 text-2xl font-bold text-gray-800"
+                    />
+                  ) : (
+                    <h2 className="text-3xl font-bold text-gray-800 leading-tight">{selectedEvent.title}</h2>
+                  )}
                 </div>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faTimes} size="lg" />
+                </button>
+              </div>
 
-                {/* Date & Location */}
-                <div className="grid grid-cols-2 gap-4">
+              <div className="flex-1 overflow-y-auto pr-2 space-y-6">
+                {/* Date & Location Grid */}
+                <div className="grid grid-cols-2 gap-6">
                   <div>
                     <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">DATE:</span>
-                    <div className="text-xl font-medium text-gray-800 mt-1">
-                      {new Date(selectedEvent.date).toLocaleDateString('en-GB')}
-                    </div>
+                    {isEditing ? (
+                      <input
+                        type="date"
+                        name="date"
+                        value={editForm.date}
+                        onChange={handleEditChange}
+                        className="w-full border-b border-gray-300 focus:border-indigo-500 outline-none py-1 text-xl font-medium text-gray-800"
+                      />
+                    ) : (
+                      <div className="text-xl font-medium text-gray-800 mt-1">
+                        {new Date(selectedEvent.date).toLocaleDateString('en-GB')}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">LOCATION:</span>
-                    <div className="text-xl font-medium text-gray-800 mt-1 truncate" title={selectedEvent.location}>
-                      {selectedEvent.location}
-                    </div>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="location"
+                        value={editForm.location}
+                        onChange={handleEditChange}
+                        className="w-full border-b border-gray-300 focus:border-indigo-500 outline-none py-1 text-xl font-medium text-gray-800"
+                      />
+                    ) : (
+                      <div className="text-xl font-medium text-gray-800 mt-1 truncate" title={selectedEvent.location}>
+                        {selectedEvent.location}
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                <div className="border-t border-gray-100 my-4"></div>
+
+                {/* Description */}
+                <div>
+                  <span className="text-sm font-bold text-gray-400 uppercase tracking-wide block mb-2">DESCRIPTION:</span>
+                  {isEditing ? (
+                    <textarea
+                      name="description"
+                      value={editForm.description}
+                      onChange={handleEditChange}
+                      rows="4"
+                      className="w-full border border-gray-200 rounded-lg p-3 text-gray-600 focus:ring-2 focus:ring-indigo-100 outline-none resize-none"
+                    />
+                  ) : (
+                    <p className="text-gray-600 leading-relaxed overflow-y-auto max-h-40 scroller">
+                      {selectedEvent.description}
+                    </p>
+                  )}
+                </div>
+
 
                 <div className="border-t border-gray-100 my-4"></div>
 
@@ -401,35 +734,85 @@ const Events = () => {
                   <div className="flex justify-between items-center group">
                     <span className="text-sm font-bold text-gray-500 uppercase">total amount:</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-gray-800">${selectedEvent.requiredAmount || 0}</span>
+                      {isEditing ? (
+                        <div className="flex items-center">
+                          <span className="font-bold text-gray-500 mr-1">$</span>
+                          <input
+                            type="number"
+                            name="requiredAmount"
+                            value={editForm.requiredAmount}
+                            onChange={handleEditChange}
+                            className="w-24 border-b border-gray-300 focus:border-indigo-500 outline-none font-bold text-gray-800 text-right"
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-lg font-bold text-gray-800">${selectedEvent.requiredAmount || 0}</span>
+                      )}
                     </div>
                   </div>
 
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-bold text-gray-500 uppercase">collected amount:</span>
-                    <span className="text-lg font-bold text-green-600">${selectedEvent.collectedAmount || 0}</span>
+                    <div className="flex items-center gap-2">
+                      {isEditing ? (
+                        <div className="flex items-center">
+                          <span className="font-bold text-gray-500 mr-1">$</span>
+                          <input
+                            type="number"
+                            name="collectedAmount"
+                            value={editForm.collectedAmount}
+                            onChange={handleEditChange}
+                            className="w-24 border-b border-gray-300 focus:border-indigo-500 outline-none font-bold text-green-600 text-right"
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-lg font-bold text-green-600">${selectedEvent.collectedAmount || 0}</span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-bold text-gray-500 uppercase">remaining amount:</span>
                     <span className="text-lg font-bold text-red-500">
-                      ${(selectedEvent.requiredAmount || 0) - (selectedEvent.collectedAmount || 0)}
+                      ${((isEditing ? editForm.requiredAmount : selectedEvent.requiredAmount) || 0) - ((isEditing ? editForm.collectedAmount : selectedEvent.collectedAmount) || 0)}
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="mt-10 space-y-3">
-                <button className="w-full bg-gray-200 text-gray-800 py-3 rounded-xl font-bold hover:bg-gray-300 transition-transform active:scale-[0.98] shadow-sm">
-                  Edit
-                </button>
-                <button
-                  onClick={handleComplete}
-                  className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-transform active:scale-[0.98] shadow-lg shadow-indigo-200"
-                >
-                  Mark as Completed
-                </button>
+              <div className="mt-6 space-y-3 pt-4 border-t border-gray-50">
+                {isEditing ? (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleUpdateEvent}
+                      className="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-black transition-all shadow-lg"
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      onClick={handleEditToggle}
+                      className="w-1/3 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleEditToggle}
+                      className="w-full bg-gray-200 text-gray-800 py-3 rounded-xl font-bold hover:bg-gray-300 transition-transform active:scale-[0.98] shadow-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={handleComplete}
+                      className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-black transition-transform active:scale-[0.98] shadow-lg"
+                    >
+                      Mark as Completed
+                    </button>
+                  </>
+                )}
               </div>
 
             </div>
