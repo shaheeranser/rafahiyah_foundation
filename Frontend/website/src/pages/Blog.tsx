@@ -28,7 +28,7 @@ const Blog = () => {
   const [selectedBlog, setSelectedBlog] = useState(null);
 
   useEffect(() => {
-    scrollTo(0,0)
+    scrollTo(0, 0)
     async function fetchBlogs() {
       try {
         const data = await getAllBlogs();

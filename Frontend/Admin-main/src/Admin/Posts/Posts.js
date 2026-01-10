@@ -369,54 +369,107 @@ const Posts = () => {
       {/* 2. Case Details Modal (View/Drop/Complete) */}
       {showDetailModal && selectedCase && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800">Details</h3>
-                  <p className="text-xs text-gray-400 font-bold">CASE #{selectedCase.caseNo}</p>
-                </div>
-                <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600">
-                  <FontAwesomeIcon icon={faTimesCircle} size="lg" />
-                </button>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden animate-fade-in-up flex flex-col md:flex-row max-h-[90vh]">
+
+            {/* Close Button Mobile */}
+            <button
+              onClick={() => setShowDetailModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 md:hidden z-10"
+            >
+              <FontAwesomeIcon icon={faTimesCircle} size="lg" />
+            </button>
+
+            {/* Left Column: Image & Description */}
+            <div className="w-full md:w-1/2 bg-gray-50 p-6 flex flex-col gap-6 overflow-y-auto">
+              {/* Image Box */}
+              <div className="bg-gray-200 rounded-xl w-full aspect-video flex items-center justify-center overflow-hidden relative group">
+                <img
+                  src={selectedCase.image}
+                  alt={selectedCase.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1932&auto=format&fit=crop'}
+                />
               </div>
 
-              <div className="space-y-4 mb-8">
-                <div className="flex justify-between border-b pb-2">
-                  <span className="text-sm text-gray-500">Category</span>
-                  <span className="text-sm font-medium text-gray-800">{selectedCase.category}</span>
-                </div>
-                <div className="flex justify-between border-b pb-2">
-                  <span className="text-sm text-gray-500">Date Started</span>
-                  <span className="text-sm font-medium text-gray-800">{new Date(selectedCase.createdAt).toLocaleDateString()}</span>
-                </div>
-                <div className="bg-gray-50 p-3 rounded text-sm text-gray-600 text-sm leading-relaxed">
+              {/* Description Box */}
+              <div className="bg-gray-200 rounded-xl w-full p-4 flex-1 min-h-[150px]">
+                <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Description Text</h4>
+                <p className="text-gray-700 text-sm leading-relaxed">
                   {selectedCase.description}
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Details & Actions */}
+            <div className="w-full md:w-1/2 p-8 flex flex-col justify-between overflow-y-auto">
+
+              <div className="space-y-6">
+                {/* Header */}
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-1">{selectedCase.title}</h2>
+                  </div>
+                  <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600 hidden md:block">
+                    <FontAwesomeIcon icon={faTimesCircle} size="lg" />
+                  </button>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Amount Required</span>
-                  <span className="font-bold text-gray-800">${selectedCase.amountRequired}</span>
+
+                {/* Case Info */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-gray-500 uppercase w-32">case number:</span>
+                    <span className="text-gray-800 font-medium">#{selectedCase.caseNo}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-gray-500 uppercase w-32">category:</span>
+                    <span className="text-gray-800 font-medium">{selectedCase.category}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Amount Collected</span>
-                  <span className="font-bold text-green-600">${selectedCase.amountCollected}</span>
+
+                <div className="border-t border-gray-100 my-2"></div>
+
+                {/* Financials */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-bold text-gray-500 uppercase">total amount:</span>
+                    <span className="font-bold text-gray-800 text-lg">${selectedCase.amountRequired}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-bold text-gray-500 uppercase">collected amount:</span>
+                    <span className="font-bold text-green-600 text-lg">${selectedCase.amountCollected}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-bold text-gray-500 uppercase">remaining amount:</span>
+                    <span className="font-bold text-red-500 text-lg">
+                      ${(selectedCase.amountRequired || 0) - (selectedCase.amountCollected || 0)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Last Date (Optional Placeholder as per design) */}
+                <div className="mt-4">
+                  <div className="bg-gray-200 text-gray-600 text-xs font-bold px-3 py-1.5 rounded w-fit mx-auto md:mx-0">
+                    last date (optional)
+                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              {/* Actions */}
+              <div className="flex flex-col gap-3 mt-8">
                 <button
                   onClick={handleDropCase}
-                  className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium transition-colors border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1"
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-3 rounded-xl font-bold transition-colors shadow-sm"
                 >
                   Drop
                 </button>
                 <button
                   onClick={handleCompleteStart}
-                  className="flex-1 bg-amber-800 hover:bg-amber-900 text-white py-2 rounded-lg font-medium transition-colors border-b-4 border-amber-950 active:border-b-0 active:translate-y-1"
+                  className="w-full bg-[#8B4513] hover:bg-[#6F370F] text-white py-3 rounded-xl font-bold transition-colors shadow-sm"
                 >
                   Complete
                 </button>
               </div>
+
             </div>
           </div>
         </div>

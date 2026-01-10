@@ -146,11 +146,11 @@ const Events = () => {
   // Init Mock Data
   useEffect(() => {
     const mockRecent = [
-      { id: 1, title: 'Charity Gala Dinner', description: 'Annual fundraising dinner.', location: 'Grand Hotel, NY', date: '2025-12-25', time: '18:00', image: 'https://images.unsplash.com/photo-1511578314322-379afb476865', requiredAmount: 5000 },
-      { id: 2, title: 'Community Cleanup', description: 'Cleaning the local park.', location: 'Central Park', date: '2026-01-10', time: '09:00', image: 'https://images.unsplash.com/photo-1552664730-d307ca884978', requiredAmount: 200 }
+      { id: 1, title: 'Charity Gala Dinner', description: 'Annual fundraising dinner.', location: 'Grand Hotel, NY', date: '2025-12-25', time: '18:00', image: 'https://images.unsplash.com/photo-1511578314322-379afb476865', requiredAmount: 5000, collectedAmount: 3500 },
+      { id: 2, title: 'Community Cleanup', description: 'Cleaning the local park.', location: 'Central Park', date: '2026-01-10', time: '09:00', image: 'https://images.unsplash.com/photo-1552664730-d307ca884978', requiredAmount: 200, collectedAmount: 50 }
     ];
     const mockCompleted = [
-      { id: 3, title: 'Winter Clothing Drive', description: 'Collecting coats for the homeless.', location: 'Community Center', date: '2024-11-15', time: '10:00', budgetRaised: 1500 }
+      { id: 3, title: 'Winter Clothing Drive', description: 'Collecting coats for the homeless.', location: 'Community Center', date: '2024-11-15', time: '10:00', budgetRaised: 1500, requiredAmount: 1500, collectedAmount: 1500 }
     ];
 
     setRecentEvents(mockRecent);
@@ -168,7 +168,8 @@ const Events = () => {
     const newEvent = {
       id: Date.now(),
       ...createForm,
-      image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30' // Placeholder for uploaded img
+      image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30', // Placeholder for uploaded img
+      collectedAmount: 0 // Init with 0
     };
     setRecentEvents([newEvent, ...recentEvents]);
     setShowCreateModal(false);
@@ -319,75 +320,115 @@ const Events = () => {
         </div>
       )}
 
-      {/* 2. Event Details Modal */}
+      {/* 2. Event Details Modal - New 2-Column Design */}
       {showDetailModal && selectedEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-6">
-                <h3 className="text-2xl font-bold text-gray-800 font-handwriting">Event Details</h3>
-                <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600">
-                  <FontAwesomeIcon icon={faTimes} size="lg" />
-                </button>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden animate-fade-in-up flex flex-col md:flex-row max-h-[90vh]">
+
+            {/* Close Button Mobile */}
+            <button
+              onClick={() => setShowDetailModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 md:hidden z-10"
+            >
+              <FontAwesomeIcon icon={faTimes} size="lg" />
+            </button>
+
+            {/* Left Column: Image & Description */}
+            <div className="w-full md:w-1/2 bg-gray-50 p-6 flex flex-col gap-6 overflow-y-auto">
+
+              {/* Image Box */}
+              <div className="bg-gray-200 rounded-xl w-full aspect-video flex items-center justify-center overflow-hidden relative group">
+                {selectedEvent.image ? (
+                  <img
+                    src={selectedEvent.image}
+                    alt={selectedEvent.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => e.target.src = '/default-event.jpg'}
+                  />
+                ) : (
+                  <span className="text-gray-500 font-medium">relevant picture</span>
+                )}
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <button className="bg-white/90 text-gray-800 px-3 py-1 rounded shadow-sm text-xs font-bold">Change</button>
+                </div>
               </div>
 
-              <div className="space-y-4 mb-8">
-                {/* Read Only Fields */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase">Title</label>
-                  <div className="text-gray-800 font-medium">{selectedEvent.title}</div>
+              {/* Description Box */}
+              <div className="bg-gray-200 rounded-xl w-full p-4 flex-1 min-h-[150px]">
+                <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Description Text</h4>
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  {selectedEvent.description}
+                </p>
+              </div>
+
+            </div>
+
+            {/* Right Column: Details & Actions */}
+            <div className="w-full md:w-1/2 p-8 flex flex-col justify-between overflow-y-auto">
+
+              <div className="space-y-6">
+                {/* Header (Title) */}
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">Title:</span>
+                    <h2 className="text-3xl font-bold text-gray-900 mt-1">{selectedEvent.title}</h2>
+                  </div>
+                  <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600 hidden md:block">
+                    <FontAwesomeIcon icon={faTimes} size="lg" />
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase">Description</label>
-                  <div className="text-gray-600 text-sm">{selectedEvent.description}</div>
-                </div>
+
+                {/* Date & Location */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase">Date</label>
-                    <div className="text-gray-800">{selectedEvent.date}</div>
+                    <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">DATE:</span>
+                    <div className="text-xl font-medium text-gray-800 mt-1">
+                      {new Date(selectedEvent.date).toLocaleDateString('en-GB')}
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase">Time</label>
-                    <div className="text-gray-800">{selectedEvent.time}</div>
+                    <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">LOCATION:</span>
+                    <div className="text-xl font-medium text-gray-800 mt-1 truncate" title={selectedEvent.location}>
+                      {selectedEvent.location}
+                    </div>
                   </div>
                 </div>
 
-                {/* Editable Fields */}
-                <div>
-                  <label className="block text-xs font-bold text-blue-500 uppercase mb-1 flex items-center gap-1">
-                    <FontAwesomeIcon icon={faEdit} /> Location (Editable)
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full border border-blue-100 bg-blue-50 rounded p-2 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-300"
-                    value={editForm.location}
-                    onChange={e => setEditForm({ ...editForm, location: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-blue-500 uppercase mb-1 flex items-center gap-1">
-                    <FontAwesomeIcon icon={faEdit} /> Budget Required (Editable)
-                  </label>
-                  <input
-                    type="number"
-                    className="w-full border border-blue-100 bg-blue-50 rounded p-2 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-300"
-                    value={editForm.requiredAmount}
-                    onChange={e => setEditForm({ ...editForm, requiredAmount: e.target.value })}
-                  />
-                </div>
+                <div className="border-t border-gray-100 my-4"></div>
 
-                <div className="border border-dashed border-gray-300 rounded p-3 text-center text-gray-500 text-xs hover:bg-gray-50 cursor-pointer transition-colors mt-2">
-                  <FontAwesomeIcon icon={faFileUpload} className="mb-1 block mx-auto text-lg text-gray-300" />
-                  Upload Documents (If any)
+                {/* Financials */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center group">
+                    <span className="text-sm font-bold text-gray-500 uppercase">total amount:</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold text-gray-800">${selectedEvent.requiredAmount || 0}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-bold text-gray-500 uppercase">collected amount:</span>
+                    <span className="text-lg font-bold text-green-600">${selectedEvent.collectedAmount || 0}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-bold text-gray-500 uppercase">remaining amount:</span>
+                    <span className="text-lg font-bold text-red-500">
+                      ${(selectedEvent.requiredAmount || 0) - (selectedEvent.collectedAmount || 0)}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-2">
+              {/* Actions */}
+              <div className="mt-10 space-y-3">
+                <button className="w-full bg-gray-200 text-gray-800 py-3 rounded-xl font-bold hover:bg-gray-300 transition-transform active:scale-[0.98] shadow-sm">
+                  Edit
+                </button>
                 <button
                   onClick={handleComplete}
-                  className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+                  className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-transform active:scale-[0.98] shadow-lg shadow-indigo-200"
                 >
-                  Mark as Complete
+                  Mark as Completed
                 </button>
               </div>
 

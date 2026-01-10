@@ -146,9 +146,11 @@ const Contact = () => {
                     <SelectValue placeholder="Select Your Occupation" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="student">Student</SelectItem>
-                    <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="university_student">University Student</SelectItem>
+                    <SelectItem value="college_student">College Student</SelectItem>
+                    <SelectItem value="school_student">School Student</SelectItem>
+                    <SelectItem value="graduated_job_person">Graduated/ Job Person</SelectItem>
+                    <SelectItem value="other">Other...</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select>
@@ -156,9 +158,11 @@ const Contact = () => {
                     <SelectValue placeholder="Select The Team You Want To Join" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="media">Media</SelectItem>
-                    <SelectItem value="ground">Ground Work</SelectItem>
-                    <SelectItem value="it">IT Team</SelectItem>
+                    <SelectItem value="graphics_team">Graphics Team</SelectItem>
+                    <SelectItem value="marketing_team">Marketing Team</SelectItem>
+                    <SelectItem value="media_department">Media Department (Social + Documentary)</SelectItem>
+                    <SelectItem value="finance_department">Finance Department</SelectItem>
+                    <SelectItem value="onsite_volunteer">Onsite Volunteer</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="flex items-start gap-3 pt-2">

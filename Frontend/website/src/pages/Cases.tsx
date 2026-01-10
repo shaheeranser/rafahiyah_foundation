@@ -36,19 +36,28 @@ const Cases = () => {
             _id: "P001",
             title: "Community Outreach",
             description: "Engaging directly with local communities to understand their needs and provide immediate support through food, clothing, and shelter assistance.",
-            image: programImg1
+            image: programImg1,
+            date: "Oct 2023 - Present",
+            goal: 50000,
+            raised: 25000
         },
         {
             _id: "P002",
             title: "Health Awareness",
             description: "Conducting workshops and seminars to educate families about hygiene, nutrition, and disease prevention to foster healthier communities.",
-            image: programImg2
+            image: programImg2,
+            date: "Nov 2023 - Present",
+            goal: 30000,
+            raised: 15000
         },
         {
             _id: "P003",
             title: "Water Safety",
             description: "Implementing sustainable water filtration systems and educating villagers on the importance of clean drinking water for a healthy life.",
-            image: programImg3
+            image: programImg3,
+            date: "Dec 2023 - Present",
+            goal: 45000,
+            raised: 10000
         },
     ];
 
@@ -59,7 +68,10 @@ const Cases = () => {
             description: "Baby Zainab needs an urgent heart surgery to correct a congenital defect. Your donation can save her life and give her a bright future.",
             raised: 5000,
             goal: 10000,
-            image: caseImg1
+            image: caseImg1,
+            date: "Jan 2024 - Present",
+            category: "Medical",
+            caseNumber: "CASE-001"
         },
         {
             _id: "002",
@@ -67,7 +79,10 @@ const Cases = () => {
             description: "Families displaced by recent floods are in desperate need of food, dry rations, and tents. Help us provide them with immediate relief.",
             raised: 7500,
             goal: 12000,
-            image: caseImg2
+            image: caseImg2,
+            date: "Dec 2023 - Present",
+            category: "Emergency",
+            caseNumber: "CASE-002"
         },
         {
             _id: "003",
@@ -75,7 +90,10 @@ const Cases = () => {
             description: "Rebuilding a dilapidated school in a remote village to ensure children have a safe and conducive environment for learning.",
             raised: 3000,
             goal: 15000,
-            image: caseImg3
+            image: caseImg3,
+            date: "Feb 2024 - Present",
+            category: "Education",
+            caseNumber: "CASE-003"
         },
     ];
 
@@ -211,92 +229,89 @@ const Cases = () => {
             {/* Detail Modal */}
             <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
                 <DialogContent className="max-w-4xl bg-white rounded-3xl p-6 md:p-8 overflow-hidden">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>{selectedItem?.title}</DialogTitle>
+                    </DialogHeader>
+
                     {selectedItem && (
-                        <div className="flex flex-col gap-8">
-                            <div className="flex flex-col md:flex-row gap-8">
-                                {/* Left Side: Image */}
-                                <div className="w-full md:w-5/12">
-                                    <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-sm">
-                                        <img
-                                            src={selectedItem.image}
-                                            alt={selectedItem.title}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
+                        <div className="flex flex-col gap-6">
+                            {/* Top Section: Image and Stats */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Left: Image */}
+                                <div className="bg-gray-200 rounded-2xl h-64 flex items-center justify-center overflow-hidden">
+                                    <img
+                                        src={selectedItem.image}
+                                        alt={selectedItem.title}
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
 
-                                {/* Right Side: Title & Stats */}
-                                <div className="w-full md:w-7/12 space-y-6">
-                                    <div>
-                                        <h2 className="text-4xl md:text-5xl font-odibee text-rafahiyah-dark-blue mb-2">
-                                            {selectedItem.title}
-                                        </h2>
-                                    </div>
-
-                                    <div className="space-y-3 font-sans text-sm md:text-base">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-gray-900 uppercase tracking-wide">CASE NUMBER:</span>
-                                            <span className="text-gray-600">CASE-{selectedItem._id || Math.floor(Math.random() * 1000).toString().padStart(3, '0')}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-gray-900 uppercase tracking-wide">CATEGORY:</span>
-                                            <span className="text-gray-600">{selectedItem.goal ? "Medical / Relief" : "Community Program"}</span>
-                                        </div>
-
-                                        {selectedItem.goal ? (
+                                {/* Right: Stats and Title */}
+                                <div className="flex flex-col justify-center space-y-3 text-left">
+                                    <h3 className="text-4xl font-odibee text-gray-900 mb-2">{selectedItem.title}</h3>
+                                    <div className="space-y-1 font-sans text-gray-700 text-lg">
+                                        {selectedItem.category ? (
                                             <>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-bold text-gray-900 uppercase tracking-wide">TOTAL AMOUNT:</span>
-                                                    <span className="text-gray-600">${selectedItem.goal.toLocaleString()}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-bold text-gray-900 uppercase tracking-wide">COLLECTED AMOUNT:</span>
-                                                    <span className="text-gray-600">${selectedItem.raised.toLocaleString()}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-bold text-gray-900 uppercase tracking-wide">REMAINING AMOUNT:</span>
-                                                    <span className="text-rafahiyah-deep-red font-bold">${(selectedItem.goal - selectedItem.raised).toLocaleString()}</span>
-                                                </div>
+                                                <p>
+                                                    <span className="font-semibold uppercase text-gray-900">CASE NUMBER:</span>{" "}
+                                                    {selectedItem.caseNumber}
+                                                </p>
+                                                <p>
+                                                    <span className="font-semibold uppercase text-gray-900">CATEGORY:</span>{" "}
+                                                    {selectedItem.category}
+                                                </p>
                                             </>
                                         ) : (
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-bold text-gray-900 uppercase tracking-wide">STATUS:</span>
-                                                <span className="text-emerald-600 font-bold">Active Program</span>
-                                            </div>
+                                            <p>
+                                                <span className="font-semibold uppercase text-gray-900">DATE:</span>{" "}
+                                                {selectedItem.date || "Oct 2023 - Present"}
+                                            </p>
                                         )}
+                                        <p>
+                                            <span className="font-semibold uppercase text-gray-900">TOTAL AMOUNT:</span>{" "}
+                                            ${(selectedItem.goal || 0).toLocaleString()}
+                                        </p>
+                                        <p>
+                                            <span className="font-semibold uppercase text-gray-900">COLLECTED AMOUNT:</span>{" "}
+                                            ${(selectedItem.raised || 0).toLocaleString()}
+                                        </p>
+                                        <p>
+                                            <span className="font-semibold uppercase text-gray-900">REMAINING AMOUNT:</span>{" "}
+                                            <span className="text-rafahiyah-deep-red font-bold">
+                                                ${((selectedItem.goal || 0) - (selectedItem.raised || 0)).toLocaleString()}
+                                            </span>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Bottom Section: Description & Actions */}
-                            <div className="flex flex-col md:flex-row gap-8 items-stretch">
-                                {/* Description Box */}
-                                <div className="w-full md:w-8/12 bg-gray-100 rounded-2xl p-6 text-gray-700 leading-relaxed font-sans text-sm md:text-base">
+                            {/* Middle Section: Description */}
+                            <div className="bg-gray-100 rounded-2xl p-6 min-h-[150px] flex items-center text-gray-700 font-sans text-lg text-left">
+                                <div>
                                     <p>{selectedItem.description}</p>
-                                    <p className="mt-4">
+                                    <p className="mt-4 text-base opacity-80">
                                         This initiative requires immediate attention. Your contribution can help save lives or restore dignity to those affected. We ensure 100% transparency in funds utilization.
                                     </p>
                                 </div>
+                            </div>
 
-                                {/* Actions */}
-                                <div className="w-full md:w-4/12 flex flex-col justify-end gap-3">
-                                    <Button
-                                        variant="secondary"
-                                        className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-6 rounded-xl shadow-sm text-lg"
-                                        onClick={() => setSelectedItem(null)}
-                                    >
-                                        {selectedItem.goal ? "Urgent Need" : "View Schedule"}
-                                    </Button>
-                                    <Button
-                                        className="w-full bg-[#8B2D1B] hover:bg-[#6b2416] text-white font-bold py-6 rounded-xl shadow-md text-lg transition-transform hover:scale-[1.02]"
-                                        onClick={() => {
-                                            toast.success(selectedItem.goal ? "Proceeding to Donation..." : "Application Started");
-                                            setSelectedItem(null);
-                                        }}
-                                    >
-                                        {selectedItem.goal ? "Donate Now" : "Join Now"}
-                                    </Button>
-                                </div>
+                            {/* Bottom Section: Buttons */}
+                            <div className="flex flex-col sm:flex-row justify-end gap-4 mt-2">
+                                <Button
+                                    className="bg-[#242D4B] hover:bg-[#1a2138] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all"
+                                    onClick={() => setSelectedItem(null)}
+                                >
+                                    {selectedItem.goal ? "Urgent Need" : "View Schedule"}
+                                </Button>
+                                <Button
+                                    className="bg-[#852D1A] hover:bg-[#6b2416] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all"
+                                    onClick={() => {
+                                        toast.success(selectedItem.goal ? "Proceeding to Donation..." : "Application Started");
+                                        setSelectedItem(null);
+                                    }}
+                                >
+                                    {selectedItem.goal ? "Donate Now" : "Join/Volounteer"}
+                                </Button>
                             </div>
                         </div>
                     )}
