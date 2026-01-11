@@ -671,7 +671,7 @@ const Events = () => {
 
               <div className="flex-1 overflow-y-auto pr-2 space-y-6">
                 {/* Date & Location Grid */}
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">DATE:</span>
                     {isEditing ? (
@@ -680,11 +680,27 @@ const Events = () => {
                         name="date"
                         value={editForm.date}
                         onChange={handleEditChange}
-                        className="w-full border-b border-gray-300 focus:border-indigo-500 outline-none py-1 text-xl font-medium text-gray-800"
+                        className="w-full border-b border-gray-300 focus:border-indigo-500 outline-none py-1 text-lg font-medium text-gray-800"
                       />
                     ) : (
-                      <div className="text-xl font-medium text-gray-800 mt-1">
+                      <div className="text-lg font-medium text-gray-800 mt-1">
                         {new Date(selectedEvent.date).toLocaleDateString('en-GB')}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">TIME:</span>
+                    {isEditing ? (
+                      <input
+                        type="time"
+                        name="time"
+                        value={editForm.time}
+                        onChange={handleEditChange}
+                        className="w-full border-b border-gray-300 focus:border-indigo-500 outline-none py-1 text-lg font-medium text-gray-800"
+                      />
+                    ) : (
+                      <div className="text-lg font-medium text-gray-800 mt-1">
+                        {selectedEvent.time}
                       </div>
                     )}
                   </div>
@@ -696,10 +712,10 @@ const Events = () => {
                         name="location"
                         value={editForm.location}
                         onChange={handleEditChange}
-                        className="w-full border-b border-gray-300 focus:border-indigo-500 outline-none py-1 text-xl font-medium text-gray-800"
+                        className="w-full border-b border-gray-300 focus:border-indigo-500 outline-none py-1 text-lg font-medium text-gray-800"
                       />
                     ) : (
-                      <div className="text-xl font-medium text-gray-800 mt-1 truncate" title={selectedEvent.location}>
+                      <div className="text-lg font-medium text-gray-800 mt-1 truncate" title={selectedEvent.location}>
                         {selectedEvent.location}
                       </div>
                     )}

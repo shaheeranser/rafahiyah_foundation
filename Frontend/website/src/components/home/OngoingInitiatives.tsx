@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getAllEvents } from "../../services/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,29 +10,48 @@ import healthcareImg from "@/assets/hero-women-empowerment.jpg";
 
 const OngoingInitiatives = () => {
     const navigate = useNavigate();
+    const [initiatives, setInitiatives] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     // Mock data based on design
-    const initiatives = [
-        {
-            id: 1,
-            title: "Clean Water Project",
-            description: "Providing safe and clean drinking water to remote villages.",
-            image: communityImg,
-        },
-        {
-            id: 2,
-            title: "Education for All",
-            description: "Building schools and providing scholarships for underprivileged children.",
-            image: educationImg,
-        },
-        {
-            id: 3,
-            title: "Healthcare Outreach",
-            description: "Mobile clinics delivering essential healthcare services to rural areas.",
-            image: healthcareImg,
-        }
-    ];
+    // const initiatives = [
+    //     {
+    //         id: 1,
+    //         title: "Clean Water Project",
+    //         description: "Providing safe and clean drinking water to remote villages.",
+    //         image: communityImg,
+    //     },
+    //     {
+    //         id: 2,
+    //         title: "Education for All",
+    //         description: "Building schools and providing scholarships for underprivileged children.",
+    //         image: educationImg,
+    //     },
+    //     {
+    //         id: 3,
+    //         title: "Healthcare Outreach",
+    //         description: "Mobile clinics delivering essential healthcare services to rural areas.",
+    //         image: healthcareImg,
+    //     }
+    // ];
 
-    const [selectedInitiative, setSelectedInitiative] = useState<typeof initiatives[0] | null>(null);
+    useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                const response = await getAllEvents();
+                if (response.success) {
+                    setInitiatives(response.events);
+                }
+            } catch (error) {
+                console.error("Error fetching events:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEvents();
+    }, []);
+
+    const [selectedInitiative, setSelectedInitiative] = useState<any | null>(null);
 
     return (
         <section className="py-20 bg-gray-100">
@@ -41,10 +61,17 @@ const OngoingInitiatives = () => {
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {initiatives.map((item) => (
-                        <Card key={item.id} className="bg-white rounded-3xl overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                    {initiatives.slice(0, 3).map((item) => (
+                        <Card key={item._id} className="bg-white rounded-3xl overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
                             <div className="h-64 bg-gray-200 flex items-center justify-center relative overflow-hidden">
-                                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                                <img
+                                    src={`http://localhost:8000/${item.image}`}
+                                    alt={item.title}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.currentTarget.src = communityImg; // Fallback image
+                                    }}
+                                />
                             </div>
 
                             <CardHeader className="text-left pb-2">
@@ -52,7 +79,21 @@ const OngoingInitiatives = () => {
                             </CardHeader>
 
                             <CardContent className="text-left flex-grow">
-                                <p className="text-gray-500 font-sans text-lg capitalize">{item.description}</p>
+                                <p className="text-gray-500 font-sans text-lg capitalize line-clamp-3 mb-4">{item.description}</p>
+
+                                {item.requiredAmount > 0 && (
+                                    <div className="space-y-2">
+                                        <div className="w-full bg-gray-200 rounded-full h-4 relative">
+                                            <div
+                                                className="bg-[#852D1A] h-4 rounded-full"
+                                                style={{ width: `${Math.min((item.collectedAmount / item.requiredAmount) * 100, 100)}%` }}
+                                            ></div>
+                                        </div>
+                                        <p className="text-[#1E2542] font-sans font-medium text-lg">
+                                            Raised: <span className="text-[#852D1A]">${item.collectedAmount?.toLocaleString() || 0}</span> / ${item.requiredAmount?.toLocaleString()}
+                                        </p>
+                                    </div>
+                                )}
                             </CardContent>
 
                             <CardFooter className="flex justify-between items-center pt-4 pb-6 px-6 gap-4">
@@ -82,7 +123,10 @@ const OngoingInitiatives = () => {
                 </div>
 
                 <div className="mt-12">
-                    <Button className="bg-[#1E2542] text-white hover:bg-[#2a3356] border-none rounded-full px-8 py-6 font-sans shadow-md transition-all">
+                    <Button
+                        onClick={() => navigate('/stories')}
+                        className="bg-[#1E2542] text-white hover:bg-[#2a3356] border-none rounded-full px-8 py-6 font-sans shadow-md transition-all"
+                    >
                         Discover More
                     </Button>
                 </div>
@@ -100,17 +144,30 @@ const OngoingInitiatives = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     {/* Left: Relevant Picture Placeholder */}
                                     <div className="bg-gray-200 rounded-2xl h-64 flex items-center justify-center overflow-hidden">
-                                        <img src={selectedInitiative.image} alt={selectedInitiative.title} className="w-full h-full object-cover" />
+                                        <img
+                                            src={`http://localhost:8000/${selectedInitiative.image}`}
+                                            alt={selectedInitiative.title}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.currentTarget.src = communityImg; // Fallback image
+                                            }}
+                                        />
                                     </div>
 
                                     {/* Right: Stats and Title */}
                                     <div className="flex flex-col justify-center space-y-3 text-left">
                                         <h3 className="text-4xl font-odibee text-gray-900 mb-2">{selectedInitiative.title}</h3>
                                         <div className="space-y-1 font-sans text-gray-700 text-lg">
-                                            <p><span className="font-semibold uppercase text-gray-900">DATE:</span> Oct 2023 - Present</p>
-                                            <p><span className="font-semibold uppercase text-gray-900">total amount:</span> $50,000</p>
-                                            <p><span className="font-semibold uppercase text-gray-900">collected amount:</span> $12,500</p>
-                                            <p><span className="font-semibold uppercase text-gray-900">remaining amount:</span> $37,500</p>
+                                            <p><span className="font-semibold uppercase text-gray-900">TIME:</span> {selectedInitiative.time}</p>
+                                            <p><span className="font-semibold uppercase text-gray-900">LOCATION:</span> {selectedInitiative.location}</p>
+                                            <p><span className="font-semibold uppercase text-gray-900">DATE:</span> {new Date(selectedInitiative.date).toLocaleDateString()}</p>
+                                            {selectedInitiative.requiredAmount > 0 && (
+                                                <>
+                                                    <p><span className="font-semibold uppercase text-gray-900">total amount:</span> ${selectedInitiative.requiredAmount?.toLocaleString() || 0}</p>
+                                                    <p><span className="font-semibold uppercase text-gray-900">collected amount:</span> ${selectedInitiative.collectedAmount?.toLocaleString() || 0}</p>
+                                                    <p><span className="font-semibold uppercase text-gray-900">remaining amount:</span> ${(selectedInitiative.requiredAmount - selectedInitiative.collectedAmount)?.toLocaleString() || 0}</p>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -118,7 +175,7 @@ const OngoingInitiatives = () => {
                                 {/* Middle Section: Description */}
                                 <div className="bg-gray-100 rounded-2xl p-6 min-h-[150px] flex items-center text-gray-700 font-sans text-lg text-left">
                                     <p>
-                                        {selectedInitiative.description} This initiative aims to address critical needs in the community by focusing on sustainable solutions and long-term impact. We are working closely with local partners to ensure effective implementation and monitoring.
+                                        {selectedInitiative.description}
                                     </p>
                                 </div>
 

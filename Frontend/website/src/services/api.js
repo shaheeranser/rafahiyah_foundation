@@ -115,18 +115,18 @@ export async function submitContactForm(contactData) {
       },
       body: JSON.stringify(contactData),
     });
-    
+
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
     console.error('Error submitting contact form:', error);
     throw error;
   }
-} 
+}
 
 // Function to fetch all awareness items
 export async function getAllAwareness() {
@@ -156,4 +156,19 @@ export async function getAwarenessById(id) {
     console.error('Error fetching awareness by ID:', error);
     throw error;
   }
-} 
+}
+
+// Function to fetch all cases
+export async function getAllCases() {
+  try {
+    const response = await fetch('http://localhost:8000/api/cases');
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching cases:', error);
+    throw error;
+  }
+}
