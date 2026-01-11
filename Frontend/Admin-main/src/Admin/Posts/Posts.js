@@ -11,7 +11,8 @@ import {
   faTimesCircle,
   faFileUpload,
   faEdit,
-  faTrash
+  faTrash,
+  faEllipsisV
 } from "@fortawesome/free-solid-svg-icons";
 import AdminLayout from "../../layouts/AdminLayout";
 import Domain from "../../Api/Api";
@@ -32,7 +33,7 @@ const CaseCard = ({ data, onClick }) => {
       onClick={() => onClick(data)}
       className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all group relative cursor-pointer"
     >
-      <div className="h-40 bg-gray-100 relative overflow-hidden">
+      <div className="aspect-video bg-gray-100 relative overflow-hidden">
         <img
           src={imageUrl}
           alt={data.title}
@@ -103,14 +104,27 @@ const CaseCard = ({ data, onClick }) => {
 };
 
 // 2. Table for Completed/Dropped
-const HistoryTable = ({ data, emptyMessage, isDropped }) => {
+const HistoryTable = ({ data, emptyMessage, isDropped, onAction }) => {
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openMenuId && !event.target.closest('.action-menu-container')) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenuId]);
+
   if (!data || data.length === 0) {
     return <div className="p-8 text-center text-gray-400 border border-dashed rounded-xl bg-gray-50">{emptyMessage}</div>;
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="overflow-x-auto">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden min-h-[300px]"> {/* Added min-h to allow dropdown space */}
+      <div className="overflow-x-visible"> {/* Changed to visible to allow dropdown overflow if possible, else we rely on enough height */}
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
@@ -119,17 +133,52 @@ const HistoryTable = ({ data, emptyMessage, isDropped }) => {
               <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">Category</th>
               <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">Date Ended</th>
               <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">{isDropped ? 'Reason' : 'Amount Raised'}</th>
+              <th className="py-3 px-6 text-right text-xs font-bold text-gray-400 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="overflow-visible">
             {data.map((item) => (
-              <tr key={item._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+              <tr key={item._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors relative group">
                 <td className="py-4 px-6 text-sm text-gray-600">#{item.caseNo}</td>
                 <td className="py-4 px-6 text-sm font-medium text-gray-800">{item.title}</td>
                 <td className="py-4 px-6 text-sm text-gray-600">{item.category}</td>
                 <td className="py-4 px-6 text-sm text-gray-600">{new Date(item.updatedAt || Date.now()).toLocaleDateString('en-GB')}</td>
                 <td className="py-4 px-6 text-sm text-gray-600">
                   {isDropped ? 'Cancelled by Admin' : `$${item.amountCollected}`}
+                </td>
+                <td className="py-4 px-6 text-right relative action-menu-container">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === item._id ? null : item._id);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faEllipsisV} />
+                  </button>
+
+                  {openMenuId === item._id && (
+                    <div className="absolute right-8 top-8 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50 py-1 text-left transform origin-top-right animate-fade-in-up">
+                      <button
+                        onClick={() => { onAction(item, 'view'); setOpenMenuId(null); }}
+                        className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2"
+                      >
+                        <FontAwesomeIcon icon={faEye} className="w-4" /> View Details
+                      </button>
+                      <button
+                        onClick={() => { onAction(item, 'edit'); setOpenMenuId(null); }}
+                        className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600 flex items-center gap-2"
+                      >
+                        <FontAwesomeIcon icon={faEdit} className="w-4" /> Edit
+                      </button>
+                      <button
+                        onClick={() => { onAction(item, 'mark_incomplete'); setOpenMenuId(null); }}
+                        className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 flex items-center gap-2"
+                      >
+                        <FontAwesomeIcon icon={faTimesCircle} className="w-4" /> Mark as Incomplete
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -342,6 +391,35 @@ const Posts = () => {
     link.remove();
   };
 
+  const handleTableAction = async (item, action) => {
+    if (action === 'view') {
+      handleCardAction(item, 'view');
+    } else if (action === 'edit') {
+      handleCardAction(item, 'edit');
+    } else if (action === 'mark_incomplete') {
+      Swal.fire({
+        title: 'Mark as Incomplete?',
+        text: "This case will be moved back to active cases.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, move it!'
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            await axios.patch(`${Domain()}/cases/${item._id}/status`, { status: 'active' });
+            Swal.fire('Moved!', 'Case has been moved to active list.', 'success');
+            fetchCases();
+          } catch (error) {
+            console.error("Error updating case:", error);
+            Swal.fire('Error', 'Failed to update case.', 'error');
+          }
+        }
+      });
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="container mx-auto px-6 py-8">
@@ -379,7 +457,11 @@ const Posts = () => {
               <FontAwesomeIcon icon={faDownload} className="mr-2" /> Export CSV
             </button>
           </div>
-          <HistoryTable data={completedCases} emptyMessage="No completed cases yet." />
+          <HistoryTable
+            data={completedCases}
+            emptyMessage="No completed cases yet."
+            onAction={handleTableAction}
+          />
         </div>
 
         {/* Dropped Cases */}
@@ -390,7 +472,12 @@ const Posts = () => {
               <FontAwesomeIcon icon={faDownload} className="mr-2" /> Export CSV
             </button>
           </div>
-          <HistoryTable data={droppedCases} emptyMessage="No dropped cases found." isDropped />
+          <HistoryTable
+            data={droppedCases}
+            emptyMessage="No dropped cases found."
+            isDropped
+            onAction={handleTableAction}
+          />
         </div>
 
       </div>
@@ -563,11 +650,7 @@ const Posts = () => {
                 </div>
 
                 {/* Last Date (Optional Placeholder as per design) */}
-                <div className="mt-4">
-                  <div className="bg-gray-200 text-gray-600 text-xs font-bold px-3 py-1.5 rounded w-fit mx-auto md:mx-0">
-                    last date (optional)
-                  </div>
-                </div>
+
               </div>
 
               {/* Actions */}
