@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { apiCall } from "../../api/apiCall";
 import toast from "react-hot-toast";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 interface CreateProgramModalProps {
   isOpen: boolean;
@@ -17,11 +17,10 @@ interface CreateProgramModalProps {
 const CreateProgramModal: React.FC<CreateProgramModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     title: "",
+    venue: "",
     description: "",
     startingDate: "",
-    endingDate: "",
-    day: "",
-    time: ""
+    endingDate: ""
   });
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,24 +41,23 @@ const CreateProgramModal: React.FC<CreateProgramModalProps> = ({ isOpen, onClose
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.title || !formData.description || !formData.startingDate || 
-        !formData.endingDate || !formData.day || !formData.time) {
+
+    if (!formData.title || !formData.venue || !formData.description || !formData.startingDate ||
+      !formData.endingDate) {
       toast.error('Please fill in all required fields');
       return;
     }
 
     setLoading(true);
-    
+
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
+      formDataToSend.append('venue', formData.venue);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('startingDate', formData.startingDate);
       formDataToSend.append('endingDate', formData.endingDate);
-      formDataToSend.append('day', formData.day);
-      formDataToSend.append('time', formData.time);
-      
+
       if (image) {
         formDataToSend.append('image', image);
       }
@@ -78,11 +76,10 @@ const CreateProgramModal: React.FC<CreateProgramModalProps> = ({ isOpen, onClose
         // Reset form
         setFormData({
           title: "",
+          venue: "",
           description: "",
           startingDate: "",
-          endingDate: "",
-          day: "",
-          time: ""
+          endingDate: ""
         });
         setImage(null);
       } else {
@@ -114,18 +111,32 @@ const CreateProgramModal: React.FC<CreateProgramModalProps> = ({ isOpen, onClose
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Program Title *
-            </label>
-            <Input
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              placeholder="Enter program title"
-              required
-            />
+          {/* Title & Venue */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Program Name *
+              </label>
+              <Input
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                placeholder="e.g. Winter Relief"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Venue *
+              </label>
+              <Input
+                name="venue"
+                value={formData.venue}
+                onChange={handleInputChange}
+                placeholder="e.g. City Hall / Multiple"
+                required
+              />
+            </div>
           </div>
 
           {/* Description */}
@@ -171,33 +182,7 @@ const CreateProgramModal: React.FC<CreateProgramModalProps> = ({ isOpen, onClose
             </div>
           </div>
 
-          {/* Day and Time */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Day *
-              </label>
-              <Input
-                name="day"
-                value={formData.day}
-                onChange={handleInputChange}
-                placeholder="e.g., Monday, Tuesday"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Time *
-              </label>
-              <Input
-                name="time"
-                value={formData.time}
-                onChange={handleInputChange}
-                placeholder="e.g., 10:00 AM - 2:00 PM"
-                required
-              />
-            </div>
-          </div>
+
 
           {/* Image Upload */}
           <div>

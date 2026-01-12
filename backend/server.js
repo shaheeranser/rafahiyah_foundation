@@ -6,7 +6,7 @@ import userRoutes from './routes/userRoutes.js'; // Importing routes
 import eventRoute from './routes/eventRoute.js'; // Importing event routes
 // import blogRoute from './routes/blogRoute.js'; // Importing blog routes
 // import teamRoute from './routes/teamRoute.js'; // Importing team routes
-// import programRoute from './routes/programRoute.js'; // Importing program routes
+import programRoute from './routes/programRoute.js'; // Importing program routes
 // import successStoryRoute from './routes/successStoryRoute.js'; // Importing success story routes
 import contactUsRoute from './routes/contactUsRoute.js';
 // import galleryRoute from './routes/galleryRoute.js';
@@ -39,6 +39,12 @@ const app = express();
 app.use(cors()); // Enable Cross-Origin Resource Sharing
 app.use(express.json()); // Parse incoming JSON requests
 
+// Logging Middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 // Serve static files from uploads directory
 app.use('/uploads', express.static('uploads'));
 app.use('/api/uploads', express.static('uploads'));
@@ -50,7 +56,7 @@ app.use('/api/events', eventRoute);
 app.use('/api/cases', caseRoutes);
 // app.use('/api/blogs', blogRoute);
 // app.use('/api/teams', teamRoute);
-// app.use('/api/programs', programRoute);
+app.use('/api/programs', programRoute);
 // app.use('/api/successstories', successStoryRoute);
 app.use('/api/contactus', contactUsRoute);
 // app.use('/api/gallery', galleryRoute);

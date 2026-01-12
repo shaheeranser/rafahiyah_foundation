@@ -16,7 +16,8 @@ import {
   faBookOpen,
   faCheckCircle,
   faLayerGroup,
-  faCalendarCheck
+  faCalendarCheck,
+  faCloudUploadAlt
 } from "@fortawesome/free-solid-svg-icons";
 import AdminLayout from "../../layouts/AdminLayout";
 
@@ -90,8 +91,8 @@ const ProgramCard = ({ program, onView, onEdit, onDelete }) => {
 
         <div className="flex justify-between items-center pt-4 border-t border-gray-100 mt-auto">
           <span className={`px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1 ${program.status === 'active'
-              ? 'bg-green-100 text-green-700 border border-green-200'
-              : 'bg-gray-100 text-gray-700 border border-gray-200'
+            ? 'bg-green-100 text-green-700 border border-green-200'
+            : 'bg-gray-100 text-gray-700 border border-gray-200'
             }`}>
             <span className={`w-2 h-2 rounded-full ${program.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}`}></span>
             {program.status ? program.status.toUpperCase() : 'INACTIVE'}
@@ -137,35 +138,75 @@ const Programs = () => {
     selectedCaseIds: []   // Array of IDs
   });
 
-  // Mock Data Init
+  const [eventsList, setEventsList] = useState([]);
+  const [casesList, setCasesList] = useState([]);
+
+  // Fetch Data
   useEffect(() => {
-    const mockPrograms = [
-      {
-        id: 1,
-        name: 'Ramadan Charity Campaign',
-        description: 'A comprehensive month-long campaign to provide food, shelter, and medical aid to the needy during the holy month.',
-        venue: 'City Wide',
-        startDate: '2025-03-01',
-        endDate: '2025-03-30',
-        status: 'active',
-        image: 'https://images.unsplash.com/photo-1576487248805-cf45f6bcc67f?q=80&w=2148&auto=format&fit=crop',
-        linkedEvents: [101, 103],
-        linkedCases: [201, 203, 204]
-      },
-      {
-        id: 2,
-        name: 'Youth Education Initiative',
-        description: 'Empowering the next generation through scholarships, bootcamps, and mentorship programs.',
-        venue: 'Community Center',
-        startDate: '2025-06-01',
-        endDate: '2025-12-31',
-        status: 'upcoming',
-        image: 'https://images.unsplash.com/photo-1529390079861-591de354faf5?q=80&w=2070&auto=format&fit=crop',
-        linkedEvents: [102],
-        linkedCases: [202]
+    const fetchPrograms = async () => {
+      try {
+        const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+        console.log("Fetching programs from:", `${API_BASE_URL}/programs/getallprogram`);
+
+        const response = await axios.get(`${API_BASE_URL}/programs/getallprogram`);
+        console.log("Fetch response:", response);
+
+        if (response.data.success) {
+          const mappedPrograms = response.data.programs.map(p => ({
+            id: p._id,
+            name: p.title,
+            description: p.description,
+            venue: p.venue,
+            startDate: p.startingDate,
+            endDate: p.endingDate,
+            status: 'active', // Default status as backend might not have it yet or it's different
+            image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
+            linkedEvents: p.linkedEvents || [],
+            linkedCases: p.linkedCases || []
+          }));
+          setProgramsData(mappedPrograms);
+        } else {
+          console.error("Fetch success false:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching programs:", error);
+        if (error.response && error.response.status === 401) {
+          Swal.fire('Session Expired', 'Your session has expired. Please log out and log in again.', 'warning');
+        } else {
+          console.error(error);
+        }
       }
-    ];
-    setProgramsData(mockPrograms);
+    };
+
+    const fetchEventsAndCases = async () => {
+      try {
+        const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+        const [eventsRes, casesRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/events/getallevent`),
+          axios.get(`${API_BASE_URL}/cases`)
+        ]);
+
+        if (eventsRes.data.success) {
+          setEventsList(eventsRes.data.events || []);
+        }
+        // Cases API returns array directly or { success: true, data: [...] } ?
+        // Based on caseRoutes.js: router.get('/', getCases);
+        // Standard practice checking:
+        if (Array.isArray(casesRes.data)) {
+          setCasesList(casesRes.data);
+        } else if (casesRes.data.success && casesRes.data.cases) {
+          setCasesList(casesRes.data.cases);
+        } else if (casesRes.data.success && casesRes.data.data) { // common pattern
+          setCasesList(casesRes.data.data);
+        }
+
+      } catch (error) {
+        console.error("Error fetching events/cases:", error);
+      }
+    };
+
+    fetchPrograms();
+    fetchEventsAndCases();
   }, []);
 
   // Handlers
@@ -219,38 +260,162 @@ const Programs = () => {
       showCancelButton: true,
       confirmButtonColor: '#d33',
       confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        setProgramsData(prev => prev.filter(p => p.id !== id));
-        Swal.fire('Deleted!', 'Program has been deleted.', 'success');
+        try {
+          const token = localStorage.getItem('authToken');
+          const config = {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          };
+          const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+          await axios.delete(`${API_BASE_URL}/programs/delete/${id}`, config);
+
+          setProgramsData(prev => prev.filter(p => p.id !== id));
+          Swal.fire('Deleted!', 'Program has been deleted.', 'success');
+        } catch (error) {
+          console.error("Error deleting program:", error);
+          if (error.response && error.response.status === 401) {
+            Swal.fire('Session Expired', 'Your session has expired. Please log out and log in again.', 'warning');
+          } else {
+            Swal.fire('Error', 'Failed to delete program', 'error');
+          }
+        }
       }
     });
   };
 
-  const handleCreateSubmit = (e) => {
+  const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    const newProgram = {
-      id: Date.now(),
-      ...programForm,
-      image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop', // Default/Placeholder
-      linkedEvents: programForm.selectedEventIds,
-      linkedCases: programForm.selectedCaseIds
-    };
-    setProgramsData([newProgram, ...programsData]);
-    setShowCreateModal(false);
-    Swal.fire('Success', 'Program created successfully', 'success');
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        Swal.fire('Error', 'Not authenticated', 'error');
+        return;
+      }
+
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      const formData = new FormData();
+      formData.append('title', programForm.name);
+      formData.append('venue', programForm.venue);
+      formData.append('description', programForm.description);
+      formData.append('startingDate', programForm.startDate);
+      formData.append('endingDate', programForm.endDate);
+      if (programForm.imageFile) {
+        formData.append('image', programForm.imageFile);
+      }
+      formData.append('linkedEvents', JSON.stringify(programForm.selectedEventIds));
+      formData.append('linkedCases', JSON.stringify(programForm.selectedCaseIds));
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/programs/create/program`, formData, config);
+
+      if (response.data.success || response.data._id) { // Check for success or if ID is returned
+        Swal.fire('Success', 'Program created successfully', 'success');
+
+        // Refresh list
+        const fetchResponse = await axios.get(`${API_BASE_URL}/programs/getallprogram`);
+        if (fetchResponse.data.success) {
+          const mappedPrograms = fetchResponse.data.programs.map(p => ({
+            id: p._id,
+            name: p.title,
+            description: p.description,
+            venue: p.venue,
+            startDate: p.startingDate,
+            endDate: p.endingDate,
+            status: 'active',
+            image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
+            linkedEvents: p.linkedEvents || [],
+            linkedCases: p.linkedCases || []
+          }));
+          setProgramsData(mappedPrograms);
+        }
+        setShowCreateModal(false);
+      }
+    } catch (error) {
+      console.error("Error creating program:", error);
+      if (error.response && error.response.status === 401) {
+        Swal.fire('Session Expired', 'Your session has expired. Please log out and log in again.', 'warning');
+      } else {
+        Swal.fire('Error', error.response?.data?.message || 'Failed to create program', 'error');
+      }
+    }
   };
 
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
-    setProgramsData(prev => prev.map(p => p.id === selectedProgram.id ? {
-      ...p,
-      ...programForm,
-      linkedEvents: programForm.selectedEventIds,
-      linkedCases: programForm.selectedCaseIds
-    } : p));
-    setShowEditModal(false);
-    Swal.fire('Updated', 'Program updated successfully', 'success');
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        Swal.fire('Error', 'Not authenticated', 'error');
+        return;
+      }
+
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      const formData = new FormData();
+      formData.append('title', programForm.name);
+      formData.append('venue', programForm.venue);
+      formData.append('description', programForm.description);
+      formData.append('startingDate', programForm.startDate);
+      formData.append('endingDate', programForm.endDate);
+      if (programForm.imageFile) {
+        formData.append('image', programForm.imageFile);
+      }
+      formData.append('linkedEvents', JSON.stringify(programForm.selectedEventIds));
+      formData.append('linkedCases', JSON.stringify(programForm.selectedCaseIds));
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      };
+
+      await axios.put(`${API_BASE_URL}/programs/update/${selectedProgram.id}`, formData, config);
+
+      Swal.fire('Updated', 'Program updated successfully', 'success');
+      // Refresh list
+      const fetchResponse = await axios.get(`${API_BASE_URL}/programs/getallprogram`);
+      if (fetchResponse.data.success) {
+        const mappedPrograms = fetchResponse.data.programs.map(p => ({
+          id: p._id,
+          name: p.title,
+          description: p.description,
+          venue: p.venue,
+          startDate: p.startingDate,
+          endDate: p.endingDate,
+          status: 'active',
+          image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
+          linkedEvents: p.linkedEvents || [],
+          linkedCases: p.linkedCases || []
+        }));
+        setProgramsData(mappedPrograms);
+      }
+      setShowEditModal(false);
+
+    } catch (error) {
+      console.error("Error updating program:", error);
+      if (error.response && error.response.status === 401) {
+        Swal.fire('Session Expired', 'Your session has expired. Please log out and log in again.', 'warning');
+      } else {
+        Swal.fire('Error', error.response?.data?.message || 'Failed to update program', 'error');
+      }
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setProgramForm(prev => ({ ...prev, image: imageUrl, imageFile: file }));
+    }
   };
 
   const toggleSelection = (id, field) => {
@@ -353,6 +518,30 @@ const Programs = () => {
                 </div>
               </div>
 
+              {/* Image Upload */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Program Image</label>
+                <div className="flex items-center gap-4">
+                  <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center group hover:border-blue-500 transition-colors">
+                    {programForm.image ? (
+                      <img src={programForm.image} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <FontAwesomeIcon icon={faCloudUploadAlt} className="text-gray-400 text-xl group-hover:text-blue-500" />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600 mb-1">Upload a cover image</p>
+                    <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5MB</p>
+                  </div>
+                </div>
+              </div>
+
               {/* Description */}
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Description</label>
@@ -379,13 +568,13 @@ const Programs = () => {
                     <FontAwesomeIcon icon={faCalendarCheck} /> Link Events
                   </label>
                   <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-                    {MOCK_EVENTS.map(ev => (
-                      <div key={ev.id}
-                        onClick={() => toggleSelection(ev.id, 'selectedEventIds')}
-                        className={`p-2 rounded-lg text-xs cursor-pointer border transition-all flex justify-between items-center ${programForm.selectedEventIds.includes(ev.id) ? 'bg-purple-100 border-purple-300 text-purple-900' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}
+                    {eventsList.map(ev => (
+                      <div key={ev._id}
+                        onClick={() => toggleSelection(ev._id, 'selectedEventIds')}
+                        className={`p-2 rounded-lg text-xs cursor-pointer border transition-all flex justify-between items-center ${programForm.selectedEventIds.includes(ev._id) ? 'bg-purple-100 border-purple-300 text-purple-900' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}
                       >
                         <div className="font-medium truncate pr-2">{ev.title}</div>
-                        {programForm.selectedEventIds.includes(ev.id) && <FontAwesomeIcon icon={faCheckCircle} />}
+                        {programForm.selectedEventIds.includes(ev._id) && <FontAwesomeIcon icon={faCheckCircle} />}
                       </div>
                     ))}
                   </div>
@@ -397,13 +586,13 @@ const Programs = () => {
                     <FontAwesomeIcon icon={faLayerGroup} /> Link Cases
                   </label>
                   <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-                    {MOCK_CASES.map(c => (
-                      <div key={c.id}
-                        onClick={() => toggleSelection(c.id, 'selectedCaseIds')}
-                        className={`p-2 rounded-lg text-xs cursor-pointer border transition-all flex justify-between items-center ${programForm.selectedCaseIds.includes(c.id) ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}
+                    {casesList.map(c => (
+                      <div key={c._id}
+                        onClick={() => toggleSelection(c._id, 'selectedCaseIds')}
+                        className={`p-2 rounded-lg text-xs cursor-pointer border transition-all flex justify-between items-center ${programForm.selectedCaseIds.includes(c._id) ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}
                       >
                         <div className="font-medium truncate pr-2">{c.title}</div>
-                        {programForm.selectedCaseIds.includes(c.id) && <FontAwesomeIcon icon={faCheckCircle} />}
+                        {programForm.selectedCaseIds.includes(c._id) && <FontAwesomeIcon icon={faCheckCircle} />}
                       </div>
                     ))}
                   </div>

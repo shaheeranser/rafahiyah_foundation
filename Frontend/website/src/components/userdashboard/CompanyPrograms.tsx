@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import CreateProgramModal from "./CreateProgramModal";
 import UpdateProgramModal from "./UpdateProgramModal";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 interface CompanyProgramsProps {
   user: any;
@@ -26,7 +26,7 @@ const CompanyPrograms: React.FC<CompanyProgramsProps> = ({ user }) => {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -45,7 +45,7 @@ const CompanyPrograms: React.FC<CompanyProgramsProps> = ({ user }) => {
     try {
       console.log('🔍 Fetching company programs...');
       console.log('Current user:', user);
-      
+
       const response = await apiCall({
         url: `${API_BASE_URL}/programs/company/programs`,
         method: 'GET',
@@ -55,9 +55,10 @@ const CompanyPrograms: React.FC<CompanyProgramsProps> = ({ user }) => {
       console.log('📡 API Response:', response);
 
       if (response.success) {
-        const programsData = response.data.programs || response.data || [];
+        // Backend returns { success: true, programs: [...] } or just [...]
+        // Based on previous files, it's likely response.data.programs
+        const programsData = response.data?.programs || response.data || response.programs || [];
         console.log('📊 Programs received:', programsData);
-        console.log('📊 Number of programs:', programsData.length);
         setPrograms(programsData);
       } else {
         console.error('❌ API call failed:', response);
@@ -102,7 +103,7 @@ const CompanyPrograms: React.FC<CompanyProgramsProps> = ({ user }) => {
     setShowParticipantsModal(true);
     setParticipantsLoading(true);
     setSelectedProgram(programId);
-    
+
     try {
       const response = await apiCall({
         url: `${API_BASE_URL}/programs/${programId}/participants`,
@@ -127,7 +128,7 @@ const CompanyPrograms: React.FC<CompanyProgramsProps> = ({ user }) => {
 
   const handleDeleteParticipant = async (participantId: string) => {
     if (!selectedProgram) return;
-    
+
     setDeletingId(participantId);
     try {
       const response = await apiCall({
@@ -153,11 +154,11 @@ const CompanyPrograms: React.FC<CompanyProgramsProps> = ({ user }) => {
 
   const downloadCSV = () => {
     if (!participants || participants.length === 0) return;
-    
+
     const keys = Object.keys(participants[0]);
     const csvRows = [
       keys.join(','),
-      ...participants.map(row => 
+      ...participants.map(row =>
         keys.map(k => `"${(row[k] ? String(row[k]).replace(/"/g, '""') : '')}"`).join(',')
       )
     ];
@@ -193,7 +194,7 @@ const CompanyPrograms: React.FC<CompanyProgramsProps> = ({ user }) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-[#7F264B]">My Programs</h1>
-        <Button 
+        <Button
           className="bg-[#7F264B] hover:bg-[#6a1f3f]"
           onClick={() => setShowCreateModal(true)}
         >
@@ -227,7 +228,7 @@ const CompanyPrograms: React.FC<CompanyProgramsProps> = ({ user }) => {
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">{program.title}</h3>
               <p className="text-gray-600 text-sm mb-4 line-clamp-3">{program.description}</p>
-              
+
               <div className="space-y-2 mb-4">
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="w-4 h-4 mr-2" />
@@ -244,16 +245,16 @@ const CompanyPrograms: React.FC<CompanyProgramsProps> = ({ user }) => {
               </div>
 
               <div className="flex space-x-2">
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => handleViewParticipants(program._id)}
                 >
                   <Eye className="w-4 h-4 mr-1" />
                   View Participants
                 </Button>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => handleUpdateProgram(program)}
                 >
@@ -319,8 +320,8 @@ const CompanyPrograms: React.FC<CompanyProgramsProps> = ({ user }) => {
                 >
                   Download CSV
                 </button>
-                <button 
-                  onClick={() => setShowParticipantsModal(false)} 
+                <button
+                  onClick={() => setShowParticipantsModal(false)}
                   className="text-gray-400 hover:text-gray-700 text-2xl"
                 >
                   &times;
