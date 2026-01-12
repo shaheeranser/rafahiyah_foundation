@@ -57,7 +57,7 @@ const CompanyPrograms: React.FC<CompanyProgramsProps> = ({ user }) => {
       if (response.success) {
         // Backend returns { success: true, programs: [...] } or just [...]
         // Based on previous files, it's likely response.data.programs
-        const programsData = response.data?.programs || response.data || response.programs || [];
+        const programsData = (response.data as any)?.programs || response.data || (response as any).programs || [];
         console.log('📊 Programs received:', programsData);
         setPrograms(programsData);
       } else {
