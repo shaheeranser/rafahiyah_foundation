@@ -7,7 +7,7 @@ import {
   faSearch,
   faEye,
   faTrash,
-  faPen,
+  faEdit,
   faTimes,
   faCalendarAlt,
   faMapMarkerAlt,
@@ -22,93 +22,85 @@ import {
 import AdminLayout from "../../layouts/AdminLayout";
 
 // --- Mock Data Providers ---
-const MOCK_EVENTS = [
-  { id: 101, title: 'Charity Gala Dinner', date: '2025-12-25' },
-  { id: 102, title: 'Community Cleanup', date: '2026-01-10' },
-  { id: 103, title: 'Winter Clothing Drive', date: '2024-11-15' },
-  { id: 104, title: 'Health Awareness Camp', date: '2026-02-20' },
-];
 
-const MOCK_CASES = [
-  { id: 201, title: 'Urgent Surgery for Child', caseNo: '1001' },
-  { id: 202, title: 'University Fees Support', caseNo: '1002' },
-  { id: 203, title: 'Widow Support Fund', caseNo: '1003' },
-  { id: 204, title: 'Emergency Ration Pack', caseNo: '1004' },
-];
 
 // --- Components ---
 
 // 1. Program Card
 const ProgramCard = ({ program, onView, onEdit, onDelete }) => {
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col h-full border border-gray-100 relative">
-      <div className="relative h-56 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all group relative animate-fade-in-up">
+      <div className="aspect-video bg-gray-100 relative overflow-hidden">
         <img
-          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
           src={program.image}
           alt={program.name}
+          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
           onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop'; }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-5">
-          <h3 className="text-white font-bold text-2xl leading-tight mb-1 shadow-sm">{program.name}</h3>
-          <p className="text-white/90 text-sm font-medium flex items-center">
-            <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2 text-red-400" />
-            {program.venue || 'Multiple Locations'}
-          </p>
+        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-md text-xs font-bold text-gray-800 shadow-sm">
+          {new Date(program.startDate).toLocaleDateString('en-GB')}
         </div>
-        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-lg text-xs font-bold text-gray-800 flex flex-col items-center min-w-[60px]">
-          <span className="text-red-500 uppercase tracking-wider text-[10px]">Start</span>
-          <span className="text-lg">{new Date(program.startDate).getDate()}</span>
-          <span className="text-gray-500 uppercase">{new Date(program.startDate).toLocaleString('default', { month: 'short' })}</span>
+
+        <div className={`absolute top-3 right-3 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide shadow-sm ${program.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+          {program.status || 'Active'}
         </div>
       </div>
 
-      <div className="p-6 flex flex-col flex-grow">
-        <div className="mb-4">
-          <div className="flex items-center text-sm text-gray-500 mb-2">
-            <FontAwesomeIcon icon={faCalendarAlt} className="w-4 mr-2 text-blue-500" />
-            <span className="font-medium">
-              {new Date(program.startDate).toLocaleDateString('en-GB')} - {program.endDate ? new Date(program.endDate).toLocaleDateString('en-GB') : 'Ongoing'}
-            </span>
+      <div className="p-5">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-bold text-gray-800 text-lg truncate pr-2">{program.name}</h3>
+        </div>
+
+        <div className="flex items-center gap-4 text-gray-500 text-sm mb-4">
+          <div className="flex items-center">
+            <FontAwesomeIcon icon={faCalendarAlt} className="w-4 mr-2 text-indigo-400" />
+            {new Date(program.startDate).toLocaleDateString('en-GB')} - {program.endDate ? new Date(program.endDate).toLocaleDateString('en-GB') : 'Ongoing'}
           </div>
         </div>
 
-        <p className="text-gray-600 mb-6 text-sm line-clamp-3 leading-relaxed flex-grow">
-          {program.description || 'No description available for this program.'}
-        </p>
+        <div className="flex items-center text-gray-500 text-sm mb-4">
+          <FontAwesomeIcon icon={faMapMarkerAlt} className="w-4 mr-2 text-pink-500" />
+          <span className="truncate" title={program.venue}>{program.venue || 'Multiple Locations'}</span>
+        </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="bg-purple-50 rounded-lg p-2.5 flex items-center justify-center gap-2 border border-purple-100">
-            <FontAwesomeIcon icon={faCalendarCheck} className="text-purple-500" />
+        <div className="grid grid-cols-2 gap-3 mb-2">
+          <div className="bg-purple-50 rounded-lg p-2 flex items-center justify-center gap-2 border border-purple-100">
+            <FontAwesomeIcon icon={faCalendarCheck} className="text-purple-500 text-xs" />
             <span className="text-xs font-bold text-purple-700">{program.linkedEvents?.length || 0} Events</span>
           </div>
-          <div className="bg-orange-50 rounded-lg p-2.5 flex items-center justify-center gap-2 border border-orange-100">
-            <FontAwesomeIcon icon={faLayerGroup} className="text-orange-500" />
+          <div className="bg-orange-50 rounded-lg p-2 flex items-center justify-center gap-2 border border-orange-100">
+            <FontAwesomeIcon icon={faLayerGroup} className="text-orange-500 text-xs" />
             <span className="text-xs font-bold text-orange-700">{program.linkedCases?.length || 0} Cases</span>
           </div>
         </div>
+      </div>
 
-        <div className="flex justify-between items-center pt-4 border-t border-gray-100 mt-auto">
-          <span className={`px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1 ${program.status === 'active'
-            ? 'bg-green-100 text-green-700 border border-green-200'
-            : 'bg-gray-100 text-gray-700 border border-gray-200'
-            }`}>
-            <span className={`w-2 h-2 rounded-full ${program.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}`}></span>
-            {program.status ? program.status.toUpperCase() : 'INACTIVE'}
-          </span>
-
-          <div className="flex gap-2">
-            <button onClick={() => onView(program)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition-colors shadow-sm" title="View Details">
-              <FontAwesomeIcon icon={faEye} size="sm" />
-            </button>
-            <button onClick={() => onEdit(program)} className="w-8 h-8 rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100 flex items-center justify-center transition-colors shadow-sm" title="Edit Program">
-              <FontAwesomeIcon icon={faPen} size="sm" />
-            </button>
-            <button onClick={() => onDelete(program.id)} className="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors shadow-sm" title="Delete Program">
-              <FontAwesomeIcon icon={faTrash} size="sm" />
-            </button>
-          </div>
+      {/* Footer with Actions */}
+      <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-between items-center">
+        <button
+          onClick={() => onView(program)}
+          className="text-gray-500 hover:text-blue-600 transition-colors text-sm font-medium flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded"
+          title="View Details"
+        >
+          <FontAwesomeIcon icon={faEye} />
+          <span>View</span>
+        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onEdit(program)}
+            className="text-gray-400 hover:text-green-600 transition-colors p-2 hover:bg-green-50 rounded-full"
+            title="Edit Program"
+          >
+            <FontAwesomeIcon icon={faEdit} />
+          </button>
+          <button
+            onClick={() => onDelete(program.id)}
+            className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full"
+            title="Delete Program"
+          >
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
         </div>
       </div>
     </div>
@@ -160,7 +152,7 @@ const Programs = () => {
             startDate: p.startingDate,
             endDate: p.endingDate,
             status: 'active', // Default status as backend might not have it yet or it's different
-            image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
+            image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/images/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
             linkedEvents: p.linkedEvents || [],
             linkedCases: p.linkedCases || []
           }));
@@ -331,7 +323,7 @@ const Programs = () => {
             startDate: p.startingDate,
             endDate: p.endingDate,
             status: 'active',
-            image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
+            image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/images/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
             linkedEvents: p.linkedEvents || [],
             linkedCases: p.linkedCases || []
           }));
@@ -392,7 +384,7 @@ const Programs = () => {
           startDate: p.startingDate,
           endDate: p.endingDate,
           status: 'active',
-          image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
+          image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/images/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
           linkedEvents: p.linkedEvents || [],
           linkedCases: p.linkedCases || []
         }));
@@ -429,6 +421,127 @@ const Programs = () => {
     });
   };
 
+
+  // Helper to construct image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+
+    const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+    const baseUrl = API_BASE_URL.replace('/api', '');
+
+    // Normalize path separators
+    const normalizedPath = imagePath.replace(/\\/g, '/');
+
+    // If it already includes 'uploads/', assume it's the full relative path
+    if (normalizedPath.startsWith('uploads/')) {
+      return `${baseUrl}/${normalizedPath}`;
+    }
+    // Otherwise assume it's just the filename in uploads/images
+    return `${baseUrl}/uploads/images/${normalizedPath}`;
+  };
+
+  const handleViewEventDetails = (event) => {
+    if (!event) return;
+
+    const imageUrl = getImageUrl(event.image);
+
+    // Formatting currency
+    const formatCurrency = (amount) => {
+      return amount ? `PKR ${amount.toLocaleString()}` : 'PKR 0';
+    };
+
+    const statusBadge = event.status === 'Completed'
+      ? '<span class="px-2 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-full">Completed</span>'
+      : '<span class="px-2 py-1 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">Incomplete</span>';
+
+    Swal.fire({
+      title: `<h3 class="text-xl font-bold text-gray-800">${event.title}</h3>`,
+      html: `
+        <div class="text-left space-y-3 mt-4">
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div><span class="font-bold text-gray-600 block">Date</span> ${event.date ? new Date(event.date).toLocaleDateString() : (event.startingDate ? new Date(event.startingDate).toLocaleDateString() : 'N/A')}</div>
+            <div><span class="font-bold text-gray-600 block">Time</span> ${event.time || 'N/A'}</div>
+            <div><span class="font-bold text-gray-600 block">Location</span> ${event.location || event.venue || 'N/A'}</div>
+            <div><span class="font-bold text-gray-600 block">Status</span> ${statusBadge}</div>
+            <div><span class="font-bold text-gray-600 block">Required</span> ${formatCurrency(event.requiredAmount)}</div>
+            <div><span class="font-bold text-gray-600 block">Collected</span> ${formatCurrency(event.collectedAmount)}</div>
+          </div>
+          
+          <div class="pt-2 border-t border-gray-100">
+             <p class="text-xs text-gray-500 mb-1 font-bold uppercase">Description</p>
+             <div class="bg-gray-50 p-3 rounded-lg text-sm text-gray-600 border border-gray-100 max-h-40 overflow-y-auto">
+               ${event.description || 'No description available.'}
+             </div>
+          </div>
+        </div>
+      `,
+      imageUrl: imageUrl,
+      imageWidth: 400,
+      imageHeight: 200,
+      imageAlt: event.title,
+      showCloseButton: true,
+      showConfirmButton: false,
+      customClass: {
+        popup: 'rounded-xl',
+        image: 'rounded-lg object-cover mb-4'
+      }
+    });
+  };
+
+  const handleViewCaseDetails = (caseItem) => {
+    if (!caseItem) return;
+
+    const imageUrl = getImageUrl(caseItem.image);
+
+    const formatCurrency = (amount) => {
+      return amount ? `PKR ${amount.toLocaleString()}` : 'PKR 0';
+    };
+
+    const statusColors = {
+      active: 'text-green-700 bg-green-100',
+      completed: 'text-blue-700 bg-blue-100',
+      dropped: 'text-red-700 bg-red-100'
+    };
+    const statusClass = statusColors[caseItem.status] || 'text-gray-700 bg-gray-100';
+    const statusBadge = `<span class="px-2 py-1 text-xs font-bold rounded-full ${statusClass}">${caseItem.status ? caseItem.status.toUpperCase() : 'UNKNOWN'}</span>`;
+
+    Swal.fire({
+      title: `<h3 class="text-xl font-bold text-gray-800">${caseItem.title}</h3>`,
+      html: `
+        <div class="text-left space-y-3 mt-4">
+          <div class="flex justify-between items-center bg-gray-50 p-2 rounded mb-2">
+            <span class="text-xs font-bold text-gray-500">CASE NO: ${caseItem.caseNo || 'N/A'}</span>
+            ${statusBadge}
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="col-span-2"><span class="font-bold text-gray-600 block">Category</span> ${caseItem.category || 'General'}</div>
+            <div><span class="font-bold text-gray-600 block">Required</span> ${formatCurrency(caseItem.amountRequired)}</div>
+            <div><span class="font-bold text-gray-600 block">Collected</span> ${formatCurrency(caseItem.amountCollected)}</div>
+            ${caseItem.finalAmount ? `<div><span class="font-bold text-gray-600 block">Final Amount</span> ${formatCurrency(caseItem.finalAmount)}</div>` : ''}
+          </div>
+           
+          <div class="pt-2 border-t border-gray-100">
+             <p class="text-xs text-gray-500 mb-1 font-bold uppercase">Description</p>
+             <div class="bg-gray-50 p-3 rounded-lg text-sm text-gray-600 border border-gray-100 max-h-40 overflow-y-auto">
+              ${caseItem.description || 'No description available.'}
+            </div>
+          </div>
+        </div>
+      `,
+      imageUrl: imageUrl,
+      imageWidth: 400,
+      imageHeight: 200,
+      imageAlt: caseItem.title,
+      showCloseButton: true,
+      showConfirmButton: false,
+      customClass: {
+        popup: 'rounded-xl',
+        image: 'rounded-lg object-cover mb-4'
+      }
+    });
+  };
 
   const filteredPrograms = programsData.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -637,11 +750,60 @@ const Programs = () => {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="border border-purple-100 bg-purple-50 rounded-xl p-3">
                   <h4 className="text-xs font-bold text-purple-500 uppercase mb-2">Linked Events</h4>
-                  <div className="text-2xl font-bold text-purple-900">{selectedProgram.linkedEvents?.length || 0}</div>
+                  {selectedProgram.linkedEvents && selectedProgram.linkedEvents.length > 0 ? (
+                    <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
+                      {selectedProgram.linkedEvents.map(eventId => {
+                        // Handle if eventId is an object (populated) or string (ID)
+                        const id = typeof eventId === 'object' ? eventId._id : eventId;
+                        const event = eventsList.find(e => e._id === id);
+                        return (
+                          <div key={id} className="bg-white/60 p-1.5 rounded text-sm text-purple-900 border border-purple-100 flex items-center justify-between gap-2 group hover:bg-white transition-all">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <FontAwesomeIcon icon={faCalendarCheck} className="text-purple-400 text-xs flex-shrink-0" />
+                              <span className="truncate">{event ? event.title : (typeof eventId === 'object' ? eventId.title : 'Unknown Event')}</span>
+                            </div>
+                            <button
+                              onClick={() => handleViewEventDetails(event || (typeof eventId === 'object' ? eventId : null))}
+                              className="text-purple-300 hover:text-purple-600 p-1 rounded-full hover:bg-purple-50 transition-colors opacity-0 group-hover:opacity-100"
+                              title="View Event Details"
+                            >
+                              <FontAwesomeIcon icon={faEye} className="text-xs" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-purple-400 italic">No linked events</div>
+                  )}
                 </div>
                 <div className="border border-orange-100 bg-orange-50 rounded-xl p-3">
                   <h4 className="text-xs font-bold text-orange-500 uppercase mb-2">Linked Cases</h4>
-                  <div className="text-2xl font-bold text-orange-900">{selectedProgram.linkedCases?.length || 0}</div>
+                  {selectedProgram.linkedCases && selectedProgram.linkedCases.length > 0 ? (
+                    <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
+                      {selectedProgram.linkedCases.map(caseId => {
+                        const id = typeof caseId === 'object' ? caseId._id : caseId;
+                        const caseItem = casesList.find(c => c._id === id);
+                        return (
+                          <div key={id} className="bg-white/60 p-1.5 rounded text-sm text-orange-900 border border-orange-100 flex items-center justify-between gap-2 group hover:bg-white transition-all">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <FontAwesomeIcon icon={faLayerGroup} className="text-orange-400 text-xs flex-shrink-0" />
+                              <span className="truncate">{caseItem ? caseItem.title : (typeof caseId === 'object' ? caseId.title : 'Unknown Case')}</span>
+                            </div>
+                            <button
+                              onClick={() => handleViewCaseDetails(caseItem || (typeof caseId === 'object' ? caseId : null))}
+                              className="text-orange-300 hover:text-orange-600 p-1 rounded-full hover:bg-orange-50 transition-colors opacity-0 group-hover:opacity-100"
+                              title="View Case Details"
+                            >
+                              <FontAwesomeIcon icon={faEye} className="text-xs" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-orange-400 italic">No linked cases</div>
+                  )}
                 </div>
               </div>
             </div>
