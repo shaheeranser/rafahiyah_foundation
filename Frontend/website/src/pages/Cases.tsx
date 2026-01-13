@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+    PaginationEllipsis
+} from "@/components/ui/pagination";
 import toast from "react-hot-toast";
 import axios from "axios";
 
@@ -15,6 +24,8 @@ import caseImg1 from "@/assets/success-story-woman.jpg";
 import caseImg2 from "@/assets/hero-empowered-women.jpg";
 import caseImg3 from "@/assets/women-learning-leading.jpg";
 
+const ITEMS_PER_PAGE = 6;
+
 const Cases = () => {
     const { hash } = useLocation();
     const navigate = useNavigate();
@@ -25,6 +36,11 @@ const Cases = () => {
     const [eventsList, setEventsList] = useState<any[]>([]);
     const [casesList, setCasesList] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Pagination States
+    const [programsPage, setProgramsPage] = useState(1);
+    const [eventsPage, setEventsPage] = useState(1);
+    const [casesPage, setCasesPage] = useState(1);
 
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -59,7 +75,6 @@ const Cases = () => {
                 }
 
                 // Cases API might return array directly or { success: true, cases: [...] }
-                // Adjust based on your API response structure
                 let fetchedCases = [];
                 if (Array.isArray(casesRes.data)) {
                     fetchedCases = casesRes.data;
@@ -97,6 +112,66 @@ const Cases = () => {
         return `${baseUrl}/uploads/images/${normalizedPath}`;
     };
 
+    // Helper Render Pagination
+    const renderPagination = (totalItems: number, currentPage: number, setPage: (page: number) => void) => {
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+        if (totalPages <= 1) return null;
+
+        const pages = [];
+        for (let i = 1; i <= totalPages; i++) {
+            pages.push(i);
+        }
+
+        return (
+            <Pagination className="mt-8">
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious
+                            href="#"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (currentPage > 1) setPage(currentPage - 1);
+                            }}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+
+                    {pages.map((page) => (
+                        <PaginationItem key={page}>
+                            <PaginationLink
+                                href="#"
+                                isActive={currentPage === page}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setPage(page);
+                                }}
+                            >
+                                {page}
+                            </PaginationLink>
+                        </PaginationItem>
+                    ))}
+
+                    <PaginationItem>
+                        <PaginationNext
+                            href="#"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (currentPage < totalPages) setPage(currentPage + 1);
+                            }}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        );
+    };
+
+    // Slice Data for Pagination
+    const displayedPrograms = programsList.slice((programsPage - 1) * ITEMS_PER_PAGE, programsPage * ITEMS_PER_PAGE);
+    const displayedEvents = eventsList.slice((eventsPage - 1) * ITEMS_PER_PAGE, eventsPage * ITEMS_PER_PAGE);
+    const displayedCases = casesList.slice((casesPage - 1) * ITEMS_PER_PAGE, casesPage * ITEMS_PER_PAGE);
+
+
     return (
         <div className="min-h-screen font-sans bg-white">
             <Header />
@@ -129,7 +204,7 @@ const Cases = () => {
             <section className="py-24 bg-white">
                 <div className="container mx-auto px-4 max-w-6xl">
                     <div className="text-center mb-16">
-                        <h2 className="text-5xl md:text-6xl font-odibee text-rafahiyah-dark-blue">Events & Programs</h2>
+                        <h2 className="text-5xl md:text-6xl font-odibee text-rafahiyah-dark-blue">Programs</h2>
                     </div>
 
                     {/* Row 1: Programs */}
@@ -137,11 +212,9 @@ const Cases = () => {
                         <div className="text-center py-12">Loading Programs...</div>
                     ) : (
                         <>
-                            <div className="mb-8">
-                                <h3 className="text-3xl font-odibee text-gray-800 mb-6 border-b pb-2 inline-block">Programs</h3>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
-                                {programsList.map((item, index) => (
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-8">
+                                {displayedPrograms.map((item, index) => (
                                     <div key={item._id || index} className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex flex-col items-start h-full hover:shadow-xl transition-shadow duration-300">
                                         <div className="w-full h-56 rounded-2xl mb-6 overflow-hidden cursor-pointer" onClick={() => setSelectedItem(item)}>
                                             <img
@@ -180,13 +253,15 @@ const Cases = () => {
                                     </div>
                                 ))}
                             </div>
+                            {renderPagination(programsList.length, programsPage, setProgramsPage)}
 
                             {/* Row 2: Events */}
-                            <div className="mb-8">
-                                <h3 className="text-3xl font-odibee text-gray-800 mb-6 border-b pb-2 inline-block">Events</h3>
+                            <div className="text-center mb-16">
+                                <br /> <br />
+                                <h2 className="text-5xl md:text-6xl font-odibee text-rafahiyah-dark-blue">Events</h2>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                                {eventsList.map((item, index) => (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-8">
+                                {displayedEvents.map((item, index) => (
                                     <div key={item._id || index} className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex flex-col items-start h-full hover:shadow-xl transition-shadow duration-300">
                                         <div className="w-full h-56 rounded-2xl mb-6 overflow-hidden cursor-pointer" onClick={() => setSelectedItem(item)}>
                                             <img
@@ -242,6 +317,7 @@ const Cases = () => {
                                     </div>
                                 ))}
                             </div>
+                            {renderPagination(eventsList.length, eventsPage, setEventsPage)}
                         </>
                     )}
                 </div>
@@ -257,57 +333,60 @@ const Cases = () => {
                     {loading ? (
                         <div className="text-center py-12">Loading Cases...</div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                            {casesList.map((caseItem, index) => (
-                                <div key={caseItem._id || index} className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex flex-col h-full hover:shadow-xl transition-shadow duration-300">
-                                    <div className="w-full h-56 rounded-2xl mb-6 overflow-hidden relative cursor-pointer" onClick={() => setSelectedItem(caseItem)}>
-                                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-rafahiyah-deep-red uppercase tracking-wider z-10 shadow-sm">
-                                            {caseItem.category || 'Urgent'}
-                                        </div>
-                                        <img
-                                            src={getImageUrl(caseItem.image)}
-                                            alt={caseItem.title}
-                                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                                            onError={(e) => { e.currentTarget.src = caseImg1; }}
-                                        />
-                                    </div>
-
-                                    <h3 className="text-2xl font-bold text-black mb-4 font-odibee tracking-wide">{caseItem.title}</h3>
-                                    <p className="text-gray-600 mb-6 leading-relaxed font-sans text-sm min-h-[80px] line-clamp-3">
-                                        {caseItem.description}
-                                    </p>
-
-                                    {/* Progress Bar Container */}
-                                    <div className="w-full mb-8">
-                                        <div className="flex justify-between items-center mb-2 text-xs font-bold text-gray-500 uppercase tracking-widest font-sans">
-                                            <span className="text-rafahiyah-deep-red">Raised: ${Number(caseItem.amountCollected || caseItem.raised || 0).toLocaleString()}</span>
-                                            <span>Goal: ${Number(caseItem.amountRequired || caseItem.goal || 0).toLocaleString()}</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                                            <div
-                                                className="bg-[#8B2D1B] h-full transition-all duration-1000 ease-out rounded-full"
-                                                style={{ width: `${Math.min(((caseItem.amountCollected || caseItem.raised || 0) / (caseItem.amountRequired || caseItem.goal || 1)) * 100, 100)}%` }}
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-8">
+                                {displayedCases.map((caseItem, index) => (
+                                    <div key={caseItem._id || index} className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex flex-col h-full hover:shadow-xl transition-shadow duration-300">
+                                        <div className="w-full h-56 rounded-2xl mb-6 overflow-hidden relative cursor-pointer" onClick={() => setSelectedItem(caseItem)}>
+                                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-rafahiyah-deep-red uppercase tracking-wider z-10 shadow-sm">
+                                                {caseItem.category || 'Urgent'}
+                                            </div>
+                                            <img
+                                                src={getImageUrl(caseItem.image)}
+                                                alt={caseItem.title}
+                                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                                onError={(e) => { e.currentTarget.src = caseImg1; }}
                                             />
                                         </div>
-                                    </div>
 
-                                    <div className="flex gap-4 w-full mt-auto">
-                                        <button
-                                            className="flex-1 bg-[#FFD700] text-black py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#FDB931] transition-colors uppercase tracking-wider"
-                                            onClick={() => setSelectedItem(caseItem)}
-                                        >
-                                            Details
-                                        </button>
-                                        <button
-                                            className="flex-1 bg-rafahiyah-deep-red text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#6b2416] transition-colors uppercase tracking-wider shadow-md hover:shadow-lg"
-                                            onClick={() => toast.success("Donation flow simulated")}
-                                        >
-                                            Donate Now
-                                        </button>
+                                        <h3 className="text-2xl font-bold text-black mb-4 font-odibee tracking-wide">{caseItem.title}</h3>
+                                        <p className="text-gray-600 mb-6 leading-relaxed font-sans text-sm min-h-[80px] line-clamp-3">
+                                            {caseItem.description}
+                                        </p>
+
+                                        {/* Progress Bar Container */}
+                                        <div className="w-full mb-8">
+                                            <div className="flex justify-between items-center mb-2 text-xs font-bold text-gray-500 uppercase tracking-widest font-sans">
+                                                <span className="text-rafahiyah-deep-red">Raised: ${Number(caseItem.amountCollected || caseItem.raised || 0).toLocaleString()}</span>
+                                                <span>Goal: ${Number(caseItem.amountRequired || caseItem.goal || 0).toLocaleString()}</span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                                                <div
+                                                    className="bg-[#8B2D1B] h-full transition-all duration-1000 ease-out rounded-full"
+                                                    style={{ width: `${Math.min(((caseItem.amountCollected || caseItem.raised || 0) / (caseItem.amountRequired || caseItem.goal || 1)) * 100, 100)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-4 w-full mt-auto">
+                                            <button
+                                                className="flex-1 bg-[#FFD700] text-black py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#FDB931] transition-colors uppercase tracking-wider"
+                                                onClick={() => setSelectedItem(caseItem)}
+                                            >
+                                                Details
+                                            </button>
+                                            <button
+                                                className="flex-1 bg-rafahiyah-deep-red text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#6b2416] transition-colors uppercase tracking-wider shadow-md hover:shadow-lg"
+                                                onClick={() => toast.success("Donation flow simulated")}
+                                            >
+                                                Donate Now
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                            {renderPagination(casesList.length, casesPage, setCasesPage)}
+                        </>
                     )}
                 </div>
             </section>
@@ -378,7 +457,7 @@ const Cases = () => {
                                                     </p>
                                                 )}
 
-                                                {/* Financial Details for Events */}
+                                                {/* Financial Details for Events (if strictly an event with amount) */}
                                                 {(selectedItem.requiredAmount > 0) && (
                                                     <>
                                                         <p>
@@ -396,6 +475,40 @@ const Cases = () => {
                                                             </span>
                                                         </p>
                                                     </>
+                                                )}
+
+                                                {/* Linked Events (For Programs) */}
+                                                {selectedItem.linkedEvents && selectedItem.linkedEvents.length > 0 && (
+                                                    <div className="mt-4 pt-4 border-t border-gray-200">
+                                                        <p className="font-semibold uppercase text-gray-900 mb-2">Linked Events:</p>
+                                                        <div className="flex flex-col gap-2">
+                                                            {selectedItem.linkedEvents.map((evt: any) => (
+                                                                <div key={evt._id} className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm">
+                                                                    <div className="font-bold text-gray-800">{evt.title}</div>
+                                                                    <div className="text-gray-600 text-xs">
+                                                                        {new Date(evt.date).toLocaleDateString()} | {evt.status || 'Scheduled'}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Linked Cases (For Programs) */}
+                                                {selectedItem.linkedCases && selectedItem.linkedCases.length > 0 && (
+                                                    <div className="mt-4 pt-4 border-t border-gray-200">
+                                                        <p className="font-semibold uppercase text-gray-900 mb-2">Linked Cases:</p>
+                                                        <div className="flex flex-col gap-2">
+                                                            {selectedItem.linkedCases.map((cse: any) => (
+                                                                <div key={cse._id} className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm">
+                                                                    <div className="font-bold text-gray-800">{cse.title}</div>
+                                                                    <div className="text-gray-600 text-xs">
+                                                                        Goal: ${cse.amountRequired?.toLocaleString()} | Collected: ${cse.amountCollected?.toLocaleString()}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
                                                 )}
                                             </>
                                         )}

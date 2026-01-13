@@ -181,7 +181,10 @@ export const getAllPrograms = async (req, res) => {
             console.log('User object:', req.user);
         }
 
-        const programs = await Program.find(query).populate('companyId', 'name email');
+        const programs = await Program.find(query)
+            .populate('companyId', 'name email')
+            .populate('linkedEvents')
+            .populate('linkedCases');
         console.log(`📊 Found ${programs.length} programs for query:`, query);
         console.log('Programs:', programs.map(p => ({ id: p._id, title: p.title, companyId: p.companyId })));
 
