@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX } from "lucide-react";
 import heroVideo from "@/assets/My Video.mp4";
 
+import { useNavigate } from "react-router-dom";
+
 const HeroSection = () => {
+    const navigate = useNavigate();
     const [isMuted, setIsMuted] = useState(true);
     const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -62,13 +65,12 @@ const HeroSection = () => {
 
                 </p>
 
-                <Link to="/contact#donate">
-                    <Button
-                        className="bg-white text-rafahiyah-dark-blue hover:bg-rafahiyah-deep-red hover:text-white transition-colors text-xl px-10 py-6 rounded-full font-odibee tracking-wider shadow-lg"
-                    >
-                        Donate Now To a Cause
-                    </Button>
-                </Link>
+                <Button
+                    onClick={() => navigate('/contact', { state: { section: "donate", cause: "General" } })}
+                    className="bg-white text-rafahiyah-dark-blue hover:bg-rafahiyah-deep-red hover:text-white transition-colors text-xl px-10 py-6 rounded-full font-odibee tracking-wider shadow-lg"
+                >
+                    Donate Now To a Cause
+                </Button>
             </div>
         </section>
     );

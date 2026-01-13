@@ -10,7 +10,8 @@ import {
   ChevronRight,
   HeartHandshake,
   LogOut,
-  Settings
+  Settings,
+  Coins
 } from "lucide-react";
 
 function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
@@ -34,6 +35,7 @@ function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
     { to: "/Admin/Posts", label: "Cases", icon: HeartHandshake },
     { to: "/Admin/Team", label: "Volunteers", icon: Users },
     { to: "/Admin/contact", label: "Contact Us", icon: Phone },
+    { to: "/Admin/Donations", label: "Donations", icon: Coins },
     { to: "/Admin/Settings", label: "Settings", icon: Settings }
   ];
 

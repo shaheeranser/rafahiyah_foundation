@@ -47,7 +47,9 @@ const Contact = () => {
     email: "",
     contactNumber: "",
     cause: "",
+    purpose: "",
     paymentMethod: "",
+    amount: "",
   });
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [donationLoading, setDonationLoading] = useState(false);
@@ -163,7 +165,10 @@ const Contact = () => {
       formData.append("email", donationData.email);
       formData.append("contactNumber", donationData.contactNumber);
       formData.append("cause", donationData.cause);
+      formData.append("purpose", donationData.purpose);
       formData.append("paymentMethod", donationData.paymentMethod);
+
+      formData.append("amount", donationData.amount);
       if (paymentProof) {
         formData.append("receipt", paymentProof);
       } else {
@@ -185,7 +190,9 @@ const Contact = () => {
           email: "",
           contactNumber: "",
           cause: "",
+          purpose: "",
           paymentMethod: "",
+          amount: "",
         });
         setPaymentProof(null);
       } else {
@@ -212,7 +219,8 @@ const Contact = () => {
       }
     } else if (location.state?.section) {
       // Handle navigation state
-      const { section, role, eventName } = location.state;
+      const { section, role, eventName, cause } = location.state;
+
       if (section === 'join-us') {
         const element = document.getElementById('join-us');
         if (element) {
@@ -225,6 +233,17 @@ const Contact = () => {
           ...prev,
           team: role || "",
           eventName: eventName || ""
+        }));
+      } else if (section === 'donate') {
+        const element = document.getElementById('donate');
+        if (element) {
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: "smooth" });
+          }, 100);
+        }
+        setDonationData(prev => ({
+          ...prev,
+          cause: cause || ""
         }));
       }
     } else {
@@ -652,7 +671,34 @@ const Contact = () => {
                   className="h-14 rounded-xl border-none bg-white font-sans text-gray-800"
                   required
                 />
+
+                <Input
+                  name="amount"
+                  value={donationData.amount}
+                  onChange={handleDonationChange}
+                  placeholder="Items or Amount"
+                  type="number"
+                  className="h-14 rounded-xl border-none bg-white font-sans text-gray-800"
+                  required
+                />
+
                 <Select
+                  name="purpose"
+                  value={donationData.purpose}
+                  onValueChange={(val) => handleDonationSelectChange("purpose", val)}
+                >
+                  <SelectTrigger className="h-14 rounded-xl border-none bg-white font-sans text-gray-500">
+                    <SelectValue placeholder="Select Purpose" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Sadqah">Sadqah</SelectItem>
+                    <SelectItem value="Zakat">Zakat</SelectItem>
+                    <SelectItem value="Simple Donation">Simple Donation</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  key={donationData.cause || "cause-select"}
                   name="cause"
                   value={donationData.cause}
                   onValueChange={(val) => handleDonationSelectChange("cause", val)}
@@ -661,6 +707,9 @@ const Contact = () => {
                     <SelectValue placeholder="Select A Cause To Donate" />
                   </SelectTrigger>
                   <SelectContent>
+                    {donationData.cause && !['education', 'healthcare', 'food', 'general'].includes(donationData.cause) && (
+                      <SelectItem value={donationData.cause}>{donationData.cause}</SelectItem>
+                    )}
                     <SelectItem value="education">Education</SelectItem>
                     <SelectItem value="healthcare">Healthcare</SelectItem>
                     <SelectItem value="food">Food Security</SelectItem>

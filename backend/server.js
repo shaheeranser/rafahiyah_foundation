@@ -11,7 +11,7 @@ import programRoute from './routes/programRoute.js'; // Importing program routes
 import contactUsRoute from './routes/contactUsRoute.js';
 // import galleryRoute from './routes/galleryRoute.js';
 // import podcastRoute from './routes/podcastRoute.js';
-// import donationRoute from "./routes/donationRoute.js"
+import donationRoute from "./routes/donationRoute.js";
 // import awarenessRoute from './routes/awarenessRoute.js';
 import messageRoutes from './routes/messageRoutes.js';
 import jobRoutes from './routes/jobRoute.js';
@@ -61,7 +61,7 @@ app.use('/api/programs', programRoute);
 app.use('/api/contactus', contactUsRoute);
 // app.use('/api/gallery', galleryRoute);
 // app.use('/api/podcasts', podcastRoute);
-// app.use('/api/donations' , donationRoute);
+app.use('/api/donations', donationRoute);
 // app.use('/api/awareness', awarenessRoute);
 // app.use('/api/jobs', jobRoutes);
 app.use('/api/messages', messageRoutes);

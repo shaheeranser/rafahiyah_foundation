@@ -1,4 +1,6 @@
 import React from 'react';
+import axios from 'axios';
+import { AuthToken } from "../../Api/Api";
 import AdminLayout from "../../layouts/AdminLayout";
 import {
   Download,
@@ -103,23 +105,76 @@ const StatCard = ({ title, value, subtext, trend, trendType, icon: Icon, color, 
   </div>
 );
 
+
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: 'http://localhost:8000/api',
+});
+
+// Add token to every request
+api.interceptors.request.use((config) => {
+  if (AuthToken) {
+    config.headers.Authorization = `Bearer ${AuthToken()}`;
+  }
+  return config;
+});
+
 const DonationTable = () => {
-  const transactions = [
-    { name: "John Doe", email: "john@example.com", amount: "$500.00", date: "Oct 24, 2024", method: "Credit Card", campaign: "Ramadan Drive", status: "Approved" },
-    { name: "Sarah Smith", email: "sarah@example.com", amount: "$120.00", date: "Oct 23, 2024", method: "PayPal", campaign: "Education Fund", status: "Approved" },
-    { name: "Amir Khan", email: "amir@example.com", amount: "$1,000.00", date: "Oct 22, 2024", method: "Wire", campaign: "Medical Aid", status: "Pending" },
-    { name: "Emily Davis", email: "emily@example.com", amount: "$50.00", date: "Oct 21, 2024", method: "Card", campaign: "General", status: "Approved" },
-    { name: "Michael Brown", email: "mike@example.com", amount: "$250.00", date: "Oct 20, 2024", method: "PayPal", campaign: "Winter Relief", status: "Rejected" },
-  ];
+  const [transactions, setTransactions] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchDonations = async () => {
+      try {
+        const response = await api.get('/donations/all');
+        // Sort by date (newest first) and take top 10
+        const sortedDonations = response.data
+          .sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date))
+          .slice(0, 10);
+        setTransactions(sortedDonations);
+      } catch (error) {
+        console.error("Error fetching donations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDonations();
+  }, []);
 
   const getStatusStyle = (status) => {
     switch (status) {
+      case "Verified":
       case "Approved": return "bg-emerald-50 text-emerald-700 border border-emerald-100";
       case "Pending": return "bg-amber-50 text-amber-700 border border-amber-100";
       case "Rejected": return "bg-rose-50 text-rose-700 border border-rose-100";
       default: return "bg-gray-50 text-gray-700 border border-gray-100";
     }
   };
+
+  const formatAmount = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount || 0);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200/60 shadow-sm mt-8 overflow-hidden p-12 flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200/60 shadow-sm mt-8 overflow-hidden">
@@ -147,39 +202,45 @@ const DonationTable = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {transactions.map((t, idx) => (
-              <tr key={idx} className="hover:bg-gray-50/80 transition-colors group">
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
-                      {t.name.charAt(0)}
+            {transactions.length > 0 ? (
+              transactions.map((t, idx) => (
+                <tr key={idx} className="hover:bg-gray-50/80 transition-colors group">
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-600 flex items-center justify-center text-xs font-bold uppercase">
+                        {(t.user?.name || t.fullName || 'A').charAt(0)}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 text-sm">{t.user?.name || t.fullName || 'Anonymous'}</div>
+                        <div className="text-xs text-gray-500">{t.user?.email || t.email}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-semibold text-gray-900 text-sm">{t.name}</div>
-                      <div className="text-xs text-gray-500">{t.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="py-4 px-6 text-sm font-bold text-gray-900">{t.amount}</td>
-                <td className="py-4 px-6 text-sm text-gray-600 font-medium">{t.date}</td>
-                <td className="py-4 px-6 text-sm text-gray-600">{t.method}</td>
-                <td className="py-4 px-6 text-sm text-gray-600">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
-                    {t.campaign}
-                  </span>
-                </td>
-                <td className="py-4 px-6">
-                  <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${getStatusStyle(t.status)}`}>
-                    {t.status}
-                  </span>
-                </td>
-                <td className="py-4 px-6 text-right">
-                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <MoreHorizontal size={18} />
-                  </button>
-                </td>
+                  </td>
+                  <td className="py-4 px-6 text-sm font-bold text-gray-900">{formatAmount(t.amount)}</td>
+                  <td className="py-4 px-6 text-sm text-gray-600 font-medium">{formatDate(t.createdAt || t.date)}</td>
+                  <td className="py-4 px-6 text-sm text-gray-600 capitalize">{t.paymentMethod}</td>
+                  <td className="py-4 px-6 text-sm text-gray-600">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+                      {t.cause}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${getStatusStyle(t.status)}`}>
+                      {t.status || 'Pending'}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6 text-right">
+                    <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <MoreHorizontal size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="7" className="py-8 text-center text-gray-500">No recent donations found</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
@@ -189,7 +250,130 @@ const DonationTable = () => {
 
 // --- Main Dashboard ---
 
+// --- Main Dashboard ---
+
 function Dashboard() {
+  const [stats, setStats] = React.useState({
+    totalDonations: 0,
+    totalDonationsGrowth: 0,
+    newEvents: 0,
+    newEventsGrowth: 0,
+    activePrograms: 0,
+    activeProgramsGrowth: 0, // Placeholder as historical data is harder for status
+    pendingCases: 0,
+    pendingCasesGrowth: 0,
+    totalVolunteers: 0,
+    totalVolunteersGrowth: 0
+  });
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [donationsRes, eventsRes, programsRes, casesRes, volunteersRes] = await Promise.all([
+          api.get('/donations/all'),
+          api.get('/events/getallevent'),
+          api.get('/programs/getallprogram'),
+          api.get('/cases'),
+          api.get('/volunteers')
+        ]);
+
+        const donations = donationsRes.data;
+        const events = eventsRes.data.events;
+        const programs = programsRes.data.programs;
+        const cases = casesRes.data.data;
+        const volunteers = volunteersRes.data.data;
+
+        // --- Calculate Stats ---
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+        const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+        const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+
+        const isThisMonth = (dateString) => {
+          if (!dateString) return false;
+          const d = new Date(dateString);
+          return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+        };
+
+        const isLastMonth = (dateString) => {
+          if (!dateString) return false;
+          const d = new Date(dateString);
+          return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+        };
+
+        // 1. Donations
+        const totalDonations = donations.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+        const donationsThisMonth = donations.filter(d => isThisMonth(d.createdAt || d.date)).reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+        const donationsLastMonth = donations.filter(d => isLastMonth(d.createdAt || d.date)).reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+        const donationsGrowth = donationsLastMonth === 0 ? (donationsThisMonth > 0 ? 100 : 0) : ((donationsThisMonth - donationsLastMonth) / donationsLastMonth) * 100;
+
+        // 2. Events (Total vs Created This Month) - Using "New Events" as created this month
+        const newEventsCount = events.filter(e => isThisMonth(e.createdAt || e.date)).length; // Assuming createdAt or date used for creation
+        const newEventsLastMonth = events.filter(e => isLastMonth(e.createdAt || e.date)).length;
+        const eventsGrowth = newEventsLastMonth === 0 ? (newEventsCount > 0 ? 100 : 0) : ((newEventsCount - newEventsLastMonth) / newEventsLastMonth) * 100;
+
+        // 3. Active Programs
+        const activeProgramsCount = programs.filter(p => new Date(p.endingDate) >= now).length;
+        // Growth logic: Hard to know previous active without history. Just showing current active.
+        // Or simplified: newly started this month vs last month?
+        // Let's use Programs Created This Month for growth indicator, but Value is Active Count.
+        const programsCreatedThisMonth = programs.filter(p => isThisMonth(p.createdAt || p.startingDate)).length;
+        const programsCreatedLastMonth = programs.filter(p => isLastMonth(p.createdAt || p.startingDate)).length;
+        const programsGrowth = programsCreatedLastMonth === 0 ? (programsCreatedThisMonth > 0 ? 100 : 0) : ((programsCreatedThisMonth - programsCreatedLastMonth) / programsCreatedLastMonth) * 100;
+
+        // 4. Pending Cases (Active Cases)
+        const pendingCasesCount = cases.filter(c => c.status === 'active').length; // Model default is 'active'
+        // Growth: Cases created this month vs last month
+        const casesCreatedThisMonth = cases.filter(c => isThisMonth(c.createdAt)).length;
+        const casesCreatedLastMonth = cases.filter(c => isLastMonth(c.createdAt)).length;
+        const casesGrowth = casesCreatedLastMonth === 0 ? (casesCreatedThisMonth > 0 ? 100 : 0) : ((casesCreatedThisMonth - casesCreatedLastMonth) / casesCreatedLastMonth) * 100;
+
+        // 5. Volunteers
+        const totalVolunteers = volunteers.length;
+        const volunteersThisMonth = volunteers.filter(v => isThisMonth(v.createdAt)).length;
+        const volunteersLastMonth = volunteers.filter(v => isLastMonth(v.createdAt)).length;
+        const volunteersGrowth = volunteersLastMonth === 0 ? (volunteersThisMonth > 0 ? 100 : 0) : ((volunteersThisMonth - volunteersLastMonth) / volunteersLastMonth) * 100;
+
+
+        setStats({
+          totalDonations,
+          totalDonationsGrowth: donationsGrowth,
+          newEvents: newEventsCount,
+          newEventsGrowth: eventsGrowth,
+          activePrograms: activeProgramsCount,
+          activeProgramsGrowth: programsGrowth,
+          pendingCases: pendingCasesCount,
+          pendingCasesGrowth: casesGrowth,
+          totalVolunteers: totalVolunteers,
+          totalVolunteersGrowth: volunteersGrowth
+        });
+
+      } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const formatGrowth = (val) => {
+    const num = Number(val);
+    const sign = num >= 0 ? '+' : '';
+    return `${sign}${num.toFixed(1)}%`;
+  };
+
   return (
     <AdminLayout>
       <div className="min-h-screen font-sans text-gray-900">
@@ -221,45 +405,45 @@ function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           <StatCard
             title="Total Donations"
-            value="$15,430"
-            trend="+12.5%"
-            trendType="up"
+            value={formatCurrency(stats.totalDonations)}
+            trend={formatGrowth(stats.totalDonationsGrowth)}
+            trendType={stats.totalDonationsGrowth >= 0 ? "up" : "down"}
             icon={DollarSign}
             color="bg-emerald-500"
-            chartData={[5, 12, 10, 18, 15, 25, 22, 30]}
+            chartData={[5, 12, 10, 18, 15, 25, 22, 30]} // Placeholder sparkline
           />
           <StatCard
-            title="New Events"
-            value="12"
-            trend="+8.2%"
-            trendType="up"
+            title="New Events (Month)"
+            value={stats.newEvents}
+            trend={formatGrowth(stats.newEventsGrowth)}
+            trendType={stats.newEventsGrowth >= 0 ? "up" : "down"}
             icon={Calendar}
             color="bg-indigo-500"
             chartData={[8, 6, 10, 12, 8, 15]}
           />
           <StatCard
             title="Active Programs"
-            value="8"
-            trend="+2.4%"
-            trendType="up"
+            value={stats.activePrograms}
+            trend={formatGrowth(stats.activeProgramsGrowth)}
+            trendType={stats.activeProgramsGrowth >= 0 ? "up" : "down"}
             icon={Layers}
             color="bg-blue-500"
             chartData={[3, 5, 4, 6, 7, 8]}
           />
           <StatCard
-            title="Pending Cases"
-            value="45"
-            trend="-2.4%"
-            trendType="down"
+            title="Active Cases"
+            value={stats.pendingCases}
+            trend={formatGrowth(stats.pendingCasesGrowth)}
+            trendType={stats.pendingCasesGrowth >= 0 ? "up" : "down"}
             icon={Activity}
             color="bg-rose-500"
             chartData={[30, 25, 28, 20, 15, 12, 10]}
           />
           <StatCard
-            title="Volunteers"
-            value="120"
-            trend="+18%"
-            trendType="up"
+            title="Total Volunteers"
+            value={stats.totalVolunteers}
+            trend={formatGrowth(stats.totalVolunteersGrowth)}
+            trendType={stats.totalVolunteersGrowth >= 0 ? "up" : "down"}
             icon={Users}
             color="bg-orange-500"
             chartData={[50, 60, 75, 80, 95, 110, 120]}

@@ -195,7 +195,17 @@ const OngoingInitiatives = () => {
                                     >
                                         Join Now
                                     </Button>
-                                    <Button className="bg-[#852D1A] hover:bg-[#6b2416] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all">
+                                    <Button
+                                        onClick={() => {
+                                            navigate('/contact', {
+                                                state: {
+                                                    section: "donate",
+                                                    cause: selectedInitiative.title
+                                                }
+                                            });
+                                        }}
+                                        className="bg-[#852D1A] hover:bg-[#6b2416] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all"
+                                    >
                                         Donate Now
                                     </Button>
                                 </div>

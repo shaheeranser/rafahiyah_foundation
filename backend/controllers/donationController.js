@@ -6,11 +6,11 @@ import User from '../models/userModel.js';
 // @access  Public
 export const createDonation = async (req, res) => {
   try {
-    const { fullName, email, contactNumber, cause, paymentMethod, amount, userId } = req.body;
+    const { fullName, email, contactNumber, cause, purpose, paymentMethod, amount, userId } = req.body;
     const paymentProof = req.file ? req.file.path : null;
 
     // Basic validation for public form
-    if (!fullName || !email || !contactNumber || !cause || !paymentMethod) {
+    if (!fullName || !email || !contactNumber || !cause || !purpose || !paymentMethod) {
       return res.status(400).json({ message: 'Please fill in all required fields' });
     }
 
@@ -19,6 +19,7 @@ export const createDonation = async (req, res) => {
       email,
       contactNumber,
       cause,
+      purpose,
       paymentMethod,
       amount,
       paymentProof,

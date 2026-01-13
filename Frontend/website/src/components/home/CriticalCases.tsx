@@ -75,7 +75,10 @@ const CriticalCases = () => {
                                 >
                                     Read More
                                 </Button>
-                                <Button className="bg-rafahiyah-deep-red text-white hover:bg-[#6b2416] transition-colors rounded-full px-6 font-odibee text-lg tracking-wide flex-1 shadow-sm">
+                                <Button
+                                    onClick={() => navigate('/contact', { state: { section: "donate", cause: item.title } })}
+                                    className="bg-rafahiyah-deep-red text-white hover:bg-[#6b2416] transition-colors rounded-full px-6 font-odibee text-lg tracking-wide flex-1 shadow-sm"
+                                >
                                     Donate Now
                                 </Button>
                             </CardFooter>
@@ -139,7 +142,10 @@ const CriticalCases = () => {
 
                                     {/* Donate Action (Span 1 col) */}
                                     <div className="flex flex-col justify-end gap-2">
-                                        <Button className="w-full bg-[#852D1A] hover:bg-[#6b2416] text-white py-6 rounded-xl font-sans text-lg shadow-md transition-all">
+                                        <Button
+                                            onClick={() => navigate('/contact', { state: { section: "donate", cause: selectedCase.title } })}
+                                            className="w-full bg-[#852D1A] hover:bg-[#6b2416] text-white py-6 rounded-xl font-sans text-lg shadow-md transition-all"
+                                        >
                                             Donate Now
                                         </Button>
                                     </div>

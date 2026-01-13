@@ -377,7 +377,14 @@ const Cases = () => {
                                             </button>
                                             <button
                                                 className="flex-1 bg-rafahiyah-deep-red text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#6b2416] transition-colors uppercase tracking-wider shadow-md hover:shadow-lg"
-                                                onClick={() => toast.success("Donation flow simulated")}
+                                                onClick={() => {
+                                                    navigate('/contact', {
+                                                        state: {
+                                                            section: "donate",
+                                                            cause: caseItem.title
+                                                        }
+                                                    });
+                                                }}
                                             >
                                                 Donate Now
                                             </button>
@@ -543,9 +550,8 @@ const Cases = () => {
                                         } else {
                                             navigate('/contact', {
                                                 state: {
-                                                    section: "join-us",
-                                                    role: "onsite_volunteer",
-                                                    eventName: selectedItem.title
+                                                    section: "donate",
+                                                    cause: selectedItem.title
                                                 }
                                             });
                                             setSelectedItem(null);
