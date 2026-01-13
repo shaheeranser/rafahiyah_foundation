@@ -108,6 +108,57 @@ const ProgramCard = ({ program, onView, onEdit, onDelete }) => {
 };
 
 
+
+const CompletedProgramsTable = ({ programs, onView, onUndo }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-fade-in-up">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-bold">
+              <th className="p-4">Program Name</th>
+              <th className="p-4">Venue</th>
+              <th className="p-4">Date Range</th>
+              <th className="p-4">Linked Items</th>
+              <th className="p-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 text-sm">
+            {programs.map((program) => (
+              <tr key={program.id} className="hover:bg-gray-50 transition-colors group">
+                <td className="p-4 font-medium text-gray-800">{program.name}</td>
+                <td className="p-4 text-gray-600">{program.venue}</td>
+                <td className="p-4 text-gray-500">
+                  {new Date(program.startDate).toLocaleDateString()} - {program.endDate ? new Date(program.endDate).toLocaleDateString() : 'Ongoing'}
+                </td>
+                <td className="p-4">
+                  <div className="flex gap-2">
+                    <span className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-xs font-bold border border-purple-100">{program.linkedEvents.length} Events</span>
+                    <span className="bg-orange-50 text-orange-700 px-2 py-0.5 rounded text-xs font-bold border border-orange-100">{program.linkedCases.length} Cases</span>
+                  </div>
+                </td>
+                <td className="p-4 text-right">
+                  <div className="flex justify-end gap-2">
+                    <button onClick={() => onView(program)} className="text-gray-400 hover:text-blue-600 p-1.5 rounded-full hover:bg-blue-50 transition-colors" title="View Details">
+                      <FontAwesomeIcon icon={faEye} />
+                    </button>
+                    <button onClick={() => onUndo(program)} className="text-gray-400 hover:text-green-600 p-1.5 rounded-full hover:bg-green-50 transition-colors" title="Undo Completion">
+                      <FontAwesomeIcon icon={faCalendarCheck} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {programs.length === 0 && (
+        <div className="p-8 text-center text-gray-400 italic">No completed programs yet.</div>
+      )}
+    </div>
+  );
+};
+
 const Programs = () => {
   // State
   const [programsData, setProgramsData] = useState([]);
@@ -151,7 +202,7 @@ const Programs = () => {
             venue: p.venue,
             startDate: p.startingDate,
             endDate: p.endingDate,
-            status: 'active', // Default status as backend might not have it yet or it's different
+            status: p.status || 'active',
             image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/images/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
             linkedEvents: p.linkedEvents || [],
             linkedCases: p.linkedCases || []
@@ -233,8 +284,8 @@ const Programs = () => {
       endDate: program.endDate || '',
       status: program.status,
       image: program.image,
-      selectedEventIds: program.linkedEvents || [],
-      selectedCaseIds: program.linkedCases || []
+      selectedEventIds: (program.linkedEvents || []).map(e => typeof e === 'object' ? e._id : e),
+      selectedCaseIds: (program.linkedCases || []).map(c => typeof c === 'object' ? c._id : c)
     });
     setShowEditModal(true);
   };
@@ -322,7 +373,8 @@ const Programs = () => {
             venue: p.venue,
             startDate: p.startingDate,
             endDate: p.endingDate,
-            status: 'active',
+
+            status: p.status || 'active',
             image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/images/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
             linkedEvents: p.linkedEvents || [],
             linkedCases: p.linkedCases || []
@@ -357,6 +409,7 @@ const Programs = () => {
       formData.append('description', programForm.description);
       formData.append('startingDate', programForm.startDate);
       formData.append('endingDate', programForm.endDate);
+      formData.append('status', programForm.status);
       if (programForm.imageFile) {
         formData.append('image', programForm.imageFile);
       }
@@ -383,7 +436,7 @@ const Programs = () => {
           venue: p.venue,
           startDate: p.startingDate,
           endDate: p.endingDate,
-          status: 'active',
+          status: p.status || 'active',
           image: p.image ? `${API_BASE_URL.replace('/api', '')}/uploads/images/${p.image}` : 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070&auto=format&fit=crop',
           linkedEvents: p.linkedEvents || [],
           linkedCases: p.linkedCases || []
@@ -543,10 +596,126 @@ const Programs = () => {
     });
   };
 
+
+
+  const handleMarkComplete = async (program) => {
+    // 1. Validation: Check linked Events
+    const incompleteEvents = program.linkedEvents.filter(eventId => {
+      const id = typeof eventId === 'object' ? eventId._id : eventId;
+      const event = eventsList.find(e => e._id === id);
+      return event && event.status !== 'Completed';
+    });
+
+    if (incompleteEvents.length > 0) {
+      Swal.fire('Cannot Complete', `There are ${incompleteEvents.length} incomplete events linked to this program. Please complete them first.`, 'warning');
+      return;
+    }
+
+    // 2. Validation: Check linked Cases
+    const incompleteCases = program.linkedCases.filter(caseId => {
+      const id = typeof caseId === 'object' ? caseId._id : caseId;
+      const caseItem = casesList.find(c => c._id === id);
+      return caseItem && caseItem.status !== 'completed';
+    });
+
+    if (incompleteCases.length > 0) {
+      Swal.fire('Cannot Complete', `There are ${incompleteCases.length} incomplete cases linked to this program. Please complete them first.`, 'warning');
+      return;
+    }
+
+    // 3. Proceed to update status
+    try {
+      const token = localStorage.getItem('authToken');
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      const config = { headers: { 'Authorization': `Bearer ${token}` } };
+
+      const formData = new FormData();
+      formData.append('status', 'completed');
+
+      // We are using the generic update endpoint which uses FormData
+      // Ideally we would have a specific PATCH endpoint, but using existing Update logic
+      // Note: We need to send other required fields if backend requires them on PUT, 
+      // but if it's a PATCH or flexible PUT, just status might work. 
+      // Since existing handleEditSubmit uses PUT with all fields, let's try to construct a minimal valid request 
+      // OR better, create a specific status update flow if backend supports it. 
+      // Assuming we need to send at least required structure.
+      // Let's try sending just status as JSON if backend supports it, otherwise we'd need to re-send all data.
+      // Given the `update` route in `programRoute.js` likely maps to `updateProgram` in controller which handles file upload...
+      // Let's assume for now we can't easily do a partial update without potentially clearing other fields if the controller expects them.
+      // SAFEST APPROACH: Use the existing data and just change status.
+
+      // Re-constructing FormData with existing data + new status
+      const data = new FormData();
+      data.append('title', program.name);
+      data.append('venue', program.venue);
+      data.append('description', program.description);
+      data.append('startingDate', program.startDate);
+      // Fallback to startDate if endDate is missing to verify backend validation
+      data.append('endingDate', program.endDate || program.startDate);
+      // image is tricky if it's already there. Usually we don't send it back if we don't change it.
+      data.append('status', 'completed');
+      // CAUTION: program.linkedEvents/linkedCases are populated objects not IDs. Map them to IDs.
+      const linkedEventIds = program.linkedEvents.map(e => typeof e === 'object' ? e._id : e);
+      const linkedCaseIds = program.linkedCases.map(c => typeof c === 'object' ? c._id : c);
+
+      data.append('linkedEvents', JSON.stringify(linkedEventIds));
+      data.append('linkedCases', JSON.stringify(linkedCaseIds));
+
+      await axios.put(`${API_BASE_URL}/programs/update/${program.id}`, data, config);
+
+      Swal.fire('Success', 'Program marked as completed!', 'success');
+
+      // Update local state
+      setProgramsData(prev => prev.map(p => p.id === program.id ? { ...p, status: 'completed' } : p));
+      setShowViewModal(false);
+
+    } catch (error) {
+      console.error("Error completing program:", error);
+      Swal.fire('Error', 'Failed to mark program as completed', 'error');
+    }
+  };
+
+  const handleUndoComplete = async (program) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      const config = { headers: { 'Authorization': `Bearer ${token}` } };
+
+      const data = new FormData();
+      data.append('title', program.name);
+      data.append('venue', program.venue);
+      data.append('description', program.description);
+      data.append('startingDate', program.startDate);
+      data.append('endingDate', program.endDate || program.startDate);
+      data.append('status', 'active');
+      // Map to IDs
+      const linkedEventIds = program.linkedEvents.map(e => typeof e === 'object' ? e._id : e);
+      const linkedCaseIds = program.linkedCases.map(c => typeof c === 'object' ? c._id : c);
+
+      data.append('linkedEvents', JSON.stringify(linkedEventIds));
+      data.append('linkedCases', JSON.stringify(linkedCaseIds));
+
+      await axios.put(`${API_BASE_URL}/programs/update/${program.id}`, data, config);
+
+      Swal.fire('Restored', 'Program restored to active list', 'success');
+
+      // Update local state
+      setProgramsData(prev => prev.map(p => p.id === program.id ? { ...p, status: 'active' } : p));
+
+    } catch (error) {
+      console.error("Error restoring program:", error);
+      Swal.fire('Error', 'Failed to restore program', 'error');
+    }
+  };
+
+
   const filteredPrograms = programsData.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.venue.toLowerCase().includes(searchQuery.toLowerCase())
+  (p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.venue.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  const activePrograms = filteredPrograms.filter(p => p.status !== 'completed');
+  const completedPrograms = filteredPrograms.filter(p => p.status === 'completed');
 
   return (
     <AdminLayout>
@@ -581,25 +750,39 @@ const Programs = () => {
         </div>
 
         {/* Grid */}
-        {filteredPrograms.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-            <div className="text-gray-300 text-6xl mb-4"><FontAwesomeIcon icon={faBookOpen} /></div>
-            <h3 className="text-lg font-bold text-gray-600">No Programs Found</h3>
-            <p className="text-gray-400 text-sm mt-1">Try a different search term or create a new program.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPrograms.map(program => (
-              <ProgramCard
-                key={program.id}
-                program={program}
-                onView={handleViewOpen}
-                onEdit={handleEditOpen}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
-        )}
+        {/* Grid - Active Programs */}
+        <div className="mb-12">
+          <h2 className="text-xl font-bold text-gray-800 mb-6 font-handwriting">Active Programs</h2>
+          {activePrograms.length === 0 ? (
+            <div className="text-center py-20 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+              <div className="text-gray-300 text-6xl mb-4"><FontAwesomeIcon icon={faBookOpen} /></div>
+              <h3 className="text-lg font-bold text-gray-600">No Active Programs Found</h3>
+              <p className="text-gray-400 text-sm mt-1">Try a different search term or create a new program.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {activePrograms.map(program => (
+                <ProgramCard
+                  key={program.id}
+                  program={program}
+                  onView={handleViewOpen}
+                  onEdit={handleEditOpen}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Table - Completed Programs */}
+        <div className="mb-12">
+          <h2 className="text-xl font-bold text-gray-800 mb-6 font-handwriting">Completed Programs</h2>
+          <CompletedProgramsTable
+            programs={completedPrograms}
+            onView={handleViewOpen}
+            onUndo={handleUndoComplete}
+          />
+        </div>
 
       </div>
 
@@ -731,9 +914,12 @@ const Programs = () => {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
             <div className="relative h-48">
               <img src={selectedProgram.image} className="w-full h-full object-cover" alt="" />
-              <button onClick={() => setShowViewModal(false)} className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm transition-all">
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
+              <div className="absolute top-4 right-4 flex gap-2">
+
+                <button onClick={() => setShowViewModal(false)} className="bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm transition-all">
+                  <FontAwesomeIcon icon={faTimes} />
+                </button>
+              </div>
             </div>
             <div className="p-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedProgram.name}</h2>
@@ -805,6 +991,32 @@ const Programs = () => {
                     <div className="text-sm text-orange-400 italic">No linked cases</div>
                   )}
                 </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
+                <button
+                  onClick={() => { setShowViewModal(false); handleEditOpen(selectedProgram); }}
+                  className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit Program
+                </button>
+
+                {selectedProgram.status !== 'completed' ? (
+                  <button
+                    onClick={() => handleMarkComplete(selectedProgram)}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-green-200 flex items-center justify-center gap-2"
+                  >
+                    <FontAwesomeIcon icon={faCheckCircle} /> Mark as Complete
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="flex-1 bg-gray-100 text-green-700 py-2.5 rounded-xl font-bold cursor-default flex items-center justify-center gap-2 border border-blue-100"
+                  >
+                    <FontAwesomeIcon icon={faCheckCircle} /> Completed
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -21,6 +21,11 @@ const programSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
+    status: {
+        type: String,
+        enum: ['active', 'completed'],
+        default: 'active'
+    },
     image: {
         type: String, // Filename/Path
     },

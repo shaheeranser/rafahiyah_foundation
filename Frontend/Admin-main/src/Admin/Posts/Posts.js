@@ -195,6 +195,7 @@ const Posts = () => {
   const [completedCases, setCompletedCases] = useState([]);
   const [droppedCases, setDroppedCases] = useState([]);
   const [editId, setEditId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState(''); // Added search state
 
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -240,6 +241,22 @@ const Posts = () => {
   useEffect(() => {
     fetchCases();
   }, []);
+
+  // Filter Logic
+  const filteredActiveCases = activeCases.filter(c =>
+    c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(c.caseNo).includes(searchTerm)
+  );
+
+  const filteredCompletedCases = completedCases.filter(c =>
+    c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(c.caseNo).includes(searchTerm)
+  );
+
+  const filteredDroppedCases = droppedCases.filter(c =>
+    c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(c.caseNo).includes(searchTerm)
+  );
 
   // Handlers
   const handleCreateOpen = () => {
@@ -424,9 +441,10 @@ const Posts = () => {
     <AdminLayout>
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-10">
+        <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-handwriting text-gray-800" style={{ fontFamily: '"Patrick Hand", cursive' }}>Cases Management</h1>
+            <p className="text-sm text-gray-500 mt-1">Manage cases, track progress, and update statuses.</p>
           </div>
           <button
             onClick={handleCreateOpen}
@@ -437,6 +455,20 @@ const Posts = () => {
           </button>
         </div>
 
+        {/* Search */}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex gap-4">
+          <div className="relative flex-grow">
+            <FontAwesomeIcon icon={faSearch} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search cases by title or case number..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+          </div>
+        </div>
+
         {/* Current Cases Grid */}
         <div className="mb-12">
           <h2 className="text-xl font-bold text-gray-800 mb-6 font-handwriting">Current Cases</h2>
@@ -444,8 +476,11 @@ const Posts = () => {
             <div className="p-8 text-center text-gray-400 border border-dashed rounded-xl bg-gray-50">No active cases. Create one to get started.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {activeCases.map(c => <CaseCard key={c._id} data={c} onClick={handleCardAction} />)}
+              {filteredActiveCases.map(c => <CaseCard key={c._id} data={c} onClick={handleCardAction} />)}
             </div>
+          )}
+          {filteredActiveCases.length === 0 && activeCases.length > 0 && (
+            <p className="text-gray-500 italic mt-4">No matching active cases found.</p>
           )}
         </div>
 
@@ -458,7 +493,7 @@ const Posts = () => {
             </button>
           </div>
           <HistoryTable
-            data={completedCases}
+            data={filteredCompletedCases}
             emptyMessage="No completed cases yet."
             onAction={handleTableAction}
           />
@@ -473,7 +508,7 @@ const Posts = () => {
             </button>
           </div>
           <HistoryTable
-            data={droppedCases}
+            data={filteredDroppedCases}
             emptyMessage="No dropped cases found."
             isDropped
             onAction={handleTableAction}

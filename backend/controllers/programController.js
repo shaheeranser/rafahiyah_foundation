@@ -87,7 +87,7 @@ export const updateProgram = async (req, res) => {
         });
 
         const { id } = req.params;
-        const { title, venue, description, startingDate, endingDate, linkedEvents, linkedCases } = req.body;
+        const { title, venue, description, startingDate, endingDate, linkedEvents, linkedCases, status } = req.body;
 
         // Validate required fields
         if (!title || !venue || !description || !startingDate || !endingDate) {
@@ -114,7 +114,8 @@ export const updateProgram = async (req, res) => {
             venue,
             description,
             startingDate,
-            endingDate
+            endingDate,
+            status // Add status to update
         };
 
         if (linkedEvents) {
