@@ -10,6 +10,7 @@ import adeenahImg from "@/assets/adeenah.jpeg";
 import ruqayaImg from "@/assets/Ruqaya.jpeg";
 import fazalImg from "@/assets/fazal.jpeg";
 import laibaImg from "@/assets/laiba waseem.jpeg";
+import aboutImg from "@/assets/aboutus.jpg";
 
 const About = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -108,9 +109,9 @@ const About = () => {
         {/* Background Wrapper */}
         <div className="absolute inset-0 z-0">
           <img
-
+            src={aboutImg}
             alt="About Us Hero"
-            className="w-full h-full object-contain"
+            className="w-full h-full object-cover object-center"
           />
         </div>
 
@@ -270,7 +271,7 @@ const About = () => {
       </section>
 
       <Footer />
-    </div>
+    </div >
   );
 };
 

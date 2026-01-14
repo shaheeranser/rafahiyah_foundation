@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { apiCall } from "@/api/apiCall";
 import toast from "react-hot-toast";
+import donateImg from "@/assets/donate.png";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -553,90 +554,9 @@ const Contact = () => {
             {/* Left side text */}
             <div className="space-y-12">
               <h2 className="text-5xl md:text-6xl font-odibee text-rafahiyah-gold">Donate Now, Support Someone</h2>
-              {/* Working Animation: Donating (Plant Growth) */}
+              {/* Image Replacement */}
               <div className="w-full h-64 flex items-center justify-center relative overflow-hidden">
-                <style>{`
-                  @keyframes hand-enter-drop {
-                    0% { transform: translate(-50px, -50px); opacity: 0; }
-                    20% { transform: translate(0, 0); opacity: 1; }
-                    40% { transform: translate(0, 0); opacity: 1; }
-                    60% { transform: translate(-50px, -50px); opacity: 0; }
-                    100% { transform: translate(-50px, -50px); opacity: 0; }
-                  }
-                  @keyframes coin-drop {
-                    0% { transform: translateY(0); opacity: 0; }
-                    20% { transform: translateY(0); opacity: 1; }
-                    35% { transform: translateY(60px); opacity: 0; } /* Faster drop */
-                    100% { transform: translateY(60px); opacity: 0; }
-                  }
-                  @keyframes tree-emerge {
-                    0% { transform: translateY(100%) scale(0.5); opacity: 0; }
-                    35% { transform: translateY(100%) scale(0.5); opacity: 0; } /* Wait for coin */
-                    40% { transform: translateY(80%) scale(0.5); opacity: 1; } /* Start emerging */
-                    70% { transform: translateY(0) scale(1); opacity: 1; } /* Fully out */
-                    85% { transform: translateY(0) scale(1.1); opacity: 1; } /* Settle bloom */
-                    95% { transform: translateY(0) scale(1.1); opacity: 1; }
-                    100% { transform: translateY(100%) scale(0.5); opacity: 0; } /* Reset */
-                  }
-                  .animate-hand-drop {
-                    animation: hand-enter-drop 5s infinite ease-in-out;
-                  }
-                  .animate-coin {
-                    animation: coin-drop 5s infinite ease-in-out;
-                  }
-                  .animate-tree {
-                    animation: tree-emerge 5s infinite ease-in-out;
-                  }
-                `}</style>
-
-                <div className="relative flex flex-col items-center justify-end h-48 w-full">
-
-                  {/* Hand with Coin */}
-                  <div className="absolute top-0 right-1/3 animate-hand-drop z-30">
-                    <div className="relative">
-                      {/* Hand SVG */}
-                      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-rafahiyah-gold -rotate-12">
-                        <path d="M7 11.5V6.5C7 5.67157 7.67157 5 8.5 5C9.32843 5 10 5.67157 10 6.5V11.5M7 11.5V8.5C7 7.67157 6.32843 7 5.5 7C4.67157 7 4 7.67157 4 8.5V14C4 17.866 7.13401 21 11 21H13C14.8565 21 16.6369 20.2625 17.9497 18.9497C18.6182 18.2812 19.1124 17.464 19.4124 16.582M7 11.5C7 12.3284 7.67157 13 8.5 13C9.32843 13 10 12.3284 10 11.5M10 11.5V7.5C10 6.67157 10.6716 6 11.5 6C12.3284 6 13 6.67157 13 7.5V11.5M13 11.5V9.5C13 8.67157 13.6716 8 14.5 8C15.3284 8 16 8.67157 16 9.5V13.5" stroke="#E6B10A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      {/* Coin */}
-                      <div className="absolute top-8 left-2 animate-coin">
-                        <Coins className="w-6 h-6 text-yellow-500 fill-yellow-500" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Pot Assembly */}
-                  <div className="relative flex flex-col items-center justify-end z-10 mb-4">
-
-                    {/* 1. Masking Container (Inside the pot) */}
-                    {/* Positioned slightly above the bottom so it looks like it comes from the rim */}
-                    <div className="relative w-24 h-32 overflow-hidden flex items-end justify-center mb-[-5px]">
-                      <div className="animate-tree origin-bottom">
-                        <svg width="100" height="100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          {/* Trunk */}
-                          <path d="M12 21V12" stroke="#4A3423" strokeWidth="3" strokeLinecap="round" />
-                          {/* Cloud/Bushy Leaves */}
-                          <path d="M12 12C9 12 7 10 7 7C7 4 9 2 12 2C15 2 17 4 17 7C17 10 15 12 12 12Z" fill="#10B981" stroke="#059669" strokeWidth="2" />
-                          <path d="M7 7C5 7 4 8 4 10C4 12 6 13 8 13" fill="#10B981" stroke="#059669" strokeWidth="2" />
-                          <path d="M17 7C19 7 20 8 20 10C20 12 18 13 16 13" fill="#10B981" stroke="#059669" strokeWidth="2" />
-                        </svg>
-                      </div>
-                    </div>
-
-                    {/* 2. Pot (Foreground/Static) */}
-                    <div className="z-20">
-                      <svg width="60" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        {/* Pot Rim (Front) */}
-                        <rect x="4" y="5" width="16" height="3" fill="#A53926" stroke="#5D1E11" strokeWidth="2" />
-                        {/* Pot Body */}
-                        <path d="M5 8L7 21H17L19 8H5Z" fill="#8B2D1B" stroke="#5D1E11" strokeWidth="2" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-
-                  </div>
-
-                </div>
-                <div className="absolute inset-0 bg-rafahiyah-gold/5 animate-pulse" />
+                <img src={donateImg} alt="Donate Now" className="w-full h-full object-contain" />
               </div>
               <p className="text-2xl font-bold text-rafahiyah-gold leading-tight max-w-sm">
                 No Matter How Small the Amount is, Every Contribution Counts
