@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Hash, Layers, Banknote, Target } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getAllCases } from "../../services/api";
@@ -97,54 +98,98 @@ const CriticalCases = () => {
 
                 {/* Critical Case Details Modal */}
                 <Dialog open={!!selectedCase} onOpenChange={(open) => !open && setSelectedCase(null)}>
-                    <DialogContent className="max-w-4xl bg-white rounded-3xl p-6 md:p-8 overflow-hidden">
+                    <DialogContent className="max-w-5xl bg-white rounded-[2rem] p-0 overflow-hidden shadow-2xl">
                         <DialogHeader className="sr-only">
-                            <DialogTitle>Case Details</DialogTitle>
+                            <DialogTitle>{selectedCase?.title}</DialogTitle>
                         </DialogHeader>
 
                         {selectedCase && (
-                            <div className="flex flex-col gap-6">
-                                {/* Top Section: Image and Info */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    {/* Left: Relevant Picture Placeholder */}
-                                    <div className="bg-gray-200 rounded-2xl h-64 flex items-center justify-center overflow-hidden">
-                                        <img
-                                            src={`http://localhost:8000/${selectedCase.image?.replace(/\\/g, '/')}`}
-                                            alt={selectedCase.title}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                e.currentTarget.src = communityImg;
-                                            }}
-                                        />
-                                    </div>
-
-                                    {/* Right: Case Info */}
-                                    <div className="flex flex-col justify-center space-y-3 text-left">
-                                        <h3 className="text-4xl font-odibee text-gray-900 mb-2">{selectedCase.title}</h3>
-                                        <div className="space-y-1 font-sans text-gray-700 text-lg">
-                                            <p><span className="font-semibold text-gray-900">CASE NUMBER:</span> {selectedCase.caseNo}</p>
-                                            <p><span className="font-semibold text-gray-900">CATEGORY:</span> {selectedCase.category}</p>
-                                            <p><span className="font-semibold text-gray-900">TOTAL AMOUNT:</span> ${selectedCase.amountRequired?.toLocaleString()}</p>
-                                            <p><span className="font-semibold text-gray-900">COLLECTED AMOUNT:</span> ${selectedCase.amountCollected?.toLocaleString() || 0}</p>
-                                            <p><span className="font-semibold text-gray-900">REMAINING AMOUNT:</span> ${((selectedCase.amountRequired || 0) - (selectedCase.amountCollected || 0)).toLocaleString()}</p>
-                                        </div>
-                                    </div>
+                            <div className="flex flex-col md:flex-row h-full max-h-[90vh] md:h-auto overflow-y-auto md:overflow-visible">
+                                {/* Left Side: Image */}
+                                <div className="w-full md:w-2/5 h-64 md:h-auto bg-gray-100 relative">
+                                    <img
+                                        src={`http://localhost:8000/${selectedCase.image?.replace(/\\/g, '/')}`}
+                                        alt={selectedCase.title}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            e.currentTarget.src = communityImg;
+                                        }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:hidden" />
+                                    <h3 className="absolute bottom-4 left-4 text-3xl font-odibee text-white md:hidden drop-shadow-md z-10">
+                                        {selectedCase.title}
+                                    </h3>
                                 </div>
 
-                                {/* Bottom Grid: Description and Action */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                    {/* Description (Span 2 cols) */}
-                                    <div className="md:col-span-2 bg-gray-200 rounded-2xl p-6 min-h-[150px] flex items-center text-gray-700 font-sans text-lg text-left">
-                                        <p>
-                                            {selectedCase.description}
-                                        </p>
+                                {/* Right Side: Content */}
+                                <div className="w-full md:w-3/5 p-6 md:p-10 flex flex-col gap-6">
+                                    <h3 className="text-4xl md:text-5xl font-odibee text-gray-900 hidden md:block leading-none">
+                                        {selectedCase.title}
+                                    </h3>
+
+                                    {/* Stats Grid */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                            <div className="p-2 bg-blue-100 rounded-lg text-rafahiyah-dark-blue">
+                                                <Hash className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Case No.</p>
+                                                <p className="font-semibold text-gray-800 text-sm md:text-base">{selectedCase.caseNo}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                            <div className="p-2 bg-purple-100 rounded-lg text-purple-700">
+                                                <Layers className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Category</p>
+                                                <p className="font-semibold text-gray-800 text-sm md:text-base">{selectedCase.category}</p>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {/* Donate Action (Span 1 col) */}
-                                    <div className="flex flex-col justify-end gap-2">
+                                    {/* Funding Progress */}
+                                    {selectedCase.amountRequired > 0 && (
+                                        <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 space-y-3">
+                                            <div className="flex justify-between items-end mb-1">
+                                                <div className="flex items-center gap-2 text-rafahiyah-dark-blue font-bold">
+                                                    <Target className="w-5 h-5" />
+                                                    <span>Fundraising Progress</span>
+                                                </div>
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                                    {Math.round(Math.min((selectedCase.amountCollected / selectedCase.amountRequired) * 100, 100))}% Funded
+                                                </span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 rounded-full h-3">
+                                                <div
+                                                    className="bg-rafahiyah-deep-red h-3 rounded-full transition-all duration-1000 ease-out"
+                                                    style={{ width: `${Math.min((selectedCase.amountCollected / selectedCase.amountRequired) * 100, 100)}%` }}
+                                                />
+                                            </div>
+                                            <div className="flex justify-between text-sm font-medium pt-1">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-gray-500 uppercase">Raised</span>
+                                                    <span className="text-rafahiyah-deep-red font-bold text-lg">${selectedCase.amountCollected?.toLocaleString() || 0}</span>
+                                                </div>
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-xs text-gray-500 uppercase">Goal</span>
+                                                    <span className="text-gray-900 font-bold text-lg">${selectedCase.amountRequired?.toLocaleString()}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Description */}
+                                    <div className="text-gray-600 font-sans leading-relaxed text-base max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {selectedCase.description}
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="mt-auto pt-4 md:pt-0">
                                         <Button
                                             onClick={() => navigate('/contact', { state: { section: "donate", cause: selectedCase.title } })}
-                                            className="w-full bg-[#852D1A] hover:bg-[#6b2416] text-white py-6 rounded-xl font-sans text-lg shadow-md transition-all"
+                                            className="w-full bg-[#852D1A] hover:bg-[#6b2416] text-white py-6 rounded-xl font-odibee text-xl tracking-wide shadow-lg transition-transform hover:scale-[1.02]"
                                         >
                                             Donate Now
                                         </Button>
