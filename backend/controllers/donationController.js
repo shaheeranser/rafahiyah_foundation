@@ -87,6 +87,9 @@ export const getDonationById = async (req, res) => {
   }
 };
 
+import Case from '../models/caseModel.js';
+import Event from '../models/eventModel.js';
+
 export const approveDonation = async (req, res) => {
   try {
     const donation = await Donation.findByIdAndUpdate(req.params.id, {
@@ -95,8 +98,31 @@ export const approveDonation = async (req, res) => {
     }, { new: true });
 
     if (!donation) return res.status(404).json({ msg: 'Donation not found' });
-    res.json({ msg: 'Donation approved', donation });
+
+    // Update Collected Amount in Case or Event
+    const { cause, amount } = donation;
+
+    // Try finding a valid Case
+    const relatedCase = await Case.findOne({ title: cause });
+    if (relatedCase) {
+      relatedCase.amountCollected = (relatedCase.amountCollected || 0) + amount;
+      await relatedCase.save();
+      console.log(`Updated Case: ${cause} with amount: ${amount}`);
+    } else {
+      // Try finding a valid Event
+      const relatedEvent = await Event.findOne({ title: cause });
+      if (relatedEvent) {
+        relatedEvent.collectedAmount = (relatedEvent.collectedAmount || 0) + amount;
+        await relatedEvent.save();
+        console.log(`Updated Event: ${cause} with amount: ${amount}`);
+      } else {
+        console.log(`No Case or Event found with title: ${cause}`);
+      }
+    }
+
+    res.json({ msg: 'Donation approved and funds allocated', donation });
   } catch (error) {
+    console.error("Approve Donation Error:", error);
     res.status(500).json({ msg: error.message });
   }
 };

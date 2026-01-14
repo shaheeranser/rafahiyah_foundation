@@ -14,80 +14,15 @@ import {
   Activity,
   ChevronRight
 } from "lucide-react";
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
 
 // --- Components ---
 
-const Sparkline = ({ color, data }) => {
-  const chartData = {
-    labels: data.map((_, i) => i),
-    datasets: [
-      {
-        data: data,
-        borderColor: color,
-        backgroundColor: (context) => {
-          const ctx = context.chart.ctx;
-          const gradient = ctx.createLinearGradient(0, 0, 0, 100);
-          gradient.addColorStop(0, `${color}20`); // Very transparent
-          gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-          return gradient;
-        },
-        fill: true,
-        borderWidth: 2,
-        tension: 0.5,
-        pointRadius: 0,
-        pointHoverRadius: 0,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-    scales: {
-      x: { display: false },
-      y: { display: false, min: Math.min(...data) * 0.8, max: Math.max(...data) * 1.1 },
-    },
-    elements: { line: { capBezierPoints: true } }
-  };
-
-  return (
-    <div style={{ height: '40px', width: '100px' }}>
-      <Line data={chartData} options={options} />
-    </div>
-  );
-};
-
-const StatCard = ({ title, value, subtext, trend, trendType, icon: Icon, color, chartData }) => (
+const StatCard = ({ title, value, subtext, trend, trendType, icon: Icon, color }) => (
   <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-lg transition-all duration-300 group">
     <div className="flex justify-between items-start mb-4">
       <div className={`p-2 rounded-lg ${color} bg-opacity-10 text-opacity-100`}>
         <Icon size={20} className={color.replace('bg-', 'text-')} />
       </div>
-      {chartData && <Sparkline color={color.includes('emerald') ? '#10B981' : color.includes('rose') ? '#F43F5E' : '#6366f1'} data={chartData} />}
     </div>
 
     <div>

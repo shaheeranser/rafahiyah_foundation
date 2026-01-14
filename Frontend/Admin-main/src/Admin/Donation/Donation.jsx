@@ -229,9 +229,9 @@ const Donations = () => {
 
   const Modal = ({ donation, onClose }) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-800">Donation Details</h2>
             <button
               onClick={onClose}
@@ -241,86 +241,112 @@ const Donations = () => {
             </button>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Donor</label>
-              <p className="text-gray-900">{donation.user?.name || donation.fullName || 'Anonymous'}</p>
-              <p className="text-gray-600 text-sm">{donation.user?.email || donation.email}</p>
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Amount</label>
-              <p className="text-2xl font-bold text-green-600">{formatAmount(donation.amount)}</p>
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Date</label>
-              <p className="text-gray-900">{formatDate(donation.createdAt || donation.date)}</p>
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Payment Method</label>
-              <p className="text-gray-900 capitalize">{donation.paymentMethod}</p>
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Campaign</label>
-              <p className="text-gray-900">{donation.cause} - {donation.purpose}</p>
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Status</label>
-              {getStatusBadge(donation)}
-            </div>
-
-            {donation.receiptUrl && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left Column: Details */}
+            <div className="space-y-5">
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Receipt</label>
-                <a
-                  href={`http://localhost:8000/api/${donation.receiptUrl}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-indigo-600 hover:text-indigo-800 underline"
-                >
-                  View Receipt
-                </a>
+                <label className="block text-gray-700 font-medium mb-1">Donor</label>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-gray-900 font-medium">{donation.user?.name || donation.fullName || 'Anonymous'}</p>
+                  <p className="text-gray-600 text-sm">{donation.user?.email || donation.email}</p>
+                </div>
               </div>
-            )}
 
-            {donation.receipt && (
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Receipt</label>
-                <a
-                  href={`http://localhost:8000/api/${donation.receipt}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-indigo-600 hover:text-indigo-800 underline"
-                >
-                  View Receipt
-                </a>
+                <label className="block text-gray-700 font-medium mb-1">Contact Number</label>
+                <p className="text-gray-900">{donation.contactNumber || 'N/A'}</p>
               </div>
-            )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">Amount</label>
+                  <p className="text-2xl font-bold text-green-600">{formatAmount(donation.amount)}</p>
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">Date</label>
+                  <p className="text-gray-900">{formatDate(donation.createdAt || donation.date)}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">Payment Method</label>
+                  <p className="text-gray-900 capitalize">{donation.paymentMethod}</p>
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">Status</label>
+                  {getStatusBadge(donation)}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-medium mb-1">Campaign</label>
+                <p className="text-gray-900 p-2 bg-gray-50 rounded">{donation.cause} - {donation.purpose}</p>
+              </div>
+            </div>
+
+            {/* Right Column: Evidence */}
+            <div className="space-y-5">
+              {donation.paymentProof ? (
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Payment Proof</label>
+                  <div className="rounded-lg border border-gray-200 p-2 bg-gray-50 text-center h-full flex flex-col justify-center">
+                    <img
+                      src={`http://localhost:8000/${donation.paymentProof.replace(/\\/g, '/')}`}
+                      alt="Payment Proof"
+                      className="max-h-[400px] w-full object-contain rounded mb-2"
+                    />
+                    <a
+                      href={`http://localhost:8000/${donation.paymentProof.replace(/\\/g, '/')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors"
+                    >
+                      <Eye size={16} className="mr-2" /> View Full Size
+                    </a>
+                  </div>
+                </div>
+              ) : (donation.receiptUrl || donation.receipt) ? (
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Receipt</label>
+                  <div className="flex items-center justify-center h-64 bg-gray-50 border border-gray-200 rounded-lg border-dashed">
+                    <a
+                      href={`http://localhost:8000/api/${donation.receiptUrl || donation.receipt}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 hover:text-indigo-800 underline font-medium"
+                    >
+                      View Receipt Document
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center bg-gray-50 border border-gray-200 rounded-lg border-dashed text-gray-400 p-10">
+                  <p>No proof or receipt available</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {!donation.approved && !donation.rejected && donation.status === 'Pending' && (
-            <div className="flex space-x-3 mt-6">
+            <div className="flex space-x-3 mt-8 pt-4 border-t border-gray-100">
               <button
                 onClick={() => {
                   approveDonation(donation._id);
                   onClose();
                 }}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium shadow-sm transition-colors"
               >
-                Approve
+                Approve Donation
               </button>
               <button
                 onClick={() => {
                   rejectDonation(donation._id);
                   onClose();
                 }}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium shadow-sm transition-colors"
               >
-                Reject
+                Reject Donation
               </button>
             </div>
           )}

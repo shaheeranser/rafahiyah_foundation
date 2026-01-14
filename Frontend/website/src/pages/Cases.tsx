@@ -292,15 +292,15 @@ const Cases = () => {
                                                 </div>
                                             </div>
                                         )}
-                                        <div className="flex gap-4 w-full mt-auto">
+                                        <div className="flex gap-2 w-full mt-auto flex-wrap">
                                             <button
-                                                className="flex-1 bg-[#FFD700] text-black py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#FDB931] transition-colors uppercase tracking-wider"
+                                                className="flex-1 bg-[#FFD700] text-black py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#FDB931] transition-colors uppercase tracking-wider min-w-[100px]"
                                                 onClick={() => setSelectedItem(item)}
                                             >
                                                 Read More
                                             </button>
                                             <button
-                                                className="flex-1 bg-rafahiyah-deep-red text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#6b2416] transition-colors uppercase tracking-wider"
+                                                className="flex-1 bg-rafahiyah-deep-red text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#6b2416] transition-colors uppercase tracking-wider min-w-[100px]"
                                                 onClick={() => {
                                                     navigate('/contact', {
                                                         state: {
@@ -313,6 +313,23 @@ const Cases = () => {
                                             >
                                                 Join Us
                                             </button>
+
+                                            {/* Donate Button for Funded Events */}
+                                            {item.requiredAmount > 0 && (
+                                                <button
+                                                    className="flex-1 bg-[#242D4B] text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#35426D] transition-colors uppercase tracking-wider shadow-md hover:shadow-lg min-w-[100px]"
+                                                    onClick={() => {
+                                                        navigate('/contact', {
+                                                            state: {
+                                                                section: "donate",
+                                                                cause: item.title
+                                                            }
+                                                        });
+                                                    }}
+                                                >
+                                                    Donate
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -545,13 +562,19 @@ const Cases = () => {
                                     className="bg-[#852D1A] hover:bg-[#6b2416] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all"
                                     onClick={() => {
                                         if (selectedItem.caseNo) {
-                                            toast.success("Proceeding to Donation...");
-                                            // Handle donation logic here if needed
-                                        } else {
                                             navigate('/contact', {
                                                 state: {
                                                     section: "donate",
                                                     cause: selectedItem.title
+                                                }
+                                            });
+                                            setSelectedItem(null);
+                                        } else {
+                                            navigate('/contact', {
+                                                state: {
+                                                    section: "join-us",
+                                                    role: "onsite_volunteer",
+                                                    eventName: selectedItem.title
                                                 }
                                             });
                                             setSelectedItem(null);
