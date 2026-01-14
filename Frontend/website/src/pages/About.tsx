@@ -139,7 +139,7 @@ const About = () => {
           <div className="space-y-16">
             {/* One Vision */}
             <div className="text-center">
-              <div className="bg-rafahiyah-gold p-10 rounded-2xl shadow-md">
+              <div className="bg-gradient-to-b from-[#fccf4d] to-white p-10 rounded-2xl shadow-md border border-yellow-100">
                 <p className="text-xl text-rafahiyah-dark-blue leading-relaxed font-medium">
                   "We came together to create a prosperous and caring society in which everyone has access to opportunities, healthcare, education, and fundamental human dignity as a right rather than a privilege. We see thriving communities where every one of us can reach their full potential and make a significant contribution to a better tomorrow. These communities are bolstered by unity, equity, and self-reliance."
                 </p>
@@ -149,7 +149,7 @@ const About = () => {
             {/* Our Mission */}
             <div className="text-center">
               <h2 className="text-4xl md:text-5xl font-odibee text-rafahiyah-dark-blue mb-4">OUR MISSION</h2>
-              <div className="bg-rafahiyah-gold p-10 rounded-2xl shadow-md">
+              <div className="bg-gradient-to-b from-[#fccf4d] to-white p-10 rounded-2xl shadow-md border border-yellow-100">
                 <p className="text-xl text-rafahiyah-dark-blue leading-relaxed font-medium">
                   "We strive to uplift the underprivileged and transform communities, fostering a world where everyone has the opportunity to thrive."
                 </p>
