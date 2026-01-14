@@ -14,18 +14,24 @@ import aboutImg from "@/assets/aboutus.jpg";
 
 const About = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
-      const scrollAmount = scrollRef.current.clientWidth + 48; // Scroll one full view including one gap
+      const scrollAmount = scrollRef.current.clientWidth + 48;
       scrollRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth'
       });
+    }
+  };
+
+  const handleOnScroll = () => {
+    if (scrollRef.current) {
+      const scrollPosition = scrollRef.current.scrollLeft;
+      const cardWidth = scrollRef.current.clientWidth; // Approximate view width
+      const index = Math.round(scrollPosition / cardWidth);
+      setActiveIndex(index);
     }
   };
 
@@ -105,7 +111,7 @@ const About = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-start overflow-hidden pt-20 bg-gray-900">
+      <section className="relative h-[80vh] flex items-end md:items-center justify-start overflow-hidden pt-20 pb-32 md:pb-0 bg-gray-900">
         {/* Background Wrapper */}
         <div className="absolute inset-0 z-0">
           <img
@@ -214,18 +220,18 @@ const About = () => {
             <h2 className="text-5xl md:text-6xl font-odibee text-rafahiyah-dark-blue mb-4">Meet Our OG Crew</h2>
           </div>
 
-          <div className="relative px-12">
+          <div className="relative px-4 md:px-12">
             {/* Carousel Navigation */}
             <button
               onClick={() => scroll('left')}
-              className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors z-50 bg-[#D9D9D9] shadow-sm"
+              className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors z-50 bg-[#D9D9D9] shadow-sm hidden md:flex"
               aria-label="Scroll Left"
             >
               <ArrowLeft className="w-5 h-5 text-black" />
             </button>
             <button
               onClick={() => scroll('right')}
-              className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors z-50 bg-[#D9D9D9] shadow-sm"
+              className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors z-50 bg-[#D9D9D9] shadow-sm hidden md:flex"
               aria-label="Scroll Right"
             >
               <ArrowRight className="w-5 h-5 text-black" />
@@ -233,10 +239,11 @@ const About = () => {
 
             <div
               ref={scrollRef}
-              className="flex gap-12 overflow-x-auto py-10 no-scrollbar scroll-smooth snap-x snap-mandatory"
+              onScroll={handleOnScroll}
+              className="flex gap-4 md:gap-12 overflow-x-auto py-10 no-scrollbar scroll-smooth snap-x snap-mandatory"
             >
               {ogCrew.map((member, idx) => (
-                <div key={idx} className="w-[calc((100%-96px)/3)] flex-shrink-0 flex flex-col items-center bg-white p-6 rounded-[2rem] shadow-xl border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 snap-start">
+                <div key={idx} className="w-[85vw] md:w-[calc((100%-48px)/2)] lg:w-[calc((100%-96px)/3)] flex-shrink-0 flex flex-col items-center bg-white p-6 rounded-[2rem] shadow-xl border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 snap-center md:snap-start">
                   {/* Pic area */}
                   <div className="w-48 h-64 rounded-2xl bg-gray-100 mb-6 flex items-center justify-center italic text-gray-400 border-[6px] border-rafahiyah-gold shadow-md overflow-hidden relative">
                     {member.image ? (
@@ -254,9 +261,9 @@ const About = () => {
                   <h4 className="text-3xl font-odibee text-rafahiyah-dark-blue mb-4 tracking-wide">{member.name}</h4>
 
                   {/* About text box */}
-                  <div className="w-full bg-rafahiyah-dark-blue h-[120px] rounded-[1.5rem] flex flex-col items-center justify-center p-4 shadow-inner relative overflow-hidden group">
+                  <div className="w-full bg-rafahiyah-dark-blue min-h-[120px] rounded-[1.5rem] flex flex-col items-center justify-center p-4 shadow-inner relative overflow-hidden group">
                     <div className="absolute inset-0 bg-rafahiyah-deep-red opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-                    <p className="text-white text-2xl font-medium text-center leading-relaxed font-odibee tracking-wider line-clamp-2">
+                    <p className="text-white text-xl md:text-2xl font-medium text-center leading-relaxed font-odibee tracking-wider">
                       {member.description}
                     </p>
                     <p className="text-rafahiyah-gold/90 text-lg font-medium text-center mt-1 font-odibee tracking-widest">
@@ -264,6 +271,17 @@ const About = () => {
                     </p>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Mobile Dots Indicator */}
+            <div className="flex justify-center gap-2 mt-4 md:hidden">
+              {ogCrew.map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`h-2 rounded-full transition-all duration-300 ${idx === activeIndex ? "w-8 bg-rafahiyah-deep-red" : "w-2 bg-gray-300"
+                    }`}
+                />
               ))}
             </div>
           </div>

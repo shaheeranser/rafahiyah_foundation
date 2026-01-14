@@ -47,7 +47,7 @@ const WhoWeAre = () => {
     return (
         <section className="py-20 bg-white relative overflow-hidden min-h-[700px] flex items-center">
             {/* Spiral/Dot Background - Focused on the Right Side */}
-            <div className="absolute top-0 right-0 w-full lg:w-2/3 h-full pointer-events-none z-0 opacity-40">
+            <div className="absolute top-0 right-0 w-full lg:w-2/3 h-full pointer-events-none z-0 hidden md:block opacity-40">
                 <div className="relative w-full h-full">
                     {dots.map((dot, i) => (
                         <div
@@ -84,20 +84,20 @@ const WhoWeAre = () => {
                 </div>
 
                 {/* Right Side: Images */}
-                <div className="w-full lg:w-1/2 relative min-h-[600px] flex items-center justify-center">
+                <div className="w-full lg:w-1/2 relative min-h-[400px] md:min-h-[600px] flex items-center justify-center mt-8 lg:mt-0">
                     {/* Image 1 - Top Right - Large & Rotated */}
-                    <div className="absolute top-10 right-10 w-64 h-64 bg-gray-200 rounded-[2rem] shadow-xl transform rotate-12 z-10 overflow-hidden border-4 border-white">
+                    <div className="absolute top-0 right-4 md:top-10 md:right-10 w-40 h-40 md:w-64 md:h-64 bg-gray-200 rounded-[2rem] shadow-xl transform rotate-12 z-10 overflow-hidden border-4 border-white">
                         {/* Placeholder or actual image */}
                         <img src={img1} alt="Team" className="w-full h-full object-cover" />
                     </div>
 
                     {/* Image 2 - Main Center/Left - Large & Rotated */}
-                    <div className="absolute top-1/2 left-10 -translate-y-1/2 w-72 h-72 bg-gray-300 rounded-[2rem] shadow-xl transform -rotate-6 z-20 overflow-hidden border-4 border-white">
+                    <div className="absolute top-1/2 left-4 md:left-10 -translate-y-1/2 w-48 h-48 md:w-72 md:h-72 bg-gray-300 rounded-[2rem] shadow-xl transform -rotate-6 z-20 overflow-hidden border-4 border-white">
                         <img src={img2} alt="Community" className="w-full h-full object-cover" />
                     </div>
 
                     {/* Image 3 - Bottom Right - Smaller & Rotated */}
-                    <div className="absolute bottom-20 right-20 w-48 h-48 bg-gray-200 rounded-[1.5rem] shadow-xl transform rotate-6 z-0 overflow-hidden border-4 border-white">
+                    <div className="absolute bottom-0 right-8 md:bottom-20 md:right-20 w-32 h-32 md:w-48 md:h-48 bg-gray-200 rounded-[1.5rem] shadow-xl transform rotate-6 z-0 overflow-hidden border-4 border-white">
                         <img src={img3} alt="Success Story" className="w-full h-full object-cover" />
                     </div>
                 </div>
