@@ -78,46 +78,58 @@ const Events = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background font-sans">
+    <div className="min-h-screen bg-white font-sans">
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-20 lg:pt-24 pb-16 bg-gradient-to-br from-section-soft to-gentle-rose mt-14">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl lg:text-6xl font-bold font-odibee text-primary mb-6">
-            Explore Our Events
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-sans">
-            Discover opportunities to engage and empower in your community.
-          </p>
-          <div className="max-w-md mx-auto flex gap-2 mt-8">
-            <Input
-              type="text"
-              placeholder="Search events by title..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="max-w-xl mx-auto bg-white"
-            />
-            <Button onClick={() => { }}>Search</Button>
+      <section className="relative h-[60vh] md:h-[80vh] flex items-center justify-start overflow-hidden pt-20">
+        <div className="absolute inset-0 bg-black/50 z-10" />
+        <div className="absolute inset-0 z-0">
+          <img
+            src={eventImg1}
+            alt="Events Hero"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <div className="w-full px-6 md:px-32 relative z-20">
+          <div className="max-w-4xl text-left">
+            <h1 className="text-5xl md:text-8xl font-odibee text-white mb-6 drop-shadow-lg leading-none">
+              Explore Our Events
+            </h1>
+            <p className="text-xl md:text-3xl font-odibee text-rafahiyah-gold drop-shadow-md">
+              Discover opportunities to engage and empower in your community.
+            </p>
+            <div className="max-w-md flex gap-2 mt-8">
+              <Input
+                type="text"
+                placeholder="Search events by title..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="max-w-xl bg-white/90 backdrop-blur-sm border-none h-12 rounded-xl text-black placeholder:text-gray-500"
+              />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Events Grid */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl lg:text-4xl font-bold text-center font-odibee text-primary mb-12">
-            Upcoming Events
-          </h2>
+      <section className="py-24 bg-[#FAFAFA]">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl md:text-6xl font-odibee text-rafahiyah-dark-blue">
+              Upcoming Events
+            </h2>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {filteredEvents.map((event) => (
               <Card
                 key={event._id}
-                className="overflow-hidden hover:shadow-lg transition-all duration-300 border-none shadow-md"
+                className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex flex-col h-full hover:shadow-xl transition-shadow duration-300"
               >
                 <div
-                  className="relative group cursor-pointer aspect-video overflow-hidden"
+                  className="w-full h-56 rounded-2xl mb-6 overflow-hidden relative cursor-pointer group"
                   onClick={() => setSelectedEvent({ ...event, showOverlay: true })}
                 >
                   <img
@@ -126,110 +138,132 @@ const Events = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-                <CardHeader>
-                  <CardTitle className="text-primary font-odibee text-2xl">{event.title}</CardTitle>
-                  <div className="text-sm text-muted-foreground mb-2 flex items-center">
-                    <Calendar className="inline-block h-4 w-4 mr-2" />
-                    {new Date(event.date).toLocaleDateString()}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="mb-4 line-clamp-3 text-gray-600 font-sans">
-                    {event.description}
-                  </CardDescription>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="w-1/2 text-primary border-primary hover:bg-primary/10 transition font-odibee tracking-wide text-lg"
-                      onClick={() => setViewMoreEvent(event)}
-                    >
-                      View More
-                    </Button>
-                    <Button
-                      className="w-1/2 bg-rafahiyah-deep-red hover:bg-[#6b2416] text-white font-odibee tracking-wide text-lg"
-                      onClick={() => setSelectedEvent(event)}
-                    >
-                      Participate
-                    </Button>
-                  </div>
-                </CardContent>
+
+                <h3 className="text-2xl font-bold text-black mb-2 font-odibee tracking-wide">{event.title}</h3>
+
+                <div className="flex items-center text-xs font-bold text-rafahiyah-dark-blue uppercase tracking-wider mb-4 font-sans gap-2">
+                  <Calendar className="w-4 h-4" />
+                  {new Date(event.date).toLocaleDateString()}
+                </div>
+
+                <CardDescription className="text-gray-600 mb-6 flex-grow leading-relaxed font-sans text-sm line-clamp-3">
+                  {event.description}
+                </CardDescription>
+
+                <div className="flex gap-4 w-full mt-auto">
+                  <Button
+                    className="flex-1 bg-[#FFD700] text-black py-6 rounded-xl text-sm font-bold font-odibee hover:bg-[#FDB931] transition-colors uppercase tracking-wider shadow-sm"
+                    onClick={() => setViewMoreEvent(event)}
+                  >
+                    View More
+                  </Button>
+                  <Button
+                    className="flex-1 bg-rafahiyah-deep-red text-white py-6 rounded-xl text-sm font-bold font-odibee hover:bg-[#6b2416] transition-colors uppercase tracking-wider shadow-sm"
+                    onClick={() => setSelectedEvent(event)}
+                  >
+                    Participate
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Image Overlay */}
-      {selectedEvent?.showOverlay && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedEvent(null)}>
-          <div className="max-w-4xl w-full relative animate-fadeInSlide" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={selectedEvent.image}
-              alt={selectedEvent.title}
-              className="w-full h-auto rounded-lg shadow-lg"
-            />
-            <Button
-              variant="ghost"
-              className="absolute top-4 right-4 text-white bg-black/20 hover:bg-black/40 rounded-full"
-              onClick={() => setSelectedEvent(null)}
-            >
-              Close
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* View More Modal */}
+      {/* View More Modal - UPDATED LAYOUT */}
       <Dialog open={!!viewMoreEvent} onOpenChange={(open) => !open && setViewMoreEvent(null)}>
-        <DialogContent className="max-w-2xl bg-white rounded-2xl p-0 overflow-hidden">
-          <div className="relative h-64">
-            {viewMoreEvent && (
-              <img
-                src={viewMoreEvent.image}
-                alt={viewMoreEvent.title}
-                className="w-full h-full object-cover"
-              />
-            )}
-          </div>
-          <div className="p-6">
-            <DialogHeader>
-              <DialogTitle className="text-3xl font-bold text-primary font-odibee mb-2">{viewMoreEvent?.title}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 font-sans">
-              <div className="flex items-center text-gray-600">
-                <Calendar className="w-5 h-5 mr-2" />
-                <span className="font-medium">
-                  {viewMoreEvent && new Date(viewMoreEvent.date).toLocaleDateString()}
-                </span>
-                <span className="mx-2">|</span>
-                <span>{viewMoreEvent?.day} {viewMoreEvent?.time}</span>
+        <DialogContent className="max-w-5xl bg-white rounded-[2rem] p-0 overflow-hidden shadow-2xl">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{viewMoreEvent?.title}</DialogTitle>
+          </DialogHeader>
+
+          {viewMoreEvent && (
+            <div className="flex flex-col md:flex-row h-full max-h-[90vh] md:h-auto overflow-y-auto md:overflow-visible">
+              {/* Left Side: Image */}
+              <div className="w-full md:w-2/5 h-64 md:h-auto bg-gray-100 relative">
+                <img
+                  src={viewMoreEvent.image}
+                  alt={viewMoreEvent.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:hidden" />
+                <h3 className="absolute bottom-4 left-4 text-3xl font-odibee text-white md:hidden drop-shadow-md z-10">
+                  {viewMoreEvent.title}
+                </h3>
               </div>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                {viewMoreEvent?.description}
-              </p>
-              <Button
-                className="w-full bg-primary text-white hover:bg-primary/90 mt-4"
-                onClick={() => setViewMoreEvent(null)}
-              >
-                Close
-              </Button>
+
+              {/* Right Side: Content */}
+              <div className="w-full md:w-3/5 p-6 md:p-10 flex flex-col gap-6">
+                <h3 className="text-4xl md:text-5xl font-odibee text-rafahiyah-dark-blue hidden md:block leading-none">
+                  {viewMoreEvent.title}
+                </h3>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <div className="p-2 bg-blue-100 rounded-lg text-rafahiyah-dark-blue">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Date</p>
+                      <p className="font-semibold text-gray-800 text-sm md:text-base">{new Date(viewMoreEvent.date).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <div className="p-2 bg-green-100 rounded-lg text-green-700">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Day</p>
+                      <p className="font-semibold text-gray-800 text-sm md:text-base">{viewMoreEvent.day}</p>
+                    </div>
+                  </div>
+                  <div className="col-span-2 flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <div className="p-2 bg-amber-100 rounded-lg text-amber-700">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Time</p>
+                      <p className="font-semibold text-gray-800 text-sm md:text-base">{viewMoreEvent.time}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="text-gray-600 font-sans leading-relaxed text-base max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                  {viewMoreEvent.description}
+                </div>
+
+                {/* Actions */}
+                <div className="mt-auto pt-4 md:pt-0">
+                  <Button
+                    className="w-full bg-[#852D1A] hover:bg-[#6b2416] text-white py-6 rounded-xl font-odibee text-xl tracking-wide shadow-lg transition-transform hover:scale-[1.02]"
+                    onClick={() => {
+                      setViewMoreEvent(null);
+                      setSelectedEvent(viewMoreEvent);
+                    }}
+                  >
+                    Participate Now
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 
-      {/* Register Modal */}
+      {/* Register Modal - Kept Simple but updated styling */}
       <Dialog open={!!(selectedEvent && !selectedEvent.showOverlay)} onOpenChange={(open) => !open && setSelectedEvent(null)}>
-        <DialogContent className="max-w-lg bg-white rounded-xl p-6">
+        <DialogContent className="max-w-lg bg-white rounded-3xl p-8">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-primary font-odibee">Register for {selectedEvent?.title}</DialogTitle>
+            <DialogTitle className="text-3xl font-bold text-rafahiyah-dark-blue font-odibee mb-4">Register for {selectedEvent?.title}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 font-sans">
-            <Input placeholder="First Name" />
-            <Input placeholder="Last Name" />
-            <Input type="email" placeholder="Email" />
-            <Input placeholder="Phone Number" />
-            <Button className="w-full bg-rafahiyah-deep-red hover:bg-[#6b2416]" onClick={() => {
+            <Input placeholder="First Name" className="h-12 rounded-xl border-gray-200" />
+            <Input placeholder="Last Name" className="h-12 rounded-xl border-gray-200" />
+            <Input type="email" placeholder="Email" className="h-12 rounded-xl border-gray-200" />
+            <Input placeholder="Phone Number" className="h-12 rounded-xl border-gray-200" />
+            <Button className="w-full bg-rafahiyah-deep-red hover:bg-[#6b2416] h-12 rounded-xl text-lg font-odibee tracking-wide shadow-md" onClick={() => {
               toast.success("Application Submitted Successfully (Demo)");
               setSelectedEvent(null);
             }}>
@@ -238,6 +272,26 @@ const Events = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Image Overlay - Minimal Changes */}
+      {selectedEvent?.showOverlay && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedEvent(null)}>
+          <div className="max-w-5xl w-full relative animate-fadeInSlide" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={selectedEvent.image}
+              alt={selectedEvent.title}
+              className="w-full h-auto rounded-2xl shadow-2xl"
+            />
+            <Button
+              variant="ghost"
+              className="absolute -top-12 right-0 text-white hover:bg-white/20 rounded-full"
+              onClick={() => setSelectedEvent(null)}
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

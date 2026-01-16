@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import img1 from "@/assets/women-learning-leading.jpg";
-import img2 from "@/assets/women-supporting-each-other.jpg";
-import img3 from "@/assets/success-story-woman.jpg";
+import img2 from "@/assets/about.png";
+import img3 from "@/assets/donate.png";
 
 const WhoWeAre = () => {
     // Generate spiral dots algorithmically

@@ -742,20 +742,20 @@ const Contact = () => {
                     <p className="text-sm font-semibold mb-1 opacity-90">Please transfer funds to:</p>
                     {donationData.paymentMethod === "Easypaisa" && (
                       <div className="font-mono text-lg">
-                        <p>0300-1234567</p>
-                        <p className="text-xs opacity-75">Title: Rafahiyah</p>
+                        <p>03405548012</p>
+                        <p className="text-xs opacity-75">Title: Nuzhat Hamid</p>
                       </div>
                     )}
                     {donationData.paymentMethod === "JazzCash" && (
                       <div className="font-mono text-lg">
-                        <p>0301-7654321</p>
-                        <p className="text-xs opacity-75">Title: Rafahiyah</p>
+                        <p>03174632899 </p>
+                        <p className="text-xs opacity-75">Title: Choudhry Muhammad Zain Shahid</p>
                       </div>
                     )}
                     {donationData.paymentMethod === "Bank Transfer" && (
                       <div className="font-mono text-md">
-                        <p>HBL 1234 5678 9012 3456</p>
-                        <p className="text-xs opacity-75">Title: Rafahiyah Foundation</p>
+                        <p>JSBL 0002089050</p>
+                        <p className="text-xs opacity-75">Title: MUHAMMAD SHAHEER</p>
                       </div>
                     )}
                   </div>
