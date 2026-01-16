@@ -26,7 +26,7 @@ import Domain from "../../Api/Api";
 // 1. Recent Event Card
 const EventCard = ({ event, onView, onEdit, onDelete }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all group relative">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 overflow-hidden hover:shadow-lg transition-all group relative">
       <div className="aspect-video bg-gray-100 relative overflow-hidden">
         <img
           src={`http://localhost:8000/${event.image?.replace(/\\/g, '/')}`}
@@ -41,7 +41,7 @@ const EventCard = ({ event, onView, onEdit, onDelete }) => {
 
       <div className="p-5">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-bold text-gray-800 text-lg truncate pr-2">{event.title}</h3>
+          <h3 className="font-bold text-gray-900 text-lg truncate pr-2">{event.title}</h3>
         </div>
 
         {/* Progress Bar if budget exists */}
@@ -53,7 +53,7 @@ const EventCard = ({ event, onView, onEdit, onDelete }) => {
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
               <div
-                className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(100, Math.round(((event.collectedAmount || 0) / event.requiredAmount) * 100))}%` }}
               ></div>
             </div>
@@ -66,7 +66,7 @@ const EventCard = ({ event, onView, onEdit, onDelete }) => {
             {event.time}
           </div>
           <div className="flex items-center">
-            <FontAwesomeIcon icon={faMapMarkerAlt} className="w-4 mr-2 text-pink-500" />
+            <FontAwesomeIcon icon={faMapMarkerAlt} className="w-4 mr-2 text-indigo-400" />
             <span className="truncate max-w-[100px]" title={event.location}>{event.location}</span>
           </div>
         </div>
@@ -76,7 +76,7 @@ const EventCard = ({ event, onView, onEdit, onDelete }) => {
       <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-between items-center">
         <button
           onClick={() => onView(event)}
-          className="text-gray-500 hover:text-blue-600 transition-colors text-sm font-medium flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded"
+          className="text-gray-500 hover:text-indigo-600 transition-colors text-sm font-medium flex items-center gap-1 hover:bg-indigo-50 px-2 py-1 rounded"
           title="View Details"
         >
           <FontAwesomeIcon icon={faEye} />
@@ -85,14 +85,14 @@ const EventCard = ({ event, onView, onEdit, onDelete }) => {
         <div className="flex gap-2">
           <button
             onClick={() => onEdit(event)}
-            className="text-gray-400 hover:text-green-600 transition-colors p-2 hover:bg-green-50 rounded-full"
+            className="text-gray-400 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 rounded-full"
             title="Edit Event"
           >
             <FontAwesomeIcon icon={faEdit} />
           </button>
           <button
             onClick={() => onDelete(event.id)}
-            className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full"
+            className="text-gray-400 hover:text-rose-500 transition-colors p-2 hover:bg-rose-50 rounded-full"
             title="Delete Event"
           >
             <FontAwesomeIcon icon={faTrash} />
@@ -123,24 +123,24 @@ const CompletedTable = ({ events, onExport, onView, onUndo, onEdit }) => {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 overflow-visible">
       <div className="overflow-visible">
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Event Title</th>
-              <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Date Held</th>
-              <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Location</th>
-              <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Total Budget</th>
-              <th className="py-4 px-6 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-              <th className="py-4 px-6 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Actions</th>
+            <tr className="bg-gray-50/50 border-b border-gray-100">
+              <th className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Event Title</th>
+              <th className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Date Held</th>
+              <th className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Location</th>
+              <th className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Total Budget</th>
+              <th className="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="py-4 px-6 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="overflow-visible">
             {events.map((event, index) => (
               <tr key={event.id || index} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                 <td className="py-4 px-6">
-                  <div className="font-bold text-gray-800 text-sm">{event.title}</div>
+                  <div className="font-bold text-gray-900 text-sm">{event.title}</div>
                 </td>
                 <td className="py-4 px-6 text-sm text-gray-600">
                   {new Date(event.date).toLocaleDateString('en-GB')}
@@ -152,7 +152,7 @@ const CompletedTable = ({ events, onExport, onView, onUndo, onEdit }) => {
                   {event.requiredAmount ? `$${event.requiredAmount}` : 'N/A'}
                 </td>
                 <td className="py-4 px-6">
-                  <span className="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-600 border border-green-200 flex items-center w-fit gap-1">
+                  <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-600 border border-emerald-200 flex items-center w-fit gap-1">
                     <FontAwesomeIcon icon={faCheckCircle} /> Completed
                   </span>
                 </td>
@@ -176,14 +176,14 @@ const CompletedTable = ({ events, onExport, onView, onUndo, onEdit }) => {
                         onClick={() => { onEdit(event); setOpenDropdownId(null); }}
                         className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
                       >
-                        <FontAwesomeIcon icon={faEdit} className="text-blue-400" /> Edit Event
+                        <FontAwesomeIcon icon={faEdit} className="text-indigo-400" /> Edit Event
                       </button>
                       <div className="border-t border-gray-50"></div>
                       <button
                         onClick={() => { onUndo(event); setOpenDropdownId(null); }}
-                        className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                        className="w-full text-left px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors"
                       >
-                        <FontAwesomeIcon icon={faUndo} className="text-red-400" /> Mark Incomplete
+                        <FontAwesomeIcon icon={faUndo} className="text-rose-400" /> Mark Incomplete
                       </button>
                     </div>
                   )}
@@ -485,17 +485,17 @@ const Events = () => {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-8 font-sans">
 
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-handwriting text-gray-800" style={{ fontFamily: '"Patrick Hand", cursive' }}>Events Management</h1>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Events Management</h1>
             <p className="text-sm text-gray-500 mt-1">Manage comprehensive events, schedules, and details.</p>
           </div>
           <button
             onClick={handleCreateOpen}
-            className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center transition-colors shadow-lg shadow-gray-200"
+            className="bg-[#0A1229] hover:bg-[#1a2540] text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center transition-all shadow-lg shadow-gray-200"
           >
             <FontAwesomeIcon icon={faPlus} className="mr-2" />
             Create Event
@@ -503,7 +503,7 @@ const Events = () => {
         </div>
 
         {/* Search */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex gap-4">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200/60 mb-8 flex gap-4">
           <div className="relative flex-grow">
             <FontAwesomeIcon icon={faSearch} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -511,14 +511,14 @@ const Events = () => {
               placeholder="Search events by title or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
             />
           </div>
         </div>
 
         {/* Recent Events Grid */}
         <div className="mb-12">
-          <h2 className="text-xl font-bold text-gray-800 mb-6 font-handwriting">Recent Events</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Events</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRecentEvents.map(event => (
               <EventCard key={event.id} event={event} onView={handleView} onEdit={handleEditOpen} onDelete={handleDelete} />
@@ -532,8 +532,8 @@ const Events = () => {
         {/* Completed Events Table */}
         <div className="mb-12">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800 font-handwriting">Completed Events</h2>
-            <button onClick={handleExport} className="text-sm text-gray-500 hover:text-gray-800 flex items-center border px-3 py-1 rounded bg-white">
+            <h2 className="text-xl font-bold text-gray-900">Completed Events</h2>
+            <button onClick={handleExport} className="text-sm text-gray-500 hover:text-gray-800 flex items-center border px-3 py-1 rounded bg-white hover:bg-gray-50 transition-colors">
               <FontAwesomeIcon icon={faDownload} className="mr-2" /> Export CSV
             </button>
           </div>
@@ -554,50 +554,50 @@ const Events = () => {
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-800">Create New Event</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
+            <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-900">Create New Event</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
                 <FontAwesomeIcon icon={faTimes} size="lg" />
               </button>
             </div>
             <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
-                <input type="text" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.title} onChange={e => setCreateForm({ ...createForm, title: e.target.value })} required />
+                <input type="text" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.title} onChange={e => setCreateForm({ ...createForm, title: e.target.value })} required />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Description</label>
-                <textarea rows="2" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.description} onChange={e => setCreateForm({ ...createForm, description: e.target.value })} required></textarea>
+                <textarea rows="2" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.description} onChange={e => setCreateForm({ ...createForm, description: e.target.value })} required></textarea>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Date</label>
-                  <input type="date" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.date} onChange={e => setCreateForm({ ...createForm, date: e.target.value })} required />
+                  <input type="date" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.date} onChange={e => setCreateForm({ ...createForm, date: e.target.value })} required />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Time</label>
-                  <input type="time" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.time} onChange={e => setCreateForm({ ...createForm, time: e.target.value })} required />
+                  <input type="time" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.time} onChange={e => setCreateForm({ ...createForm, time: e.target.value })} required />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Location</label>
-                  <input type="text" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.location} onChange={e => setCreateForm({ ...createForm, location: e.target.value })} required />
+                  <input type="text" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.location} onChange={e => setCreateForm({ ...createForm, location: e.target.value })} required />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Budget Required (Opt)</label>
-                  <input type="number" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.requiredAmount} onChange={e => setCreateForm({ ...createForm, requiredAmount: e.target.value })} />
+                  <input type="number" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.requiredAmount} onChange={e => setCreateForm({ ...createForm, requiredAmount: e.target.value })} />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Collected Amount (Opt)</label>
-                <input type="number" className="w-full border border-gray-300 rounded p-2 text-sm" value={createForm.collectedAmount} onChange={e => setCreateForm({ ...createForm, collectedAmount: e.target.value })} />
+                <input type="number" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.collectedAmount} onChange={e => setCreateForm({ ...createForm, collectedAmount: e.target.value })} />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Picture (Optional)</label>
-                <div className="border border-dashed border-gray-300 rounded p-4 text-center text-gray-400 text-sm hover:bg-gray-50 cursor-pointer relative">
+                <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-400 text-sm hover:bg-gray-50 cursor-pointer relative transition-colors">
                   <input
                     type="file"
                     onChange={(e) => setCreateForm({ ...createForm, image: e.target.files[0] })}
@@ -610,7 +610,7 @@ const Events = () => {
               </div>
 
               <div className="pt-2">
-                <button type="submit" className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-black transition-colors">
+                <button type="submit" className="w-full bg-[#0A1229] hover:bg-[#1a2540] text-white py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-gray-200">
                   Create Event
                 </button>
               </div>
@@ -636,7 +636,7 @@ const Events = () => {
             <div className="w-full md:w-1/2 bg-gray-50 p-6 flex flex-col gap-6 overflow-y-auto">
 
               {/* Image Box */}
-              <div className="bg-gray-200 rounded-xl w-full aspect-video flex items-center justify-center overflow-hidden relative group">
+              <div className="bg-white rounded-xl w-full aspect-video flex items-center justify-center overflow-hidden relative group shadow-sm border border-gray-100">
                 <img
                   src={
                     editForm.image && editForm.image instanceof File
@@ -664,8 +664,8 @@ const Events = () => {
               </div>
 
               {/* Description Box */}
-              <div className="bg-gray-200 rounded-xl w-full p-4 flex-1 min-h-[150px]">
-                <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Description Text</h4>
+              <div className="bg-white border border-gray-200 rounded-xl w-full p-4 flex-1 min-h-[150px] shadow-sm">
+                <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">Description</h4>
                 <p className="text-gray-700 text-sm leading-relaxed">
                   {selectedEvent.description}
                 </p>
@@ -678,7 +678,7 @@ const Events = () => {
               {/* Header */}
               <div className="flex justify-between items-start mb-6">
                 <div className="flex-1 mr-4">
-                  <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">TITLE:</span>
+                  <span className="text-sm font-bold text-gray-400 uppercase tracking-wide block mb-1">TITLE:</span>
                   {isEditing ? (
                     <input
                       type="text"
@@ -688,7 +688,7 @@ const Events = () => {
                       className="w-full border-b border-gray-300 focus:border-indigo-500 outline-none py-1 text-2xl font-bold text-gray-800"
                     />
                   ) : (
-                    <h2 className="text-3xl font-bold text-gray-800 leading-tight">{selectedEvent.title}</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 leading-tight">{selectedEvent.title}</h2>
                   )}
                 </div>
                 <button
@@ -754,10 +754,10 @@ const Events = () => {
 
                 <div className="border-t border-gray-100 my-4"></div>
 
-                {/* Description */}
-                <div>
-                  <span className="text-sm font-bold text-gray-400 uppercase tracking-wide block mb-2">DESCRIPTION:</span>
-                  {isEditing ? (
+                {/* Description Editor */}
+                {isEditing && (
+                  <div>
+                    <span className="text-sm font-bold text-gray-400 uppercase tracking-wide block mb-2">DESCRIPTION:</span>
                     <textarea
                       name="description"
                       value={editForm.description}
@@ -765,15 +765,10 @@ const Events = () => {
                       rows="4"
                       className="w-full border border-gray-200 rounded-lg p-3 text-gray-600 focus:ring-2 focus:ring-indigo-100 outline-none resize-none"
                     />
-                  ) : (
-                    <p className="text-gray-600 leading-relaxed overflow-y-auto max-h-40 scroller">
-                      {selectedEvent.description}
-                    </p>
-                  )}
-                </div>
+                  </div>
+                )}
+                {/* No need to show description again if not editing as it is on the left */}
 
-
-                <div className="border-t border-gray-100 my-4"></div>
 
                 {/* Financials */}
                 <div className="space-y-4">
@@ -792,13 +787,13 @@ const Events = () => {
                           />
                         </div>
                       ) : (
-                        <span className="text-lg font-bold text-gray-800">${selectedEvent.requiredAmount || 0}</span>
+                        <span className="text-lg font-bold text-gray-900">${selectedEvent.requiredAmount || 0}</span>
                       )}
                     </div>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-bold text-gray-500 uppercase">collected amount:</span>
+                    <span className="text-sm font-bold text-gray-500 uppercase">collected:</span>
                     <div className="flex items-center gap-2">
                       {isEditing ? (
                         <div className="flex items-center">
@@ -808,56 +803,50 @@ const Events = () => {
                             name="collectedAmount"
                             value={editForm.collectedAmount}
                             onChange={handleEditChange}
-                            className="w-24 border-b border-gray-300 focus:border-indigo-500 outline-none font-bold text-green-600 text-right"
+                            className="w-24 border-b border-gray-300 focus:border-indigo-500 outline-none font-bold text-gray-800 text-right"
                           />
                         </div>
                       ) : (
-                        <span className="text-lg font-bold text-green-600">${selectedEvent.collectedAmount || 0}</span>
+                        <span className="text-lg font-bold text-emerald-600">${selectedEvent.collectedAmount || 0}</span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-bold text-gray-500 uppercase">remaining amount:</span>
-                    <span className="text-lg font-bold text-red-500">
-                      ${((isEditing ? editForm.requiredAmount : selectedEvent.requiredAmount) || 0) - ((isEditing ? editForm.collectedAmount : selectedEvent.collectedAmount) || 0)}
-                    </span>
+                  {/* Progress */}
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div
+                      className="bg-indigo-600 h-2 rounded-full"
+                      style={{ width: `${Math.min(100, (editForm.collectedAmount / editForm.requiredAmount) * 100)}%` }}
+                    ></div>
                   </div>
+
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="mt-6 space-y-3 pt-4 border-t border-gray-50">
+              <div className="mt-8 space-y-3 pt-6 border-t border-gray-100">
                 {isEditing ? (
+                  <button
+                    onClick={handleUpdateEvent}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-200"
+                  >
+                    Save Changes
+                  </button>
+                ) : (
                   <div className="flex gap-3">
                     <button
-                      onClick={handleUpdateEvent}
-                      className="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-black transition-all shadow-lg"
-                    >
-                      Save Changes
-                    </button>
-                    <button
                       onClick={handleEditToggle}
-                      className="w-1/3 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                      className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3 rounded-xl font-bold transition-all"
                     >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <button
-                      onClick={handleEditToggle}
-                      className="w-full bg-gray-200 text-gray-800 py-3 rounded-xl font-bold hover:bg-gray-300 transition-transform active:scale-[0.98] shadow-sm"
-                    >
-                      Edit
+                      Edit Details
                     </button>
                     <button
                       onClick={handleComplete}
-                      className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-black transition-transform active:scale-[0.98] shadow-lg"
+                      className="flex-1 bg-[#0A1229] hover:bg-[#1a2540] text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-gray-200"
                     >
-                      Mark as Completed
+                      Mark Completed
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
 

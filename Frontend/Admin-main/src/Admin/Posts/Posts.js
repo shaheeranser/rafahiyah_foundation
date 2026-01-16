@@ -31,7 +31,7 @@ const CaseCard = ({ data, onClick }) => {
   return (
     <div
       onClick={() => onClick(data)}
-      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all group relative cursor-pointer"
+      className="bg-white rounded-xl shadow-sm border border-gray-200/60 overflow-hidden hover:shadow-lg transition-all group relative cursor-pointer"
     >
       <div className="aspect-video bg-gray-100 relative overflow-hidden">
         <img
@@ -44,7 +44,7 @@ const CaseCard = ({ data, onClick }) => {
           #{data.caseNo}
         </div>
         <div className="absolute top-3 right-3">
-          <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-50/90 backdrop-blur-sm text-blue-600 border border-blue-100 shadow-sm">
+          <span className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-50/90 backdrop-blur-sm text-indigo-600 border border-indigo-100 shadow-sm">
             {data.category || 'General'}
           </span>
         </div>
@@ -55,7 +55,7 @@ const CaseCard = ({ data, onClick }) => {
           {/* Title now below image */}
         </div>
 
-        <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-1">{data.title}</h3>
+        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">{data.title}</h3>
 
         <div className="mb-4">
           <div className="flex justify-between text-xs text-gray-500 mb-1">
@@ -64,7 +64,7 @@ const CaseCard = ({ data, onClick }) => {
           </div>
           <div className="w-full bg-gray-100 rounded-full h-2">
             <div
-              className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+              className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
               style={{ width: `${percentage}%` }}
             ></div>
           </div>
@@ -76,7 +76,7 @@ const CaseCard = ({ data, onClick }) => {
       <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-between items-center">
         <button
           onClick={(e) => { e.stopPropagation(); onClick(data, 'view'); }}
-          className="text-gray-500 hover:text-blue-600 transition-colors text-sm font-medium flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded"
+          className="text-gray-500 hover:text-indigo-600 transition-colors text-sm font-medium flex items-center gap-1 hover:bg-indigo-50 px-2 py-1 rounded"
           title="View Details"
         >
           <FontAwesomeIcon icon={faEye} />
@@ -85,14 +85,14 @@ const CaseCard = ({ data, onClick }) => {
         <div className="flex gap-2">
           <button
             onClick={(e) => { e.stopPropagation(); onClick(data, 'edit'); }}
-            className="text-gray-400 hover:text-green-600 transition-colors p-2 hover:bg-green-50 rounded-full"
+            className="text-gray-400 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 rounded-full"
             title="Edit Case"
           >
             <FontAwesomeIcon icon={faEdit} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onClick(data, 'delete'); }}
-            className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full"
+            className="text-gray-400 hover:text-rose-500 transition-colors p-2 hover:bg-rose-50 rounded-full"
             title="Delete Case"
           >
             <FontAwesomeIcon icon={faTrash} />
@@ -123,24 +123,24 @@ const HistoryTable = ({ data, emptyMessage, isDropped, onAction }) => {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden min-h-[300px]"> {/* Added min-h to allow dropdown space */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 overflow-hidden min-h-[300px]"> {/* Added min-h to allow dropdown space */}
       <div className="overflow-x-visible"> {/* Changed to visible to allow dropdown overflow if possible, else we rely on enough height */}
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">Case No</th>
-              <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">Title</th>
-              <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">Category</th>
-              <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">Date Ended</th>
-              <th className="py-3 px-6 text-left text-xs font-bold text-gray-400 uppercase">{isDropped ? 'Reason' : 'Amount Raised'}</th>
-              <th className="py-3 px-6 text-right text-xs font-bold text-gray-400 uppercase">Actions</th>
+            <tr className="bg-gray-50/50 border-b border-gray-100">
+              <th className="py-3 px-6 text-left text-xs font-bold text-gray-500 uppercase">Case No</th>
+              <th className="py-3 px-6 text-left text-xs font-bold text-gray-500 uppercase">Title</th>
+              <th className="py-3 px-6 text-left text-xs font-bold text-gray-500 uppercase">Category</th>
+              <th className="py-3 px-6 text-left text-xs font-bold text-gray-500 uppercase">Date Ended</th>
+              <th className="py-3 px-6 text-left text-xs font-bold text-gray-500 uppercase">{isDropped ? 'Reason' : 'Amount Raised'}</th>
+              <th className="py-3 px-6 text-right text-xs font-bold text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="overflow-visible">
             {data.map((item) => (
               <tr key={item._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors relative group">
                 <td className="py-4 px-6 text-sm text-gray-600">#{item.caseNo}</td>
-                <td className="py-4 px-6 text-sm font-medium text-gray-800">{item.title}</td>
+                <td className="py-4 px-6 text-sm font-medium text-gray-900">{item.title}</td>
                 <td className="py-4 px-6 text-sm text-gray-600">{item.category}</td>
                 <td className="py-4 px-6 text-sm text-gray-600">{new Date(item.updatedAt || Date.now()).toLocaleDateString('en-GB')}</td>
                 <td className="py-4 px-6 text-sm text-gray-600">
@@ -161,13 +161,13 @@ const HistoryTable = ({ data, emptyMessage, isDropped, onAction }) => {
                     <div className="absolute right-8 top-8 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50 py-1 text-left transform origin-top-right animate-fade-in-up">
                       <button
                         onClick={() => { onAction(item, 'view'); setOpenMenuId(null); }}
-                        className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2"
+                        className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2"
                       >
                         <FontAwesomeIcon icon={faEye} className="w-4" /> View Details
                       </button>
                       <button
                         onClick={() => { onAction(item, 'edit'); setOpenMenuId(null); }}
-                        className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600 flex items-center gap-2"
+                        className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 flex items-center gap-2"
                       >
                         <FontAwesomeIcon icon={faEdit} className="w-4" /> Edit
                       </button>
@@ -439,16 +439,16 @@ const Posts = () => {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-8 font-sans">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-handwriting text-gray-800" style={{ fontFamily: '"Patrick Hand", cursive' }}>Cases Management</h1>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Cases Management</h1>
             <p className="text-sm text-gray-500 mt-1">Manage cases, track progress, and update statuses.</p>
           </div>
           <button
             onClick={handleCreateOpen}
-            className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center transition-colors shadow-lg shadow-gray-200"
+            className="bg-[#0A1229] hover:bg-[#1a2540] text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center transition-all shadow-lg shadow-gray-200"
           >
             <FontAwesomeIcon icon={faPlus} className="mr-2" />
             Create New Case
@@ -456,7 +456,7 @@ const Posts = () => {
         </div>
 
         {/* Search */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex gap-4">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200/60 mb-8 flex gap-4">
           <div className="relative flex-grow">
             <FontAwesomeIcon icon={faSearch} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -464,16 +464,16 @@ const Posts = () => {
               placeholder="Search cases by title or case number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
             />
           </div>
         </div>
 
         {/* Current Cases Grid */}
         <div className="mb-12">
-          <h2 className="text-xl font-bold text-gray-800 mb-6 font-handwriting">Current Cases</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Current Cases</h2>
           {activeCases.length === 0 ? (
-            <div className="p-8 text-center text-gray-400 border border-dashed rounded-xl bg-gray-50">No active cases. Create one to get started.</div>
+            <div className="p-12 text-center text-gray-400 border border-dashed rounded-xl bg-gray-50">No active cases. Create one to get started.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredActiveCases.map(c => <CaseCard key={c._id} data={c} onClick={handleCardAction} />)}
@@ -487,8 +487,8 @@ const Posts = () => {
         {/* Completed Cases */}
         <div className="mb-12">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800 font-handwriting">Completed Cases</h2>
-            <button onClick={() => handleExport(completedCases, 'completed_cases.csv')} className="text-sm text-gray-500 hover:text-gray-800 flex items-center border px-3 py-1 rounded bg-white">
+            <h2 className="text-xl font-bold text-gray-900">Completed Cases</h2>
+            <button onClick={() => handleExport(completedCases, 'completed_cases.csv')} className="text-sm text-gray-500 hover:text-gray-800 flex items-center border px-3 py-1 rounded bg-white hover:bg-gray-50 transition-colors">
               <FontAwesomeIcon icon={faDownload} className="mr-2" /> Export CSV
             </button>
           </div>
@@ -502,8 +502,8 @@ const Posts = () => {
         {/* Dropped Cases */}
         <div className="mb-12">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800 font-handwriting">Dropped Cases</h2>
-            <button onClick={() => handleExport(droppedCases, 'dropped_cases.csv')} className="text-sm text-gray-500 hover:text-gray-800 flex items-center border px-3 py-1 rounded bg-white">
+            <h2 className="text-xl font-bold text-gray-900">Dropped Cases</h2>
+            <button onClick={() => handleExport(droppedCases, 'dropped_cases.csv')} className="text-sm text-gray-500 hover:text-gray-800 flex items-center border px-3 py-1 rounded bg-white hover:bg-gray-50 transition-colors">
               <FontAwesomeIcon icon={faDownload} className="mr-2" /> Export CSV
             </button>
           </div>
@@ -522,10 +522,10 @@ const Posts = () => {
       {/* 1. Create Case Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-800">{editId ? 'Edit Case' : 'Create New Case'}</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100">
+            <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-900">{editId ? 'Edit Case' : 'Create New Case'}</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
                 <FontAwesomeIcon icon={faTimesCircle} size="lg" />
               </button>
             </div>
@@ -533,23 +533,23 @@ const Posts = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Case Number</label>
-                  <input type="text" value={newCaseForm.caseNo} disabled className="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-500" />
+                  <input type="text" value={newCaseForm.caseNo} disabled className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
-                  <input type="text" placeholder="e.g. Heart Surgery Support" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.title} onChange={e => setNewCaseForm({ ...newCaseForm, title: e.target.value })} required />
+                  <input type="text" placeholder="e.g. Heart Surgery Support" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={newCaseForm.title} onChange={e => setNewCaseForm({ ...newCaseForm, title: e.target.value })} required />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Description</label>
-                <textarea rows="3" placeholder="Case details..." className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.description} onChange={e => setNewCaseForm({ ...newCaseForm, description: e.target.value })} required ></textarea>
+                <textarea rows="3" placeholder="Case details..." className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={newCaseForm.description} onChange={e => setNewCaseForm({ ...newCaseForm, description: e.target.value })} required ></textarea>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
                 <select
-                  className="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   value={newCaseForm.category}
                   onChange={(e) => setNewCaseForm({ ...newCaseForm, category: e.target.value })}
                 >
@@ -563,18 +563,18 @@ const Posts = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Amount Required</label>
-                  <input type="number" placeholder="$0.00" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.amountRequired} onChange={e => setNewCaseForm({ ...newCaseForm, amountRequired: e.target.value })} required />
+                  <input type="number" placeholder="$0.00" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={newCaseForm.amountRequired} onChange={e => setNewCaseForm({ ...newCaseForm, amountRequired: e.target.value })} required />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Amount Raised</label>
-                  <input type="number" placeholder="$0.00" className="w-full border border-gray-300 rounded p-2 text-sm" value={newCaseForm.amountCollected} onChange={e => setNewCaseForm({ ...newCaseForm, amountCollected: e.target.value })} required />
+                  <input type="number" placeholder="$0.00" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={newCaseForm.amountCollected} onChange={e => setNewCaseForm({ ...newCaseForm, amountCollected: e.target.value })} required />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Picture (Optional)</label>
                 <div
-                  className="border border-dashed border-gray-300 rounded p-4 text-center text-gray-400 text-sm hover:bg-gray-50 cursor-pointer relative"
+                  className="border border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-400 text-sm hover:bg-gray-50 cursor-pointer relative transition-colors"
                   onClick={() => document.getElementById('file-upload').click()}
                 >
                   <FontAwesomeIcon icon={faFileUpload} className="mr-2" />
@@ -593,7 +593,7 @@ const Posts = () => {
               </div>
 
               <div className="pt-2">
-                <button type="submit" className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-black transition-colors">
+                <button type="submit" className="w-full bg-[#0A1229] hover:bg-[#1a2540] text-white py-3 rounded-lg font-medium transition-colors shadow-lg shadow-gray-200">
                   {editId ? 'Update Case' : 'Create Case'}
                 </button>
               </div>
@@ -618,7 +618,7 @@ const Posts = () => {
             {/* Left Column: Image & Description */}
             <div className="w-full md:w-1/2 bg-gray-50 p-6 flex flex-col gap-6 overflow-y-auto">
               {/* Image Box */}
-              <div className="bg-gray-200 rounded-xl w-full aspect-video flex items-center justify-center overflow-hidden relative group">
+              <div className="bg-white rounded-xl w-full aspect-video flex items-center justify-center overflow-hidden relative group shadow-sm border border-gray-100">
                 <img
                   src={selectedCase.image
                     ? `http://localhost:8000/${selectedCase.image.replace(/\\/g, '/')}`
@@ -630,8 +630,8 @@ const Posts = () => {
               </div>
 
               {/* Description Box */}
-              <div className="bg-gray-200 rounded-xl w-full p-4 flex-1 min-h-[150px]">
-                <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Description Text</h4>
+              <div className="bg-white border border-gray-200 rounded-xl w-full p-6 flex-1 min-h-[150px] shadow-sm">
+                <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Description</h4>
                 <p className="text-gray-700 text-sm leading-relaxed">
                   {selectedCase.description}
                 </p>
@@ -645,9 +645,9 @@ const Posts = () => {
                 {/* Header */}
                 <div className="flex justify-between items-start">
                   <div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-1">{selectedCase.title}</h2>
+                    <h2 className="text-3xl font-extrabold text-gray-900 mb-1 tracking-tight">{selectedCase.title}</h2>
                   </div>
-                  <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600 hidden md:block">
+                  <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600 hidden md:block transition-colors">
                     <FontAwesomeIcon icon={faTimesCircle} size="lg" />
                   </button>
                 </div>
@@ -655,31 +655,37 @@ const Posts = () => {
                 {/* Case Info */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-gray-500 uppercase w-32">case number:</span>
-                    <span className="text-gray-800 font-medium">#{selectedCase.caseNo}</span>
+                    <span className="text-xs font-bold text-gray-500 uppercase w-32">case number:</span>
+                    <span className="text-gray-900 font-medium">#{selectedCase.caseNo}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-gray-500 uppercase w-32">category:</span>
-                    <span className="text-gray-800 font-medium">{selectedCase.category}</span>
+                    <span className="text-xs font-bold text-gray-500 uppercase w-32">category:</span>
+                    <span className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200">{selectedCase.category}</span>
                   </div>
                 </div>
 
                 <div className="border-t border-gray-100 my-2"></div>
 
                 {/* Financials */}
-                <div className="space-y-3">
+                <div className="space-y-4 bg-gray-50 p-5 rounded-xl border border-gray-100">
                   <div className="flex justify-between items-center text-sm">
                     <span className="font-bold text-gray-500 uppercase">total amount:</span>
-                    <span className="font-bold text-gray-800 text-lg">${selectedCase.amountRequired}</span>
+                    <span className="font-bold text-gray-900 text-lg">${selectedCase.amountRequired}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="font-bold text-gray-500 uppercase">collected amount:</span>
-                    <span className="font-bold text-green-600 text-lg">${selectedCase.amountCollected}</span>
+                    <span className="font-bold text-emerald-600 text-lg">${selectedCase.amountCollected}</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm">
+                  <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                    <div
+                      className="bg-emerald-500 h-1.5 rounded-full"
+                      style={{ width: `${Math.min(100, (selectedCase.amountCollected / selectedCase.amountRequired) * 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-200/60">
                     <span className="font-bold text-gray-500 uppercase">remaining amount:</span>
-                    <span className="font-bold text-red-500 text-lg">
-                      ${(selectedCase.amountRequired || 0) - (selectedCase.amountCollected || 0)}
+                    <span className="font-bold text-rose-500 text-lg">
+                      ${Math.max(0, (selectedCase.amountRequired || 0) - (selectedCase.amountCollected || 0))}
                     </span>
                   </div>
                 </div>
@@ -692,15 +698,15 @@ const Posts = () => {
               <div className="flex flex-col gap-3 mt-8">
                 <button
                   onClick={handleDropCase}
-                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-3 rounded-xl font-bold transition-colors shadow-sm"
+                  className="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 py-3 rounded-lg font-bold transition-all border border-rose-200"
                 >
-                  Drop
+                  Drop Case
                 </button>
                 <button
                   onClick={handleCompleteStart}
-                  className="w-full bg-[#8B4513] hover:bg-[#6F370F] text-white py-3 rounded-xl font-bold transition-colors shadow-sm"
+                  className="w-full bg-[#0A1229] hover:bg-[#1a2540] text-white py-3 rounded-lg font-bold transition-all shadow-lg shadow-gray-200"
                 >
-                  Complete
+                  Complete Case
                 </button>
               </div>
 
@@ -714,33 +720,33 @@ const Posts = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in-up">
             <div className="p-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-1">Completion Process</h3>
-              <p className="text-xs text-gray-400 mb-6 font-bold uppercase">Finalizing Case #{selectedCase.caseNo}</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Completion Process</h3>
+              <p className="text-xs text-gray-500 mb-6 font-bold uppercase">Finalizing Case #{selectedCase.caseNo}</p>
 
               <form onSubmit={handleCompleteSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Total Amount Collected</label>
                   <input
                     type="number"
-                    className="w-full border border-gray-300 rounded p-2 text-sm font-bold text-gray-800"
+                    className="w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500/50 outline-none"
                     value={completionForm.finalAmount}
                     onChange={(e) => setCompletionForm({ ...completionForm, finalAmount: e.target.value })}
                     required
                   />
                 </div>
 
-                <div className="border border-dashed border-gray-300 rounded p-3 text-center text-gray-500 text-xs hover:bg-gray-50 cursor-pointer transition-colors">
-                  <FontAwesomeIcon icon={faFileUpload} className="mb-1 block mx-auto text-lg text-gray-300" />
+                <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center text-gray-500 text-xs hover:bg-gray-50 cursor-pointer transition-colors">
+                  <FontAwesomeIcon icon={faFileUpload} className="mb-2 block mx-auto text-lg text-gray-300" />
                   Upload Documents
                 </div>
 
-                <div className="border border-dashed border-gray-300 rounded p-3 text-center text-gray-500 text-xs hover:bg-gray-50 cursor-pointer transition-colors">
-                  <FontAwesomeIcon icon={faFileUpload} className="mb-1 block mx-auto text-lg text-gray-300" />
+                <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center text-gray-500 text-xs hover:bg-gray-50 cursor-pointer transition-colors">
+                  <FontAwesomeIcon icon={faFileUpload} className="mb-2 block mx-auto text-lg text-gray-300" />
                   Upload Receipt
                 </div>
 
                 <div className="pt-2">
-                  <button type="submit" className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-black transition-colors">
+                  <button type="submit" className="w-full bg-[#0A1229] hover:bg-[#1a2540] text-white py-2.5 rounded-lg font-medium transition-all shadow-lg">
                     Submit & Close Case
                   </button>
                 </div>
