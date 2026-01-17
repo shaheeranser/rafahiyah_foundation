@@ -864,15 +864,52 @@ const Programs = () => {
                     <FontAwesomeIcon icon={faCalendarCheck} /> Link Events
                   </label>
                   <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-                    {eventsList.map(ev => (
-                      <div key={ev._id}
-                        onClick={() => toggleSelection(ev._id, 'selectedEventIds')}
-                        className={`p-2 rounded-lg text-xs cursor-pointer border transition-all flex justify-between items-center ${programForm.selectedEventIds.includes(ev._id) ? 'bg-purple-100 border-purple-300 text-purple-900' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}
-                      >
-                        <div className="font-medium truncate pr-2">{ev.title}</div>
-                        {programForm.selectedEventIds.includes(ev._id) && <FontAwesomeIcon icon={faCheckCircle} />}
-                      </div>
-                    ))}
+                    {(() => {
+                      const unavailableEventIds = programsData
+                        .filter(p => !selectedProgram || p.id !== selectedProgram.id) // Exclude current program if editing
+                        .flatMap(p => p.linkedEvents || [])
+                        .map(item => (typeof item === 'object' && item ? item._id : item));
+
+                      let availableEvents = eventsList.filter(ev => !unavailableEventIds.includes(ev._id));
+
+                      // Filter by Date Range if dates are selected
+                      if (programForm.startDate) {
+                        const progStart = new Date(programForm.startDate).setHours(0, 0, 0, 0);
+                        const progEnd = programForm.endDate ? new Date(programForm.endDate).setHours(23, 59, 59, 999) : null;
+
+                        availableEvents = availableEvents.filter(ev => {
+                          if (!ev.date) return false;
+                          const eventDate = new Date(ev.date).setHours(0, 0, 0, 0);
+
+                          if (progEnd) {
+                            return eventDate >= progStart && eventDate <= progEnd;
+                          }
+                          return eventDate >= progStart;
+                        });
+                      }
+
+                      if (availableEvents.length === 0) {
+                        return (
+                          <div className="text-center p-4">
+                            <div className="text-xs text-gray-400 italic mb-1">No events available</div>
+                            {!programForm.startDate && <div className="text-[10px] text-blue-400">Select dates to see events</div>}
+                          </div>
+                        );
+                      }
+
+                      return availableEvents.map(ev => (
+                        <div key={ev._id}
+                          onClick={() => toggleSelection(ev._id, 'selectedEventIds')}
+                          className={`p-2 rounded-lg text-xs cursor-pointer border transition-all flex justify-between items-center ${programForm.selectedEventIds.includes(ev._id) ? 'bg-purple-100 border-purple-300 text-purple-900' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}
+                        >
+                          <div className="overflow-hidden">
+                            <div className="font-medium truncate pr-2">{ev.title}</div>
+                            <div className="text-[10px] text-gray-500">{new Date(ev.date).toLocaleDateString()}</div>
+                          </div>
+                          {programForm.selectedEventIds.includes(ev._id) && <FontAwesomeIcon icon={faCheckCircle} />}
+                        </div>
+                      ));
+                    })()}
                   </div>
                 </div>
 
@@ -882,15 +919,51 @@ const Programs = () => {
                     <FontAwesomeIcon icon={faLayerGroup} /> Link Cases
                   </label>
                   <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-                    {casesList.map(c => (
-                      <div key={c._id}
-                        onClick={() => toggleSelection(c._id, 'selectedCaseIds')}
-                        className={`p-2 rounded-lg text-xs cursor-pointer border transition-all flex justify-between items-center ${programForm.selectedCaseIds.includes(c._id) ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}
-                      >
-                        <div className="font-medium truncate pr-2">{c.title}</div>
-                        {programForm.selectedCaseIds.includes(c._id) && <FontAwesomeIcon icon={faCheckCircle} />}
-                      </div>
-                    ))}
+                    {(() => {
+                      const unavailableCaseIds = programsData
+                        .filter(p => !selectedProgram || p.id !== selectedProgram.id)
+                        .flatMap(p => p.linkedCases || [])
+                        .map(item => (typeof item === 'object' && item ? item._id : item));
+
+                      let availableCases = casesList.filter(c => !unavailableCaseIds.includes(c._id));
+
+                      // Filter by Date Range
+                      if (programForm.startDate) {
+                        const progStart = new Date(programForm.startDate).setHours(0, 0, 0, 0);
+                        const progEnd = programForm.endDate ? new Date(programForm.endDate).setHours(23, 59, 59, 999) : null;
+
+                        availableCases = availableCases.filter(c => {
+                          const caseDate = new Date(c.createdAt).setHours(0, 0, 0, 0);
+
+                          if (progEnd) {
+                            return caseDate >= progStart && caseDate <= progEnd;
+                          }
+                          return caseDate >= progStart;
+                        });
+                      }
+
+                      if (availableCases.length === 0) {
+                        return (
+                          <div className="text-center p-4">
+                            <div className="text-xs text-gray-400 italic mb-1">No cases available</div>
+                            {!programForm.startDate && <div className="text-[10px] text-blue-400">Select dates to see cases</div>}
+                          </div>
+                        );
+                      }
+
+                      return availableCases.map(c => (
+                        <div key={c._id}
+                          onClick={() => toggleSelection(c._id, 'selectedCaseIds')}
+                          className={`p-2 rounded-lg text-xs cursor-pointer border transition-all flex justify-between items-center ${programForm.selectedCaseIds.includes(c._id) ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}
+                        >
+                          <div className="overflow-hidden">
+                            <div className="font-medium truncate pr-2">{c.title}</div>
+                            <div className="text-[10px] text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</div>
+                          </div>
+                          {programForm.selectedCaseIds.includes(c._id) && <FontAwesomeIcon icon={faCheckCircle} />}
+                        </div>
+                      ));
+                    })()}
                   </div>
                 </div>
               </div>

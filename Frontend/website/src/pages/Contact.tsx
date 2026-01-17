@@ -19,6 +19,14 @@ import { apiCall } from "@/api/apiCall";
 import toast from "react-hot-toast";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+// Add axios import if not present, otherwise use apiCall but apiCall wrapper might be easier
+// Actually the file uses apiCall, but usually axios is easier for simple gets if apiCall is specific.
+// However, looking at the code, it uses apiCall only for POSTs. I will add axios for GETs or use apiCall if it supports GET.
+// I'll stick to apiCall pattern or just standard fetch/axios if apiCall is not imported or complex.
+// Wait, apiCall IS imported. I'll use it or a simple fetch. The existing code uses axios in Cases.tsx, but here apiCall is used.
+// Let's use apiCall for consistency if it supports GET, or just use axios if it's easier.
+// Cases.tsx used axios directly. I will add axios import.
+import axios from "axios";
 
 const Contact = () => {
   const { hash } = useLocation();
@@ -54,6 +62,11 @@ const Contact = () => {
   });
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [donationLoading, setDonationLoading] = useState(false);
+
+  // Dynamic Cause Options State
+  const [casesList, setCasesList] = useState<any[]>([]);
+  const [eventsList, setEventsList] = useState<any[]>([]);
+  const [donationCategory, setDonationCategory] = useState<string>(""); // 'case', 'event', 'other'
 
   const location = useLocation();
 
@@ -245,6 +258,96 @@ const Contact = () => {
 
 
   useEffect(() => {
+    // Fetch Cases and Events on mount
+    const fetchData = async () => {
+      try {
+        const [casesRes, eventsRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/cases`),
+          axios.get(`${API_BASE_URL}/events/getallevent`)
+        ]);
+
+        // Process Cases: Filter for active cases needing funds
+        let fetchedCases = [];
+        // Robust data extraction matching Cases.tsx
+        if (Array.isArray(casesRes.data)) {
+          fetchedCases = casesRes.data;
+        } else if (casesRes.data.success && casesRes.data.cases) {
+          fetchedCases = casesRes.data.cases;
+        } else if (casesRes.data.data) {
+          fetchedCases = casesRes.data.data;
+        } else if (casesRes.data.success && Array.isArray(casesRes.data.data)) {
+          fetchedCases = casesRes.data.data;
+        }
+
+        // Filter: amountCollected < amountRequired
+        const preSelectedCause = location.state?.cause;
+
+        const activeCases = fetchedCases.filter((c: any) => {
+          if (preSelectedCause && c.title === preSelectedCause) return true;
+
+          const collected = Number(c.amountCollected || c.raised || 0);
+          const required = Number(c.amountRequired || c.goal || 0);
+          return collected < required;
+        });
+        setCasesList(activeCases);
+
+        // Process Events: Filter for events needing funds
+        let fetchedEvents = [];
+        if (eventsRes.data.success) {
+          fetchedEvents = eventsRes.data.events || [];
+        }
+        // Filter events that have a required amount and are not fully funded
+        const activeEvents = fetchedEvents.filter((e: any) => {
+          if (preSelectedCause && e.title === preSelectedCause) return true;
+
+          const required = Number(e.requiredAmount || 0);
+          const collected = Number(e.collectedAmount || 0);
+          return required > 0 && collected < required;
+        });
+        setEventsList(activeEvents);
+
+      } catch (error) {
+        console.error("Error fetching donation causes:", error);
+      }
+    };
+
+    fetchData();
+  }, [location.state]);
+
+  // Handle Pre-selection when data and navigation state are available
+  useEffect(() => {
+    if (location.state?.section === 'donate' && location.state?.cause) {
+      const { cause, category } = location.state;
+
+      // Use explicit category if available
+      if (category) {
+        setDonationCategory(category);
+        setDonationData(prev => ({ ...prev, cause: cause }));
+        return;
+      }
+
+      // Fallback: Try to find in Cases
+      const foundCase = casesList.find((c: any) => c.title === cause);
+      if (foundCase) {
+        setDonationCategory("case");
+        setDonationData(prev => ({ ...prev, cause: cause }));
+        return;
+      }
+
+      // Fallback: Try to find in Events
+      const foundEvent = eventsList.find((e: any) => e.title === cause);
+      if (foundEvent) {
+        setDonationCategory("event");
+        setDonationData(prev => ({ ...prev, cause: cause }));
+        return;
+      }
+
+      // Default set cause
+      setDonationData(prev => ({ ...prev, cause: cause }));
+    }
+  }, [casesList, eventsList, location.state]);
+
+  useEffect(() => {
     if (hash) {
       const element = document.getElementById(hash.replace("#", ""));
       if (element) {
@@ -276,10 +379,7 @@ const Contact = () => {
             element.scrollIntoView({ behavior: "smooth" });
           }, 100);
         }
-        setDonationData(prev => ({
-          ...prev,
-          cause: cause || ""
-        }));
+        // Donation data handling moved to separate effect dependent on data loading
       }
     } else {
       window.scrollTo(0, 0);
@@ -738,25 +838,77 @@ const Contact = () => {
                   </SelectContent>
                 </Select>
 
+                {/* Dynamic Cause Selection - 2 Steps */}
+
+                {/* Step 1: Category Selection */}
                 <Select
-                  key={donationData.cause || "cause-select"}
-                  name="cause"
-                  value={donationData.cause}
-                  onValueChange={(val) => handleDonationSelectChange("cause", val)}
+                  value={donationCategory}
+                  onValueChange={(val) => {
+                    setDonationCategory(val);
+                    // Clear cause if category changes, unless it's 'other', then maybe set default?
+                    // If 'other', we don't need a second dropdown.
+                    if (val === "other") {
+                      setDonationData(prev => ({ ...prev, cause: "General Donation" }));
+                    } else {
+                      setDonationData(prev => ({ ...prev, cause: "" }));
+                    }
+                  }}
                 >
                   <SelectTrigger className="h-14 rounded-xl border-none bg-white font-sans text-gray-500">
                     <SelectValue placeholder="Select A Cause To Donate" />
                   </SelectTrigger>
                   <SelectContent>
-                    {donationData.cause && !['education', 'healthcare', 'food', 'general'].includes(donationData.cause) && (
-                      <SelectItem value={donationData.cause}>{donationData.cause}</SelectItem>
-                    )}
-                    <SelectItem value="education">Education</SelectItem>
-                    <SelectItem value="healthcare">Healthcare</SelectItem>
-                    <SelectItem value="food">Food Security</SelectItem>
-                    <SelectItem value="general">General Donation</SelectItem>
+                    <SelectItem value="case">Donate to a Case</SelectItem>
+                    <SelectItem value="event">Donate to an Event</SelectItem>
+                    <SelectItem value="other">Others</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* Step 2: Specific Item Selection (Conditional) */}
+                {donationCategory === "case" && (
+                  <Select
+                    name="cause"
+                    value={donationData.cause}
+                    onValueChange={(val) => handleDonationSelectChange("cause", val)}
+                  >
+                    <SelectTrigger className="h-14 rounded-xl border-none bg-white font-sans text-gray-500 animate-in fade-in slide-in-from-top-2">
+                      <SelectValue placeholder="Select Specific Case" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {casesList.length > 0 ? (
+                        casesList.map((c: any) => (
+                          <SelectItem key={c._id || c.title} value={c.title}>{c.title}</SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no_cases" disabled>No active cases available</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {donationCategory === "event" && (
+                  <Select
+                    name="cause"
+                    value={donationData.cause}
+                    onValueChange={(val) => handleDonationSelectChange("cause", val)}
+                  >
+                    <SelectTrigger className="h-14 rounded-xl border-none bg-white font-sans text-gray-500 animate-in fade-in slide-in-from-top-2">
+                      <SelectValue placeholder="Select Specific Event" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eventsList.length > 0 ? (
+                        eventsList.map((e: any) => (
+                          <SelectItem key={e._id || e.title} value={e.title}>{e.title}</SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no_events" disabled>No active fundraising events</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {/* Hidden Logic for 'Other' mapping if needed, or just let users know it's General */}
+                {/* If needed, we could allow them to type a custom cause? But requirements said 'Others bas select able ho' */}
 
                 {/* Payment Method Selection */}
                 <Select

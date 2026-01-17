@@ -322,7 +322,8 @@ const Cases = () => {
                                                         navigate('/contact', {
                                                             state: {
                                                                 section: "donate",
-                                                                cause: item.title
+                                                                cause: item.title,
+                                                                category: "event"
                                                             }
                                                         });
                                                     }}
@@ -565,7 +566,8 @@ const Cases = () => {
                                             navigate('/contact', {
                                                 state: {
                                                     section: "donate",
-                                                    cause: selectedItem.title
+                                                    cause: selectedItem.title,
+                                                    category: "case"
                                                 }
                                             });
                                             setSelectedItem(null);
