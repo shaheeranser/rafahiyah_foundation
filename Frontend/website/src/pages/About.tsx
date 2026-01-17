@@ -92,7 +92,7 @@ const About = () => {
       name: "Mubashir Awan",
       role: "Co-Founder",
       image: "/mubashir-awan.png",
-      quote: "", // Empty as per mock or placeholder
+      quote: "As a Co-founder of Rafahiyah Foundation and a Medical Student. Born into this world, the thought of living just like everyone else and dying like just another person has always made me anxious. Left with the question of what something is, I must do my purpose. In my growing age as I turned more towards Islam, the hadith 'The best of people are those who are most beneficial to people.', answered all my questions. Trusting Allah and my fellow companions. we're trying to change this world for the better, even if just one life.",
       reverse: false
     }
   ];
@@ -204,7 +204,7 @@ const About = () => {
                 )}
                 {!founder.quote && (
                   <div className="flex-grow bg-rafahiyah-deep-red h-64 rounded-[2rem] shadow-sm flex items-center justify-center italic text-white/70">
-                    [Placeholder for quote/info]
+                    “As a Co-founder of Rafahiyah Foundation and a Medical Student. Born into this world, the thought of living just like everyone else and dying like just another person has always made me anxious. Left with the question of what something is, I must do my purpose. In my growing age as I turned more towards Islam, the hadith "The best of people are those who are most beneficial to people.", answered all my questions. Trusting Allah and my fellow companions. we're trying to change this world for the better, even if just one life.”
                   </div>
                 )}
               </div>

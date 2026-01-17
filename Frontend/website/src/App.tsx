@@ -4,22 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import About from "./pages/About";
-import Programs from "./pages/Programs";
-import Gallery from "./pages/Gallery";
-import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
-import Podcasts from "./pages/Podcasts";
-import JoinUs from "./pages/JoinUs";
 import NotFound from "./pages/NotFound";
-import Events from "./pages/Events";
-import LoginPage from "./pages/LoginPage";
-import UserDasboard from "./pages/UserDashboard"
 import Cases from "./pages/Cases";
-import ProtectedRoute from "./components/ProtectedRoute";
-import DonationForm from "./pages/DonationForm"
-import TermsConditions from "./pages/terms";
-import PrivacyPolicy from "./pages/privacy";
-import Jobs from "./pages/Jobs";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -65,34 +52,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* Protected Route - Only accessible when logged in */}
-          <Route
-            path="/UserDashboard"
-            element={
-              <ProtectedRoute>
-                <UserDasboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/Donate" element={<DonationForm />} />
-
-          <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
-          <Route path="/programs" element={<Programs />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/blog" element={<Blog />} />
           <Route path="/stories" element={<Cases />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/podcasts" element={<Podcasts />} />
-          <Route path="/join-us" element={<JoinUs />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/jobs" element={<Jobs />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<JoinUs />} />
-          <Route path="/terms" element={<TermsConditions />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-
-
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

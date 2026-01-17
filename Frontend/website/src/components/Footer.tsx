@@ -13,6 +13,7 @@ import {
 // Actually, Lucide has 'Pin' but not Pinterest brand icon usually. I'll use Twitter for X. 
 // Checking the reference: FB, X, Insta, Linkedin, Pinterest.
 import rafahiyahLogo from "@/assets/rafahiyah logo.png";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -39,7 +40,7 @@ const Footer = () => {
           <div className="flex flex-col items-start lg:pl-10">
             <h3 className="text-2xl font-odibee mb-4 tracking-wide text-white">Want To Become<br />Part Of Us?</h3>
             <Button className="bg-[#5e1b10] hover:bg-[#7a2315] text-white border-2 border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.3)] font-odibee tracking-wider rounded-full px-8 py-2 text-lg transition-all">
-              <a href="/join-us">Join Us Now</a>
+              <Link to="/contact#join-us">Join Us Now</Link>
             </Button>
           </div>
 
@@ -73,11 +74,9 @@ const Footer = () => {
             <ul className="space-y-1.5 text-sm font-sans text-gray-300">
               <li><a href="/" className="hover:text-[#FCD34D] transition-colors">Home</a></li>
               <li><a href="/about" className="hover:text-[#FCD34D] transition-colors">About Us</a></li>
-              <li><a href="/programs" className="hover:text-[#FCD34D] transition-colors">Projects</a></li>
-              <li><a href="/programs" className="hover:text-[#FCD34D] transition-colors">Programs</a></li>
-              <li><a href="/events" className="hover:text-[#FCD34D] transition-colors">Events</a></li>
-              <li><a href="/join-us" className="hover:text-[#FCD34D] transition-colors">Join Us</a></li>
-              <li><a href="/donate" className="hover:text-[#FCD34D] transition-colors">Donate Now</a></li>
+              <li><a href="/stories" className="hover:text-[#FCD34D] transition-colors">Stories</a></li>
+              <li><a href="/contact#join-us" className="hover:text-[#FCD34D] transition-colors">Join Us</a></li>
+              <li><a href="/contact#donate" className="hover:text-[#FCD34D] transition-colors">Donate Now</a></li>
             </ul>
           </div>
 

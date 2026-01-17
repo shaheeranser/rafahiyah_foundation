@@ -3,14 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect } from "react";
-import SignUpPage from "./SignupPage";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Users, Heart, BookOpen, Briefcase, Calendar, Send, CheckCircle } from "lucide-react";
 
 const JoinUs = () => {
   useEffect(() => {
-    scrollTo(0,0)
+    scrollTo(0, 0)
   }, []);
   const opportunities = [
     {
@@ -55,7 +54,7 @@ const JoinUs = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       {/* Hero Section */}
       <section className="pt-20 lg:pt-24 pb-16 bg-gradient-to-br from-section-soft to-gentle-rose  mt-14">
         <div className="container mx-auto px-4 text-center">
@@ -79,7 +78,7 @@ const JoinUs = () => {
               Join a community of passionate individuals working together to create lasting change in women's lives.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {benefits.map((benefit, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-all duration-300">
@@ -92,7 +91,7 @@ const JoinUs = () => {
           </div>
         </div>
       </section>
-       {/* Application Form
+      {/* Application Form
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
@@ -180,10 +179,8 @@ const JoinUs = () => {
         </div>
       </section> */}
 
-      <SignUpPage/>
 
-  
-     
+
 
       {/* Volunteer Opportunities */}
       <section className="py-16 bg-section-soft">
@@ -196,7 +193,7 @@ const JoinUs = () => {
               Choose how you'd like to make a difference. We have roles that match various skills and schedules.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {opportunities.map((opportunity, index) => (
               <Card key={index} className="hover:shadow-lg transition-all duration-300">
@@ -222,7 +219,7 @@ const JoinUs = () => {
                       <span className="text-muted-foreground">{opportunity.skills}</span>
                     </div>
                   </div>
-                
+
                 </CardContent>
               </Card>
             ))}
@@ -230,7 +227,7 @@ const JoinUs = () => {
         </div>
       </section>
 
-     
+
 
       <Footer />
     </div>
