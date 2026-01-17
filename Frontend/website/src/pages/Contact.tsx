@@ -58,11 +58,27 @@ const Contact = () => {
   const location = useLocation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "contactNumber") {
+      // Allow only digits
+      if (/^\d*$/.test(value)) {
+        setFormData({ ...formData, [name]: value });
+      }
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleJoinChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setJoinData({ ...joinData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "contactNumber" || name === "age") {
+      // Allow only digits
+      if (/^\d*$/.test(value)) {
+        setJoinData({ ...joinData, [name]: value });
+      }
+    } else {
+      setJoinData({ ...joinData, [name]: value });
+    }
   };
 
   const handleJoinSelectChange = (name: string, value: string) => {
@@ -104,6 +120,11 @@ const Contact = () => {
   const handleJoinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!joinData.fullName || !joinData.contactNumber || !joinData.age || !joinData.city || !joinData.occupation || !joinData.team) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     if (!isAgreed) {
       toast.error("Please agree to the terms and conditions");
       return;
@@ -143,7 +164,14 @@ const Contact = () => {
 
   // Donation Handlers
   const handleDonationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDonationData({ ...donationData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "contactNumber" || name === "amount") {
+      if (/^\d*$/.test(value)) {
+        setDonationData({ ...donationData, [name]: value });
+      }
+    } else {
+      setDonationData({ ...donationData, [name]: value });
+    }
   };
 
   const handleDonationSelectChange = (name: string, value: string) => {
@@ -158,6 +186,12 @@ const Contact = () => {
 
   const handleDonationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!donationData.fullName || !donationData.email || !donationData.contactNumber || !donationData.amount || !donationData.purpose || !donationData.cause || !donationData.paymentMethod) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     setDonationLoading(true);
 
     try {
@@ -399,6 +433,7 @@ const Contact = () => {
                   onChange={handleJoinChange}
                   placeholder="Full Name"
                   className="h-12 rounded-xl border-none bg-white"
+                  required
                 />
                 <Input
                   name="contactNumber"
@@ -406,6 +441,7 @@ const Contact = () => {
                   onChange={handleJoinChange}
                   placeholder="Contact Number"
                   className="h-12 rounded-xl border-none bg-white"
+                  required
                 />
                 <Input
                   name="age"
@@ -413,6 +449,7 @@ const Contact = () => {
                   onChange={handleJoinChange}
                   placeholder="Age"
                   className="h-12 rounded-xl border-none bg-white"
+                  required
                 />
                 <Input
                   name="city"
@@ -420,8 +457,9 @@ const Contact = () => {
                   onChange={handleJoinChange}
                   placeholder="City"
                   className="h-12 rounded-xl border-none bg-white"
+                  required
                 />
-                <Select name="occupation" onValueChange={(val) => handleJoinSelectChange("occupation", val)} value={joinData.occupation}>
+                <Select required name="occupation" onValueChange={(val) => handleJoinSelectChange("occupation", val)} value={joinData.occupation}>
                   <SelectTrigger className="h-12 rounded-xl border-none bg-white">
                     <SelectValue placeholder="Select Your Occupation" />
                   </SelectTrigger>
@@ -433,7 +471,7 @@ const Contact = () => {
                     <SelectItem value="other">Other...</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select name="team" onValueChange={(val) => handleJoinSelectChange("team", val)} value={joinData.team}>
+                <Select required name="team" onValueChange={(val) => handleJoinSelectChange("team", val)} value={joinData.team}>
                   <SelectTrigger className="h-12 rounded-xl border-none bg-white">
                     <SelectValue placeholder="Select The Team You Want To Join" />
                   </SelectTrigger>
