@@ -16,7 +16,7 @@ import UpdateEvent from "./Admin/event/updateEvent";
 import ProtectedRoute from './ProtectedRoute';
 import Team from "./Admin/team/Team";
 import UpdateTeam from "./Admin/team/UpdateTeam";
-import Program from "./Admin/program/program";
+import Program from "./Admin/program/Program";
 import UpdateProgram from "./Admin/program/updateProgram";
 import AddProgram from "./Admin/program/addProgram";
 import Contact from "./Admin/contact/contact";

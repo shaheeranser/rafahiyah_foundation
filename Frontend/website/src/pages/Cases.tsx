@@ -177,7 +177,7 @@ const Cases = () => {
             <Header />
 
             {/* Hero Section */}
-            <section className="relative h-[60vh] md:h-[80vh] flex items-center justify-start overflow-hidden pt-20">
+            <section className="relative h-screen flex items-center justify-start overflow-hidden pt-20">
                 {/* Background Overlay */}
                 <div className="absolute inset-0 bg-black/50 z-10" />
                 <div className="absolute inset-0 z-0">
