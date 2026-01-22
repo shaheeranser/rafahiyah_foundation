@@ -177,7 +177,7 @@ const Cases = () => {
             <Header />
 
             {/* Hero Section */}
-            <section className="relative h-screen flex items-center justify-start overflow-hidden pt-20">
+            <section className="relative h-screen flex items-end md:items-center justify-start overflow-hidden pt-20 pb-32 md:pb-0 bg-gray-900">
                 {/* Background Overlay */}
                 <div className="absolute inset-0 bg-black/50 z-10" />
                 <div className="absolute inset-0 z-0">
@@ -188,12 +188,12 @@ const Cases = () => {
                     />
                 </div>
 
-                <div className="w-full px-6 md:px-32 relative z-20">
+                <div className="container mx-auto px-4 relative z-20">
                     <div className="max-w-4xl text-left">
-                        <h1 className="text-5xl md:text-8xl font-odibee text-white mb-6 drop-shadow-lg leading-[0.9] tracking-tight">
+                        <h1 className="text-6xl md:text-8xl font-odibee text-white mb-6 drop-shadow-lg leading-[0.9] tracking-tight">
                             Traverse Through Our Active <br /> Events and Programs
                         </h1>
-                        <p className="text-xl md:text-3xl font-odibee text-rafahiyah-gold drop-shadow-md">
+                        <p className="text-2xl md:text-3xl font-odibee text-rafahiyah-gold drop-shadow-md">
                             From Events to Projects & Collaborations, <br /> There's Something For Everyone
                         </p>
                     </div>

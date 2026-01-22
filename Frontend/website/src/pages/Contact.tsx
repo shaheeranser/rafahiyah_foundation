@@ -401,7 +401,7 @@ const Contact = () => {
           />
         </div>
 
-        <div className="w-full px-6 md:px-32 relative z-20">
+        <div className="container mx-auto px-4 relative z-20">
           <div className="max-w-4xl text-left">
             <h1 className="text-6xl md:text-8xl font-odibee text-white mb-6 drop-shadow-lg leading-none">
               Reach Out to Us
