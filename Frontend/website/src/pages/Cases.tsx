@@ -3,7 +3,6 @@ import Footer from "@/components/Footer";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
     Pagination,
     PaginationContent,
@@ -23,6 +22,9 @@ import programImg3 from "@/assets/hero-women-empowerment.jpg";
 import caseImg1 from "@/assets/success-story-woman.jpg";
 import caseImg2 from "@/assets/hero-empowered-women.jpg";
 import caseImg3 from "@/assets/women-learning-leading.jpg";
+import StandardCard from "@/components/shared/StandardCard";
+import StandardPopup from "@/components/shared/StandardPopup";
+import { Hash, Layers, Calendar, MapPin, Target, Clock } from "lucide-react";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -187,7 +189,7 @@ const Cases = () => {
             <Header />
 
             {/* Hero Section */}
-            <section className="relative h-screen flex items-end md:items-center justify-start overflow-hidden pt-20 pb-32 md:pb-0 bg-gray-900">
+            <section className="relative h-screen flex items-end md:items-center justify-start overflow-hidden pb-32 md:pb-0 bg-gray-900">
                 {/* Background Overlay */}
                 <div className="absolute inset-0 bg-black/50 z-10" />
                 <div className="absolute inset-0 z-0">
@@ -223,44 +225,26 @@ const Cases = () => {
                     ) : (
                         <>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
                                 {displayedPrograms.map((item, index) => (
-                                    <div key={item._id || index} className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex flex-col items-start h-full hover:shadow-xl transition-shadow duration-300">
-                                        <div className="w-full h-56 rounded-2xl mb-6 overflow-hidden cursor-pointer" onClick={() => setSelectedItem(item)}>
-                                            <img
-                                                src={getImageUrl(item.image)}
-                                                alt={item.title}
-                                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                                                onError={(e) => { e.currentTarget.src = programImg1; }}
-                                            />
-                                        </div>
-                                        <h3 className="text-2xl font-bold text-black mb-4 font-odibee tracking-wide">{item.title}</h3>
-                                        <p className="text-gray-600 mb-8 flex-grow leading-relaxed font-sans text-sm line-clamp-3">
-                                            {item.description}
-                                        </p>
-                                        <div className="flex gap-4 w-full mt-auto">
-                                            <button
-                                                className="flex-1 bg-[#FFD700] text-black py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#FDB931] transition-colors uppercase tracking-wider"
-                                                onClick={() => setSelectedItem(item)}
-                                            >
-                                                Read More
-                                            </button>
-                                            <button
-                                                className="flex-1 bg-rafahiyah-deep-red text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#6b2416] transition-colors uppercase tracking-wider"
-                                                onClick={() => {
-                                                    navigate('/contact', {
-                                                        state: {
-                                                            section: "join-us",
-                                                            role: "onsite_volunteer",
-                                                            eventName: item.title
-                                                        }
-                                                    });
-                                                }}
-                                            >
-                                                Join Us
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <StandardCard
+                                        key={item._id || index}
+                                        image={getImageUrl(item.image)}
+                                        title={item.title}
+                                        description={item.description}
+                                        onReadMore={() => setSelectedItem(item)}
+                                        onAction={() => {
+                                            navigate('/contact', {
+                                                state: {
+                                                    section: "join-us",
+                                                    role: "onsite_volunteer",
+                                                    eventName: item.title
+                                                }
+                                            });
+                                        }}
+                                        actionLabel="Join Us"
+                                        showProgress={false}
+                                    />
                                 ))}
                             </div>
                             {renderPagination(programsList.length, programsPage, setProgramsPage)}
@@ -270,79 +254,38 @@ const Cases = () => {
                                 <br /> <br />
                                 <h2 className="text-5xl md:text-6xl font-odibee text-rafahiyah-dark-blue">Events</h2>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
                                 {displayedEvents.map((item, index) => (
-                                    <div key={item._id || index} className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex flex-col items-start h-full hover:shadow-xl transition-shadow duration-300">
-                                        <div className="w-full h-56 rounded-2xl mb-6 overflow-hidden cursor-pointer" onClick={() => setSelectedItem(item)}>
-                                            <img
-                                                src={getImageUrl(item.image)}
-                                                alt={item.title}
-                                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                                                onError={(e) => { e.currentTarget.src = programImg2; }}
-                                            />
-                                        </div>
-                                        <h3 className="text-2xl font-bold text-black mb-4 font-odibee tracking-wide">{item.title}</h3>
-                                        <p className="text-gray-600 mb-2 font-bold text-xs uppercase tracking-wider">{new Date(item.date).toLocaleDateString()}</p>
-                                        <p className="text-gray-600 mb-6 flex-grow leading-relaxed font-sans text-sm line-clamp-3">
-                                            {item.description}
-                                        </p>
-
-                                        {/* Progress Bar for Events (if funded) */}
-                                        {item.requiredAmount > 0 && (
-                                            <div className="w-full mb-6">
-                                                <div className="flex justify-between items-center mb-2 text-xs font-bold text-gray-500 uppercase tracking-widest font-sans">
-                                                    <span className="text-rafahiyah-deep-red">Raised: ${item.collectedAmount?.toLocaleString() || 0}</span>
-                                                    <span>Goal: ${item.requiredAmount?.toLocaleString()}</span>
-                                                </div>
-                                                <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="bg-[#8B2D1B] h-full transition-all duration-1000 ease-out rounded-full"
-                                                        style={{ width: `${Math.min(((item.collectedAmount || 0) / (item.requiredAmount || 1)) * 100, 100)}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
-                                        <div className="flex gap-2 w-full mt-auto flex-wrap">
-                                            <button
-                                                className="flex-1 bg-[#FFD700] text-black py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#FDB931] transition-colors uppercase tracking-wider min-w-[100px]"
-                                                onClick={() => setSelectedItem(item)}
-                                            >
-                                                Read More
-                                            </button>
-                                            <button
-                                                className="flex-1 bg-rafahiyah-deep-red text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#6b2416] transition-colors uppercase tracking-wider min-w-[100px]"
-                                                onClick={() => {
-                                                    navigate('/contact', {
-                                                        state: {
-                                                            section: "join-us",
-                                                            role: "onsite_volunteer",
-                                                            eventName: item.title
-                                                        }
-                                                    });
-                                                }}
-                                            >
-                                                Join Us
-                                            </button>
-
-                                            {/* Donate Button for Funded Events */}
-                                            {item.requiredAmount > 0 && (
-                                                <button
-                                                    className="flex-1 bg-[#242D4B] text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#35426D] transition-colors uppercase tracking-wider shadow-md hover:shadow-lg min-w-[100px]"
-                                                    onClick={() => {
-                                                        navigate('/contact', {
-                                                            state: {
-                                                                section: "donate",
-                                                                cause: item.title,
-                                                                category: "event"
-                                                            }
-                                                        });
-                                                    }}
-                                                >
-                                                    Donate
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
+                                    <StandardCard
+                                        key={item._id || index}
+                                        image={getImageUrl(item.image)}
+                                        title={item.title}
+                                        description={item.description}
+                                        raised={item.collectedAmount}
+                                        goal={item.requiredAmount}
+                                        onReadMore={() => setSelectedItem(item)}
+                                        onAction={() => {
+                                            if (item.requiredAmount > 0) {
+                                                navigate('/contact', {
+                                                    state: {
+                                                        section: "donate",
+                                                        cause: item.title,
+                                                        category: "event"
+                                                    }
+                                                });
+                                            } else {
+                                                navigate('/contact', {
+                                                    state: {
+                                                        section: "join-us",
+                                                        role: "onsite_volunteer",
+                                                        eventName: item.title
+                                                    }
+                                                });
+                                            }
+                                        }}
+                                        actionLabel={item.requiredAmount > 0 ? "Donate" : "Join Us"}
+                                        showProgress={item.requiredAmount > 0}
+                                    />
                                 ))}
                             </div>
                             {renderPagination(eventsList.length, eventsPage, setEventsPage)}
@@ -362,62 +305,29 @@ const Cases = () => {
                         <div className="text-center py-12">Loading Cases...</div>
                     ) : (
                         <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
                                 {displayedCases.map((caseItem, index) => (
-                                    <div key={caseItem._id || index} className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex flex-col h-full hover:shadow-xl transition-shadow duration-300">
-                                        <div className="w-full h-56 rounded-2xl mb-6 overflow-hidden relative cursor-pointer" onClick={() => setSelectedItem(caseItem)}>
-                                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-rafahiyah-deep-red uppercase tracking-wider z-10 shadow-sm">
-                                                {caseItem.category || 'Urgent'}
-                                            </div>
-                                            <img
-                                                src={getImageUrl(caseItem.image)}
-                                                alt={caseItem.title}
-                                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                                                onError={(e) => { e.currentTarget.src = caseImg1; }}
-                                            />
-                                        </div>
-
-                                        <h3 className="text-2xl font-bold text-black mb-4 font-odibee tracking-wide">{caseItem.title}</h3>
-                                        <p className="text-gray-600 mb-6 leading-relaxed font-sans text-sm min-h-[80px] line-clamp-3">
-                                            {caseItem.description}
-                                        </p>
-
-                                        {/* Progress Bar Container */}
-                                        <div className="w-full mb-8">
-                                            <div className="flex justify-between items-center mb-2 text-xs font-bold text-gray-500 uppercase tracking-widest font-sans">
-                                                <span className="text-rafahiyah-deep-red">Raised: ${Number(caseItem.amountCollected || caseItem.raised || 0).toLocaleString()}</span>
-                                                <span>Goal: ${Number(caseItem.amountRequired || caseItem.goal || 0).toLocaleString()}</span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                                                <div
-                                                    className="bg-[#8B2D1B] h-full transition-all duration-1000 ease-out rounded-full"
-                                                    style={{ width: `${Math.min(((caseItem.amountCollected || caseItem.raised || 0) / (caseItem.amountRequired || caseItem.goal || 1)) * 100, 100)}%` }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-4 w-full mt-auto">
-                                            <button
-                                                className="flex-1 bg-[#FFD700] text-black py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#FDB931] transition-colors uppercase tracking-wider"
-                                                onClick={() => setSelectedItem(caseItem)}
-                                            >
-                                                Details
-                                            </button>
-                                            <button
-                                                className="flex-1 bg-rafahiyah-deep-red text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#6b2416] transition-colors uppercase tracking-wider shadow-md hover:shadow-lg"
-                                                onClick={() => {
-                                                    navigate('/contact', {
-                                                        state: {
-                                                            section: "donate",
-                                                            cause: caseItem.title
-                                                        }
-                                                    });
-                                                }}
-                                            >
-                                                Donate Now
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <StandardCard
+                                        key={caseItem._id || index}
+                                        image={getImageUrl(caseItem.image)}
+                                        title={caseItem.title}
+                                        description={caseItem.description}
+                                        raised={Number(caseItem.amountCollected || caseItem.raised || 0)}
+                                        goal={Number(caseItem.amountRequired || caseItem.goal || 0)}
+                                        category={caseItem.category || 'Urgent'}
+                                        onReadMore={() => setSelectedItem(caseItem)}
+                                        readMoreLabel="Details"
+                                        onAction={() => {
+                                            navigate('/contact', {
+                                                state: {
+                                                    section: "donate",
+                                                    cause: caseItem.title
+                                                }
+                                            });
+                                        }}
+                                        actionLabel="Donate Now"
+                                        showProgress={true}
+                                    />
                                 ))}
                             </div>
                             {renderPagination(casesList.length, casesPage, setCasesPage)}
@@ -427,173 +337,130 @@ const Cases = () => {
             </section>
 
             {/* Detail Modal */}
-            <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
-                <DialogContent className="max-w-4xl bg-white rounded-3xl p-6 md:p-8 overflow-hidden">
-                    <DialogHeader className="sr-only">
-                        <DialogTitle>{selectedItem?.title}</DialogTitle>
-                    </DialogHeader>
-
-                    {selectedItem && (
-                        <div className="flex flex-col gap-6">
-                            {/* Top Section: Image and Stats */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Left: Image */}
-                                <div className="bg-gray-200 rounded-2xl h-64 flex items-center justify-center overflow-hidden">
-                                    <img
-                                        src={getImageUrl(selectedItem.image)}
-                                        alt={selectedItem.title}
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => { e.currentTarget.src = programImg1; }}
-                                    />
+            <StandardPopup
+                isOpen={!!selectedItem}
+                onClose={() => setSelectedItem(null)}
+                image={selectedItem ? getImageUrl(selectedItem.image) : ''}
+                title={selectedItem?.title || ''}
+                description={selectedItem?.description || ''}
+                raised={selectedItem ? Number(selectedItem.amountCollected || selectedItem.raised || selectedItem.collectedAmount || 0) : 0}
+                goal={selectedItem ? Number(selectedItem.amountRequired || selectedItem.goal || selectedItem.requiredAmount || 0) : 0}
+                statsSlot={selectedItem && (
+                    <>
+                        {selectedItem.caseNo && (
+                            <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                <div className="p-2 bg-blue-100 rounded-lg text-rafahiyah-dark-blue">
+                                    <Hash className="w-5 h-5" />
                                 </div>
-
-                                {/* Right: Stats and Title */}
-                                <div className="flex flex-col justify-center space-y-3 text-left">
-                                    <h3 className="text-4xl font-odibee text-gray-900 mb-2">{selectedItem.title}</h3>
-                                    <div className="space-y-1 font-sans text-gray-700 text-lg">
-                                        {/* Display logic depending on if it's a Case or Program/Event */}
-                                        {selectedItem.caseNo ? (
-                                            // Case Specific
-                                            <>
-                                                <p>
-                                                    <span className="font-semibold uppercase text-gray-900">CASE NUMBER:</span>{" "}
-                                                    {selectedItem.caseNo}
-                                                </p>
-                                                <p>
-                                                    <span className="font-semibold uppercase text-gray-900">CATEGORY:</span>{" "}
-                                                    {selectedItem.category}
-                                                </p>
-                                                <p>
-                                                    <span className="font-semibold uppercase text-gray-900">GOAL:</span>{" "}
-                                                    ${Number(selectedItem.amountRequired || selectedItem.goal || 0).toLocaleString()}
-                                                </p>
-                                                <p>
-                                                    <span className="font-semibold uppercase text-gray-900">COLLECTED:</span>{" "}
-                                                    ${Number(selectedItem.amountCollected || selectedItem.raised || 0).toLocaleString()}
-                                                </p>
-                                            </>
-                                        ) : (
-                                            // Program/Event Specific
-                                            <>
-                                                <p>
-                                                    <span className="font-semibold uppercase text-gray-900">DATE:</span>{" "}
-                                                    {selectedItem.date ? new Date(selectedItem.date).toLocaleDateString() : (selectedItem.startingDate ? `${new Date(selectedItem.startingDate).toLocaleDateString()} - ${new Date(selectedItem.endingDate).toLocaleDateString()}` : "N/A")}
-                                                </p>
-                                                {selectedItem.venue && (
-                                                    <p>
-                                                        <span className="font-semibold uppercase text-gray-900">VENUE:</span>{" "}
-                                                        {selectedItem.venue}
-                                                    </p>
-                                                )}
-                                                {selectedItem.location && (
-                                                    <p>
-                                                        <span className="font-semibold uppercase text-gray-900">LOCATION:</span>{" "}
-                                                        {selectedItem.location}
-                                                    </p>
-                                                )}
-
-                                                {/* Financial Details for Events (if strictly an event with amount) */}
-                                                {(selectedItem.requiredAmount > 0) && (
-                                                    <>
-                                                        <p>
-                                                            <span className="font-semibold uppercase text-gray-900">TOTAL AMOUNT:</span>{" "}
-                                                            ${(selectedItem.requiredAmount || 0).toLocaleString()}
-                                                        </p>
-                                                        <p>
-                                                            <span className="font-semibold uppercase text-gray-900">COLLECTED AMOUNT:</span>{" "}
-                                                            ${(selectedItem.collectedAmount || 0).toLocaleString()}
-                                                        </p>
-                                                        <p>
-                                                            <span className="font-semibold uppercase text-gray-900">REMAINING AMOUNT:</span>{" "}
-                                                            <span className="text-rafahiyah-deep-red font-bold">
-                                                                ${((selectedItem.requiredAmount || 0) - (selectedItem.collectedAmount || 0)).toLocaleString()}
-                                                            </span>
-                                                        </p>
-                                                    </>
-                                                )}
-
-                                                {/* Linked Events (For Programs) */}
-                                                {selectedItem.linkedEvents && selectedItem.linkedEvents.length > 0 && (
-                                                    <div className="mt-4 pt-4 border-t border-gray-200">
-                                                        <p className="font-semibold uppercase text-gray-900 mb-2">Linked Events:</p>
-                                                        <div className="flex flex-col gap-2">
-                                                            {selectedItem.linkedEvents.map((evt: any) => (
-                                                                <div key={evt._id} className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm">
-                                                                    <div className="font-bold text-gray-800">{evt.title}</div>
-                                                                    <div className="text-gray-600 text-xs">
-                                                                        {new Date(evt.date).toLocaleDateString()} | {evt.status || 'Scheduled'}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Linked Cases (For Programs) */}
-                                                {selectedItem.linkedCases && selectedItem.linkedCases.length > 0 && (
-                                                    <div className="mt-4 pt-4 border-t border-gray-200">
-                                                        <p className="font-semibold uppercase text-gray-900 mb-2">Linked Cases:</p>
-                                                        <div className="flex flex-col gap-2">
-                                                            {selectedItem.linkedCases.map((cse: any) => (
-                                                                <div key={cse._id} className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm">
-                                                                    <div className="font-bold text-gray-800">{cse.title}</div>
-                                                                    <div className="text-gray-600 text-xs">
-                                                                        Goal: ${Number(cse.amountRequired || cse.goal || 0).toLocaleString()} | Collected: ${Number(cse.amountCollected || cse.raised || 0).toLocaleString()}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </>
-                                        )}
-                                    </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Case No</p>
+                                    <p className="font-semibold text-gray-800 text-sm md:text-base">{selectedItem.caseNo}</p>
                                 </div>
                             </div>
-
-                            {/* Middle Section: Description */}
-                            <div className="bg-gray-100 rounded-2xl p-6 min-h-[150px] flex items-center text-gray-700 font-sans text-lg text-left">
+                        )}
+                        {selectedItem.category && (
+                            <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                <div className="p-2 bg-purple-100 rounded-lg text-purple-700">
+                                    <Layers className="w-5 h-5" />
+                                </div>
                                 <div>
-                                    <p>{selectedItem.description}</p>
-                                    <p className="mt-4 text-base opacity-80">
-                                        This initiative requires immediate attention. Your contribution can help save lives or restore dignity to those affected. We ensure 100% transparency in funds utilization.
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Category</p>
+                                    <p className="font-semibold text-gray-800 text-sm md:text-base">{selectedItem.category}</p>
+                                </div>
+                            </div>
+                        )}
+                        {selectedItem.time && (
+                            <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                <div className="p-2 bg-blue-100 rounded-lg text-rafahiyah-dark-blue">
+                                    <Clock className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Time</p>
+                                    <p className="font-semibold text-gray-800 text-sm md:text-base">{selectedItem.time}</p>
+                                </div>
+                            </div>
+                        )}
+                        {(selectedItem.date || selectedItem.startingDate) && (
+                            <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                <div className="p-2 bg-green-100 rounded-lg text-green-700">
+                                    <Calendar className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Date</p>
+                                    <p className="font-semibold text-gray-800 text-sm md:text-base">
+                                        {selectedItem.date ? new Date(selectedItem.date).toLocaleDateString() : (selectedItem.startingDate ? `${new Date(selectedItem.startingDate).toLocaleDateString()} - ${new Date(selectedItem.endingDate).toLocaleDateString()}` : "")}
                                     </p>
                                 </div>
                             </div>
-
-                            {/* Bottom Section: Buttons */}
-                            <div className="flex flex-col sm:flex-row justify-end gap-4 mt-2">
-                                <Button
-                                    className="w-full bg-[#852D1A] hover:bg-[#6b2416] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all"
-                                    onClick={() => {
-                                        if (selectedItem.caseNo) {
-                                            navigate('/contact', {
-                                                state: {
-                                                    section: "donate",
-                                                    cause: selectedItem.title,
-                                                    category: "case"
-                                                }
-                                            });
-                                            setSelectedItem(null);
-                                        } else {
-                                            navigate('/contact', {
-                                                state: {
-                                                    section: "join-us",
-                                                    role: "onsite_volunteer",
-                                                    eventName: selectedItem.title
-                                                }
-                                            });
-                                            setSelectedItem(null);
+                        )}
+                        {(selectedItem.venue || selectedItem.location) && (
+                            <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                <div className="p-2 bg-red-100 rounded-lg text-rafahiyah-deep-red">
+                                    <MapPin className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Location</p>
+                                    <p className="font-semibold text-gray-800 text-sm md:text-base">{selectedItem.venue || selectedItem.location}</p>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
+                actionsSlot={
+                    selectedItem?.caseNo ? (
+                        <Button
+                            className="w-full bg-[#852D1A] hover:bg-[#6b2416] text-white py-6 rounded-xl font-odibee text-xl tracking-wide shadow-lg transition-transform hover:scale-[1.02]"
+                            onClick={() => {
+                                navigate('/contact', {
+                                    state: {
+                                        section: "donate",
+                                        cause: selectedItem.title,
+                                        category: "case"
+                                    }
+                                });
+                                setSelectedItem(null);
+                            }}
+                        >
+                            Donate Now
+                        </Button>
+                    ) : (
+                        <>
+                            <Button
+                                className="flex-1 bg-[#242D4B] hover:bg-[#1a2138] text-white py-6 rounded-xl font-odibee text-xl tracking-wide shadow-lg transition-transform hover:scale-[1.02]"
+                                onClick={() => {
+                                    navigate('/contact', {
+                                        state: {
+                                            section: "join-us",
+                                            role: "onsite_volunteer",
+                                            eventName: selectedItem.title
                                         }
+                                    });
+                                    setSelectedItem(null);
+                                }}
+                            >
+                                Join Us
+                            </Button>
+                            {selectedItem?.requiredAmount > 0 && (
+                                <Button
+                                    className="flex-1 bg-[#852D1A] hover:bg-[#6b2416] text-white py-6 rounded-xl font-odibee text-xl tracking-wide shadow-lg transition-transform hover:scale-[1.02]"
+                                    onClick={() => {
+                                        navigate('/contact', {
+                                            state: {
+                                                section: "donate",
+                                                cause: selectedItem.title,
+                                                category: "event"
+                                            }
+                                        });
+                                        setSelectedItem(null);
                                     }}
                                 >
-                                    {selectedItem.caseNo ? "Donate Now" : "Join Us"}
+                                    Donate Now
                                 </Button>
-                            </div>
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
+                            )}
+                        </>
+                    )
+                }
+            />
 
             <Footer />
         </div>

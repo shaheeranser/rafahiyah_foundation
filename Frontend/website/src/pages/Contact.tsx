@@ -447,7 +447,7 @@ const Contact = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative h-screen flex items-end md:items-center justify-start overflow-hidden pt-20 pb-32 md:pb-0">
+      <section className="relative h-screen flex items-end md:items-center justify-start overflow-hidden pb-32 md:pb-0">
         <div className="absolute inset-0 bg-black/40 z-10" />
         <div className="absolute inset-0 z-0">
           <img
