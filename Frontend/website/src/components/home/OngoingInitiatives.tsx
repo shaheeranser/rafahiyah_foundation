@@ -102,8 +102,8 @@ const OngoingInitiatives = () => {
                     image={selectedInitiative ? `http://localhost:8000/${selectedInitiative.image}` : ''}
                     title={selectedInitiative?.title || ''}
                     description={selectedInitiative?.description || ''}
-                    raised={selectedInitiative?.collectedAmount}
-                    goal={selectedInitiative?.requiredAmount}
+                    raised={selectedInitiative ? Number(selectedInitiative.amountCollected || selectedInitiative.raised || selectedInitiative.collectedAmount || 0) : 0}
+                    goal={selectedInitiative ? Number(selectedInitiative.amountRequired || selectedInitiative.goal || selectedInitiative.requiredAmount || 0) : 0}
                     statsSlot={selectedInitiative && (
                         <>
                             {selectedInitiative.time && (

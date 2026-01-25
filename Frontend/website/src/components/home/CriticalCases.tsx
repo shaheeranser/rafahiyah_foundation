@@ -64,6 +64,7 @@ const CriticalCases = () => {
                             description={item.description}
                             raised={Number(item.amountCollected || item.raised || 0)}
                             goal={Number(item.amountRequired || item.goal || 0)}
+                            category={item.category || 'Urgent'}
                             onReadMore={() => setSelectedCase(item)}
                             onAction={() => navigate('/contact', { state: { section: "donate", cause: item.title } })}
                             actionLabel="Donate Now"
@@ -88,8 +89,8 @@ const CriticalCases = () => {
                     image={selectedCase?.image ? `http://localhost:8000/${selectedCase.image.replace(/\\/g, '/')}` : communityImg}
                     title={selectedCase?.title || ''}
                     description={selectedCase?.description || ''}
-                    raised={Number(selectedCase?.amountCollected || selectedCase?.raised || 0)}
-                    goal={Number(selectedCase?.amountRequired || selectedCase?.goal || 0)}
+                    raised={Number(selectedCase?.amountCollected || selectedCase?.raised || selectedCase?.collectedAmount || 0)}
+                    goal={Number(selectedCase?.amountRequired || selectedCase?.goal || selectedCase?.requiredAmount || 0)}
                     statsSlot={selectedCase && (
                         <>
                             <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
