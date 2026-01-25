@@ -17,8 +17,26 @@ const CriticalCases = () => {
             try {
                 const response = await getAllCases();
                 if (response.success) {
-                    const activeCases = response.data
-                        .filter((c: any) => c.status === 'active')
+                    let fetchedCases = [];
+                    // Robust data extraction
+                    if (Array.isArray(response.data)) {
+                        fetchedCases = response.data;
+                    } else if (response.data?.cases) {
+                        fetchedCases = response.data.cases;
+                    } else if (response.data?.data) {
+                        fetchedCases = response.data.data;
+                    }
+
+                    // Filter active and ensure amountRequired > amountCollected (Critical)
+                    const activeCases = fetchedCases
+                        .filter((c: any) => {
+                            const status = c.status ? c.status.toLowerCase() : 'active'; // Default to active if missing
+                            const required = Number(c.amountRequired || c.goal || 0);
+                            const collected = Number(c.amountCollected || c.raised || 0);
+
+                            // Check status and if funds are needed
+                            return status === 'active' && collected < required;
+                        })
                         .slice(0, 3);
                     setCases(activeCases);
                 }
@@ -31,7 +49,7 @@ const CriticalCases = () => {
     }, []);
 
     return (
-        <section className="py-20 bg-[#9ca3af]">
+        <section className="py-20 bg-white">
             <div className="container mx-auto px-4 text-center">
                 <h2 className="text-4xl md:text-5xl font-odibee text-gray-900 mb-12">
                     Critical Cases
@@ -39,7 +57,7 @@ const CriticalCases = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {cases.map((item) => (
-                        <Card key={item._id} className="bg-white rounded-3xl overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                        <Card key={item._id} className="bg-white rounded-3xl overflow-hidden border-none shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col">
                             <div className="h-64 bg-gray-200 flex items-center justify-center relative overflow-hidden">
                                 <img
                                     src={`http://localhost:8000/${item.image?.replace(/\\/g, '/')}`}
@@ -61,11 +79,11 @@ const CriticalCases = () => {
                                 <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
                                     <div
                                         className="bg-rafahiyah-deep-red h-2.5 rounded-full"
-                                        style={{ width: `${Math.min(((item.amountCollected || 0) / item.amountRequired) * 100, 100)}%` }}
+                                        style={{ width: `${Math.min((Number(item.amountCollected || item.raised || 0) / Number(item.amountRequired || item.goal || 1)) * 100, 100)}%` }}
                                     ></div>
                                 </div>
                                 <div className="flex justify-between text-sm text-gray-500 font-sans">
-                                    <span>Raised: ${item.amountCollected?.toLocaleString() || 0} / ${item.amountRequired?.toLocaleString()}</span>
+                                    <span>Raised: ${Number(item.amountCollected || item.raised || 0).toLocaleString()} / ${Number(item.amountRequired || item.goal || 0).toLocaleString()}</span>
                                 </div>
                             </CardContent>
 
@@ -104,7 +122,7 @@ const CriticalCases = () => {
                         </DialogHeader>
 
                         {selectedCase && (
-                            <div className="flex flex-col md:flex-row h-full max-h-[90vh] md:h-auto overflow-y-auto md:overflow-visible">
+                            <div className="flex flex-col md:flex-row h-full md:h-auto">
                                 {/* Left Side: Image */}
                                 <div className="w-full md:w-2/5 h-64 md:h-auto bg-gray-100 relative">
                                     <img
@@ -158,23 +176,23 @@ const CriticalCases = () => {
                                                     <span>Fundraising Progress</span>
                                                 </div>
                                                 <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                                    {Math.round(Math.min((selectedCase.amountCollected / selectedCase.amountRequired) * 100, 100))}% Funded
+                                                    {Math.round(Math.min((Number(selectedCase.amountCollected || selectedCase.raised || 0) / Number(selectedCase.amountRequired || selectedCase.goal || 1)) * 100, 100))}% Funded
                                                 </span>
                                             </div>
                                             <div className="w-full bg-gray-200 rounded-full h-3">
                                                 <div
                                                     className="bg-rafahiyah-deep-red h-3 rounded-full transition-all duration-1000 ease-out"
-                                                    style={{ width: `${Math.min((selectedCase.amountCollected / selectedCase.amountRequired) * 100, 100)}%` }}
+                                                    style={{ width: `${Math.min((Number(selectedCase.amountCollected || selectedCase.raised || 0) / Number(selectedCase.amountRequired || selectedCase.goal || 1)) * 100, 100)}%` }}
                                                 />
                                             </div>
                                             <div className="flex justify-between text-sm font-medium pt-1">
                                                 <div className="flex flex-col">
                                                     <span className="text-xs text-gray-500 uppercase">Raised</span>
-                                                    <span className="text-rafahiyah-deep-red font-bold text-lg">${selectedCase.amountCollected?.toLocaleString() || 0}</span>
+                                                    <span className="text-rafahiyah-deep-red font-bold text-lg">${Number(selectedCase.amountCollected || selectedCase.raised || 0).toLocaleString()}</span>
                                                 </div>
                                                 <div className="flex flex-col items-end">
                                                     <span className="text-xs text-gray-500 uppercase">Goal</span>
-                                                    <span className="text-gray-900 font-bold text-lg">${selectedCase.amountRequired?.toLocaleString()}</span>
+                                                    <span className="text-gray-900 font-bold text-lg">${Number(selectedCase.amountRequired || selectedCase.goal || 0).toLocaleString()}</span>
                                                 </div>
                                             </div>
                                         </div>

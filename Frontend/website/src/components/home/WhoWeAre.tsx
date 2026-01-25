@@ -86,19 +86,28 @@ const WhoWeAre = () => {
                 {/* Right Side: Images */}
                 <div className="w-full lg:w-1/2 relative min-h-[400px] md:min-h-[600px] flex items-center justify-center mt-8 lg:mt-0">
                     {/* Image 1 - Top Right - Large & Rotated */}
-                    <div className="absolute top-0 right-4 md:top-10 md:right-10 w-40 h-40 md:w-64 md:h-64 bg-gray-200 rounded-[2rem] shadow-xl transform rotate-12 z-10 overflow-hidden border-4 border-white">
-                        {/* Placeholder or actual image */}
-                        <img src={img1} alt="Team" className="w-full h-full object-cover" />
+                    <div className="absolute top-0 right-4 md:top-10 md:right-10 w-40 h-40 md:w-64 md:h-64 z-10 animate-float">
+                        <div className="w-full h-full bg-gray-200 rounded-[2rem] shadow-xl transform rotate-12 overflow-hidden border-4 border-white hover:scale-105 transition-transform duration-300">
+                            {/* Placeholder or actual image */}
+                            <img src={img1} alt="Team" className="w-full h-full object-cover" />
+                        </div>
                     </div>
 
                     {/* Image 2 - Main Center/Left - Large & Rotated */}
-                    <div className="absolute top-1/2 left-4 md:left-10 -translate-y-1/2 w-48 h-48 md:w-72 md:h-72 bg-gray-300 rounded-[2rem] shadow-xl transform -rotate-6 z-20 overflow-hidden border-4 border-white">
-                        <img src={img2} alt="Community" className="w-full h-full object-cover" />
+                    {/* Needs extra wrapper for centering translate + float */}
+                    <div className="absolute top-1/2 left-4 md:left-10 -translate-y-1/2 w-48 h-48 md:w-72 md:h-72 z-20">
+                        <div className="w-full h-full animate-float-delayed">
+                            <div className="w-full h-full bg-gray-300 rounded-[2rem] shadow-xl transform -rotate-6 overflow-hidden border-4 border-white hover:scale-105 transition-transform duration-300">
+                                <img src={img2} alt="Community" className="w-full h-full object-cover" />
+                            </div>
+                        </div>
                     </div>
 
                     {/* Image 3 - Bottom Right - Smaller & Rotated */}
-                    <div className="absolute bottom-0 right-8 md:bottom-20 md:right-20 w-32 h-32 md:w-48 md:h-48 bg-gray-200 rounded-[1.5rem] shadow-xl transform rotate-6 z-0 overflow-hidden border-4 border-white">
-                        <img src={img3} alt="Success Story" className="w-full h-full object-cover" />
+                    <div className="absolute bottom-0 right-8 md:bottom-20 md:right-20 w-32 h-32 md:w-48 md:h-48 z-0 animate-float-slow">
+                        <div className="w-full h-full bg-gray-200 rounded-[1.5rem] shadow-xl transform rotate-6 overflow-hidden border-4 border-white hover:scale-105 transition-transform duration-300">
+                            <img src={img3} alt="Success Story" className="w-full h-full object-cover" />
+                        </div>
                     </div>
                 </div>
 

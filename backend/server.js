@@ -66,6 +66,8 @@ app.use('/api/donations', donationRoute);
 // app.use('/api/jobs', jobRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/volunteers', volunteerRoutes);
+import settingRoutes from './routes/settingRoutes.js';
+app.use('/api/settings', settingRoutes);
 app.get('/api/partner-logos', (req, res) => {
   console.log("req hittt")
   const folderPath = path.join(__dirname, 'uploads', 'company_ngo');

@@ -172,3 +172,43 @@ export async function getAllCases() {
     throw error;
   }
 }
+
+// Function to fetch site settings
+export async function getSettings() {
+  try {
+    const response = await fetch('http://localhost:8000/api/settings');
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    throw error;
+  }
+}
+
+// Function to update site settings (Admin)
+export async function updateSettings(settingsData, token) {
+  try {
+    const response = await fetch('http://localhost:8000/api/settings/update', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(settingsData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating settings:', error);
+    throw error;
+  }
+}
+

@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, CSSProperties } from "react";
 import { getAllTeams } from "../services/api";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
@@ -11,6 +11,19 @@ import ruqayaImg from "@/assets/Ruqaya.jpeg";
 import fazalImg from "@/assets/fazal.jpeg";
 import laibaImg from "@/assets/laiba waseem.jpeg";
 import aboutImg from "@/assets/aboutus.jpg";
+import hadiyaImg from "@/assets/hadiya.jpeg";
+import shaheerImg from "@/assets/shaheer.jpeg";
+import hamzaImg from "@/assets/hamza.jpeg";
+import saadImg from "@/assets/saad.jpeg";
+
+interface CrewMember {
+  name: string;
+  role: string;
+  image: string;
+  description: string;
+  years: string;
+  customStyle?: CSSProperties;
+}
 
 const About = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -35,7 +48,7 @@ const About = () => {
     }
   };
 
-  const ogCrew = [
+  const ogCrew: CrewMember[] = [
     {
       name: "Bassam",
       role: "Social Media Head",
@@ -70,6 +83,37 @@ const About = () => {
       image: laibaImg,
       description: "Volunteer Team Member Islamabad",
       years: "2024 - 2025"
+    },
+    {
+      name: "Hadiya Iqbal",
+      role: "Chairperson Rafahiyah foundation",
+      image: hadiyaImg, // Placeholder or user needs to provide
+      description: "Chairperson Rafahiyah foundation",
+      years: "2023 - 2025",
+      customStyle: { objectPosition: "50% 22%" }
+    },
+    {
+      name: "Muhammad Shaheer",
+      role: "Graphics Team Lead",
+      image: shaheerImg,
+      description: "Graphics Team Lead",
+      years: "2023 - 2025",
+      customStyle: { objectPosition: "50% 20%" }
+    },
+    {
+      name: "Hamza Amir",
+      role: "Volunteer Team Lead Islamabad",
+      image: hamzaImg,
+      description: "Volunteer Team Lead Islamabad",
+      years: "2023 - 2026",
+      customStyle: { objectPosition: "50% 20%" }
+    },
+    {
+      name: "Saad",
+      role: "Volunteer Team Member Taxila",
+      image: saadImg,
+      description: "Volunteer Team Member Taxila",
+      years: "2023 - 2024"
     },
   ];
 
@@ -140,7 +184,7 @@ const About = () => {
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-odibee text-rafahiyah-dark-blue mb-4">ONE VISION</h2>
+            <h2 className="text-4xl md:text-5xl font-odibee text-rafahiyah-dark-blue mb-4">OUR VISION</h2>
           </div>
 
           <div className="space-y-16">
@@ -148,7 +192,7 @@ const About = () => {
             <div className="text-center">
               <div className="bg-gradient-to-b from-[#fccf4d] to-white p-10 rounded-2xl shadow-md border border-yellow-100">
                 <p className="text-xl text-rafahiyah-dark-blue leading-relaxed font-medium">
-                  "We came together to create a prosperous and caring society in which everyone has access to opportunities, healthcare, education, and fundamental human dignity as a right rather than a privilege. We see thriving communities where every one of us can reach their full potential and make a significant contribution to a better tomorrow. These communities are bolstered by unity, equity, and self-reliance."
+                  We came together to create a prosperous and caring society in which everyone has access to opportunities, healthcare, education, and fundamental human dignity as a right rather than a privilege. We see thriving communities where every one of us can reach their full potential and make a significant contribution to a better tomorrow. These communities are bolstered by unity, equity, and self-reliance.
                 </p>
               </div>
             </div>
@@ -158,7 +202,7 @@ const About = () => {
               <h2 className="text-4xl md:text-5xl font-odibee text-rafahiyah-dark-blue mb-4">OUR MISSION</h2>
               <div className="bg-gradient-to-b from-[#fccf4d] to-white p-10 rounded-2xl shadow-md border border-yellow-100">
                 <p className="text-xl text-rafahiyah-dark-blue leading-relaxed font-medium">
-                  "We strive to uplift the underprivileged and transform communities, fostering a world where everyone has the opportunity to thrive."
+                  We strive to uplift the underprivileged and transform communities, fostering a world where everyone has the opportunity to thrive.
                 </p>
               </div>
             </div>
@@ -197,14 +241,14 @@ const About = () => {
                   <div className="flex-grow">
                     <div className="bg-rafahiyah-deep-red p-8 md:p-12 rounded-[2rem] shadow-sm relative">
                       <p className="text-lg md:text-xl text-white leading-relaxed">
-                        "{founder.quote}"
+                        {founder.quote}
                       </p>
                     </div>
                   </div>
                 )}
                 {!founder.quote && (
                   <div className="flex-grow bg-rafahiyah-deep-red h-64 rounded-[2rem] shadow-sm flex items-center justify-center italic text-white/70">
-                    “As a Co-founder of Rafahiyah Foundation and a Medical Student. Born into this world, the thought of living just like everyone else and dying like just another person has always made me anxious. Left with the question of what something is, I must do my purpose. In my growing age as I turned more towards Islam, the hadith "The best of people are those who are most beneficial to people.", answered all my questions. Trusting Allah and my fellow companions. we're trying to change this world for the better, even if just one life.”
+                    As a Co-founder of Rafahiyah Foundation and a Medical Student. Born into this world, the thought of living just like everyone else and dying like just another person has always made me anxious. Left with the question of what something is, I must do my purpose. In my growing age as I turned more towards Islam, the hadith "The best of people are those who are most beneficial to people.", answered all my questions. Trusting Allah and my fellow companions. we're trying to change this world for the better, even if just one life.
                   </div>
                 )}
               </div>
@@ -250,7 +294,8 @@ const About = () => {
                       <img
                         src={member.image}
                         alt={member.name}
-                        className="w-full h-full object-cover object-top"
+                        className="w-full h-full object-cover"
+                        style={member.customStyle || { objectPosition: 'top' }}
                       />
                     ) : (
                       "pic"

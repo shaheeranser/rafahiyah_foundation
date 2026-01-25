@@ -76,11 +76,11 @@ const Header = ({ showNavItems = true }: HeaderProps) => {
         {/* Logo Area */}
         <div className="flex items-center gap-3">
           <Link to="/" className="flex-shrink-0 group">
-            <div className="bg-white rounded-full p-0.5 shadow-[0_0_20px_rgba(255,255,255,0.5)] transition-transform transform group-hover:scale-105 duration-300 w-16 h-16 flex items-center justify-center overflow-hidden border-2 border-white/50">
+            <div className="bg-white rounded-full p-0.5 shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-transform transform group-hover:scale-105 duration-300 w-16 h-16 flex items-center justify-center overflow-hidden border-2 border-white/50">
               <img
                 src={rafahiyahLogo}
                 alt="Rafahiyah Foundation Logo"
-                className="w-full h-full object-contain drop-shadow-sm p-1"
+                className="w-full h-full object-contain drop-shadow-sm p-1 rounded-full"
               />
             </div>
           </Link>
@@ -147,13 +147,13 @@ const Header = ({ showNavItems = true }: HeaderProps) => {
             <Link to="/contact" className="block text-2xl font-odibee text-white hover:text-[#FCD34D]" onClick={() => setIsMobileMenuOpen(false)}>Contact Us</Link>
 
             {!isAuthenticated() ?
-              <div className="pt-6 space-y-4 w-full max-w-xs">
-                <Link to="/contact#join-us" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="pt-6 flex flex-col gap-4 w-full max-w-xs">
+                <Link to="/contact#join-us" onClick={() => setIsMobileMenuOpen(false)} className="block w-full">
                   <Button className="w-full bg-[radial-gradient(circle_at_center,_#EBDE3F_0%,_#D89637_100%)] text-[#4A1811] hover:brightness-110 font-odibee tracking-wider text-xl rounded-full py-3 transition-all">
                     Join Us Now
                   </Button>
                 </Link>
-                <Link to="/contact#donate" onClick={() => setIsMobileMenuOpen(false)}>
+                <Link to="/contact#donate" onClick={() => setIsMobileMenuOpen(false)} className="block w-full">
                   <Button className="w-full bg-[radial-gradient(circle_at_center,_#852D1A_0%,_#242D4B_100%)] text-white hover:brightness-110 font-odibee tracking-wider text-xl rounded-full py-3 transition-all">
                     Donate Now
                   </Button>

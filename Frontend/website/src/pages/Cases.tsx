@@ -85,7 +85,17 @@ const Cases = () => {
                 } else if (casesRes.data.success && Array.isArray(casesRes.data.data)) { // common standard
                     fetchedCases = casesRes.data.data;
                 }
-                setCasesList(fetchedCases);
+                // Filter for active and non-completed cases
+                const activeCases = fetchedCases.filter((c: any) => {
+                    const status = c.status ? c.status.toLowerCase() : 'active';
+                    const required = Number(c.amountRequired || c.goal || 0);
+                    const collected = Number(c.amountCollected || c.raised || 0);
+
+                    // Show only if active AND not fully funded (incomplete)
+                    return status === 'active' && collected < required;
+                });
+
+                setCasesList(activeCases);
 
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -418,7 +428,7 @@ const Cases = () => {
 
             {/* Detail Modal */}
             <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
-                <DialogContent className="max-w-4xl bg-white rounded-3xl p-6 md:p-8 overflow-hidden max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-4xl bg-white rounded-3xl p-6 md:p-8 overflow-hidden">
                     <DialogHeader className="sr-only">
                         <DialogTitle>{selectedItem?.title}</DialogTitle>
                     </DialogHeader>
@@ -455,11 +465,11 @@ const Cases = () => {
                                                 </p>
                                                 <p>
                                                     <span className="font-semibold uppercase text-gray-900">GOAL:</span>{" "}
-                                                    ${(selectedItem.amountRequired || 0).toLocaleString()}
+                                                    ${Number(selectedItem.amountRequired || selectedItem.goal || 0).toLocaleString()}
                                                 </p>
                                                 <p>
                                                     <span className="font-semibold uppercase text-gray-900">COLLECTED:</span>{" "}
-                                                    ${(selectedItem.amountCollected || 0).toLocaleString()}
+                                                    ${Number(selectedItem.amountCollected || selectedItem.raised || 0).toLocaleString()}
                                                 </p>
                                             </>
                                         ) : (
@@ -528,7 +538,7 @@ const Cases = () => {
                                                                 <div key={cse._id} className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm">
                                                                     <div className="font-bold text-gray-800">{cse.title}</div>
                                                                     <div className="text-gray-600 text-xs">
-                                                                        Goal: ${cse.amountRequired?.toLocaleString()} | Collected: ${cse.amountCollected?.toLocaleString()}
+                                                                        Goal: ${Number(cse.amountRequired || cse.goal || 0).toLocaleString()} | Collected: ${Number(cse.amountCollected || cse.raised || 0).toLocaleString()}
                                                                     </div>
                                                                 </div>
                                                             ))}
@@ -554,13 +564,7 @@ const Cases = () => {
                             {/* Bottom Section: Buttons */}
                             <div className="flex flex-col sm:flex-row justify-end gap-4 mt-2">
                                 <Button
-                                    className="bg-[#242D4B] hover:bg-[#1a2138] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all"
-                                    onClick={() => setSelectedItem(null)}
-                                >
-                                    Close
-                                </Button>
-                                <Button
-                                    className="bg-[#852D1A] hover:bg-[#6b2416] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all"
+                                    className="w-full bg-[#852D1A] hover:bg-[#6b2416] text-white px-8 py-6 rounded-xl font-sans text-lg shadow-md transition-all"
                                     onClick={() => {
                                         if (selectedItem.caseNo) {
                                             navigate('/contact', {
@@ -583,7 +587,7 @@ const Cases = () => {
                                         }
                                     }}
                                 >
-                                    {selectedItem.caseNo ? "Donate Now" : "Join/Volounteer"}
+                                    {selectedItem.caseNo ? "Donate Now" : "Join Us"}
                                 </Button>
                             </div>
                         </div>

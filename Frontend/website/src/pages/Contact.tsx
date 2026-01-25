@@ -27,6 +27,38 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 // Let's use apiCall for consistency if it supports GET, or just use axios if it's easier.
 // Cases.tsx used axios directly. I will add axios import.
 import axios from "axios";
+import { Copy } from "lucide-react";
+
+// Validation Helpers
+const isValidEmail = (email: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
+const isValidName = (name: string) => {
+  return /^[a-zA-Z\s]*$/.test(name);
+};
+
+const toastStyle = {
+  style: {
+    background: '#8B2D1B',
+    color: '#FCD34D',
+  },
+  iconTheme: {
+    primary: '#FCD34D',
+    secondary: '#8B2D1B',
+  },
+};
+
+const errorToastStyle = {
+  style: {
+    background: '#8B2D1B',
+    color: '#FCD34D',
+  },
+  iconTheme: {
+    primary: '#FCD34D',
+    secondary: '#8B2D1B',
+  },
+};
 
 const Contact = () => {
   const { hash } = useLocation();
@@ -100,6 +132,16 @@ const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isValidName(formData.fullName)) {
+      toast.error("Please enter a valid name (letters and spaces only)", errorToastStyle);
+      return;
+    }
+    if (!isValidEmail(formData.email)) {
+      toast.error("Please enter a valid email address", errorToastStyle);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -110,7 +152,7 @@ const Contact = () => {
       });
 
       if (response.success) {
-        toast.success("Message sent successfully!");
+        toast.success("Message sent successfully!", toastStyle);
         setFormData({
           fullName: "",
           email: "",
@@ -120,11 +162,11 @@ const Contact = () => {
         });
       } else {
         const errorMessage = response.data?.message || response.data?.msg || "Failed to send message";
-        toast.error(errorMessage);
+        toast.error(errorMessage, errorToastStyle);
         console.error("Contact Form Error:", response);
       }
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.", errorToastStyle);
     } finally {
       setLoading(false);
     }
@@ -134,12 +176,17 @@ const Contact = () => {
     e.preventDefault();
 
     if (!joinData.fullName || !joinData.contactNumber || !joinData.age || !joinData.city || !joinData.occupation || !joinData.team) {
-      toast.error("Please fill in all required fields");
+      toast.error("Please fill in all required fields", errorToastStyle);
+      return;
+    }
+
+    if (!isValidName(joinData.fullName)) {
+      toast.error("Please enter a valid name (letters and spaces only)", errorToastStyle);
       return;
     }
 
     if (!isAgreed) {
-      toast.error("Please agree to the terms and conditions");
+      toast.error("Please agree to the terms and conditions", errorToastStyle);
       return;
     }
 
@@ -153,7 +200,7 @@ const Contact = () => {
       });
 
       if (response.success) {
-        toast.success("Join Request Sent Successfully!");
+        toast.success("Join Request Sent Successfully!", toastStyle);
         setJoinData({
           fullName: "",
           contactNumber: "",
@@ -165,11 +212,11 @@ const Contact = () => {
         });
       } else {
         const errorMessage = response.data?.message || response.data?.msg || "Failed to submit request";
-        toast.error(errorMessage);
+        toast.error(errorMessage, errorToastStyle);
         console.error("Join Form Error:", response);
       }
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.", errorToastStyle);
     } finally {
       setLoading(false);
     }
@@ -178,7 +225,7 @@ const Contact = () => {
   // Donation Handlers
   const handleDonationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (name === "contactNumber" || name === "amount") {
+    if (name === "contactNumber") {
       if (/^\d*$/.test(value)) {
         setDonationData({ ...donationData, [name]: value });
       }
@@ -201,7 +248,16 @@ const Contact = () => {
     e.preventDefault();
 
     if (!donationData.fullName || !donationData.email || !donationData.contactNumber || !donationData.amount || !donationData.purpose || !donationData.cause || !donationData.paymentMethod) {
-      toast.error("Please fill in all required fields");
+      toast.error("Please fill in all required fields", errorToastStyle);
+      return;
+    }
+
+    if (!isValidName(donationData.fullName)) {
+      toast.error("Please enter a valid name (letters and spaces only)", errorToastStyle);
+      return;
+    }
+    if (!isValidEmail(donationData.email)) {
+      toast.error("Please enter a valid email address", errorToastStyle);
       return;
     }
 
@@ -220,7 +276,7 @@ const Contact = () => {
       if (paymentProof) {
         formData.append("receipt", paymentProof);
       } else {
-        toast.error("Please upload a payment screenshot/receipt");
+        toast.error("Please upload a payment screenshot/receipt", errorToastStyle);
         setDonationLoading(false);
         return;
       }
@@ -232,7 +288,7 @@ const Contact = () => {
       });
 
       if (response.success) {
-        toast.success("Donation submitted successfully! We will verify it shortly.");
+        toast.success("Donation submitted successfully! We will verify it shortly.", toastStyle);
         setDonationData({
           fullName: "",
           email: "",
@@ -246,11 +302,11 @@ const Contact = () => {
       } else {
         const errorMessage = response.data?.message || response.data?.msg || "Failed to submit donation";
         console.error("Donation Error Response:", response);
-        toast.error(errorMessage);
+        toast.error(errorMessage, errorToastStyle);
       }
     } catch (error) {
       console.error("Donation Submit Error:", error);
-      toast.error("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.", errorToastStyle);
     } finally {
       setDonationLoading(false);
     }
@@ -511,7 +567,7 @@ const Contact = () => {
                   />
                   <span className="absolute bottom-4 right-4 text-[10px] text-gray-400">{formData.message.length}/150</span>
                 </div>
-                <Button disabled={loading} className="w-full h-14 rounded-xl bg-white hover:bg-gray-100 hover:text-rafahiyah-dark-blue text-rafahiyah-dark-blue text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg">
+                <Button disabled={loading} className="w-full h-14 rounded-xl bg-white hover:bg-rafahiyah-dark-blue hover:text-white text-rafahiyah-dark-blue text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg border-2 border-transparent hover:border-white/20">
                   {loading ? "Sending..." : "Send Message"}
                 </Button>
               </form>
@@ -603,7 +659,7 @@ const Contact = () => {
                     By submitting this form, I acknowledge and agree to volunteer my time and services without any financial benefit. I understand that this is a voluntary role and does not constitute employment.
                   </p>
                 </div>
-                <Button className="w-full h-12 rounded-xl bg-white hover:bg-gray-100 hover:text-[#8B2D1B] text-[#8B2D1B] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg">
+                <Button className="w-full h-12 rounded-xl bg-white hover:bg-[#8B2D1B] hover:text-white text-[#8B2D1B] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg border-2 border-transparent hover:border-white/20">
                   Join The Crew
                 </Button>
               </form>
@@ -817,8 +873,8 @@ const Contact = () => {
                   name="amount"
                   value={donationData.amount}
                   onChange={handleDonationChange}
-                  placeholder="Items or Amount"
-                  type="number"
+                  placeholder="Amount"
+                  type="text"
                   className="h-14 rounded-xl border-none bg-white font-sans text-gray-800"
                   required
                 />
@@ -931,21 +987,63 @@ const Contact = () => {
                   <div className="bg-white/20 p-4 rounded-xl border border-white/30 text-white backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300">
                     <p className="text-sm font-semibold mb-1 opacity-90">Please transfer funds to:</p>
                     {donationData.paymentMethod === "Easypaisa" && (
-                      <div className="font-mono text-lg">
-                        <p>03405548012</p>
-                        <p className="text-xs opacity-75">Title: Nuzhat Hamid</p>
+                      <div className="flex justify-between items-center">
+                        <div className="font-mono text-lg">
+                          <p>03405548012</p>
+                          <p className="text-xs opacity-75">Title: Nuzhat Hamid</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            navigator.clipboard.writeText("03405548012");
+                            toast.success("Copied to clipboard!", toastStyle);
+                          }}
+                          className="text-white hover:bg-white/20"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
                       </div>
                     )}
                     {donationData.paymentMethod === "JazzCash" && (
-                      <div className="font-mono text-lg">
-                        <p>03174632899 </p>
-                        <p className="text-xs opacity-75">Title: Choudhry Muhammad Zain Shahid</p>
+                      <div className="flex justify-between items-center">
+                        <div className="font-mono text-lg">
+                          <p>03174632899 </p>
+                          <p className="text-xs opacity-75">Title: Choudhry Muhammad Zain Shahid</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            navigator.clipboard.writeText("03174632899");
+                            toast.success("Copied to clipboard!", toastStyle);
+                          }}
+                          className="text-white hover:bg-white/20"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
                       </div>
                     )}
                     {donationData.paymentMethod === "Bank Transfer" && (
-                      <div className="font-mono text-md">
-                        <p>JSBL 0002089050</p>
-                        <p className="text-xs opacity-75">Title: MUHAMMAD SHAHEER</p>
+                      <div className="flex justify-between items-center">
+                        <div className="font-mono text-md">
+                          <p>JSBL 0002089050</p>
+                          <p className="text-xs opacity-75">Title: MUHAMMAD SHAHEER</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            navigator.clipboard.writeText("JSBL 0002089050");
+                            toast.success("Copied to clipboard!", toastStyle);
+                          }}
+                          className="text-white hover:bg-white/20"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -971,17 +1069,19 @@ const Contact = () => {
                   </label>
                 </div>
 
-                <Button disabled={donationLoading} className="w-full h-14 rounded-xl bg-white hover:bg-gray-100 hover:text-[#806306] text-[#806306] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg mt-4">
+
+
+                <Button disabled={donationLoading} className="w-full h-14 rounded-xl bg-white hover:bg-[#806306] hover:text-white text-[#806306] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg mt-4 border-2 border-transparent hover:border-white/20">
                   {donationLoading ? "Processing..." : "Donate Now"}
                 </Button>
               </form>
             </div>
           </div>
-        </div>
-      </section>
+        </div >
+      </section >
 
       <Footer />
-    </div>
+    </div >
   );
 };
 

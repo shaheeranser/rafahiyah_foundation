@@ -63,49 +63,47 @@ const OngoingInitiatives = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {initiatives.slice(0, 3).map((item) => (
-                        <Card key={item._id} className="bg-white rounded-3xl overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
-                            <div className="h-64 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                        <div key={item._id} className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex flex-col items-start h-full hover:shadow-xl transition-shadow duration-300">
+                            <div className="w-full h-56 rounded-2xl mb-6 overflow-hidden cursor-pointer" onClick={() => setSelectedInitiative(item)}>
                                 <img
                                     src={`http://localhost:8000/${item.image}`}
                                     alt={item.title}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                                     onError={(e) => {
                                         e.currentTarget.src = communityImg; // Fallback image
                                     }}
                                 />
                             </div>
 
-                            <CardHeader className="text-left pb-2">
-                                <h3 className="text-3xl font-odibee text-gray-800 capitalize">{item.title}</h3>
-                            </CardHeader>
+                            <h3 className="text-2xl font-bold text-black mb-4 font-odibee tracking-wide capitalize text-left w-full">{item.title}</h3>
+                            <p className="text-gray-600 mb-6 flex-grow leading-relaxed font-sans text-lg line-clamp-3 text-left w-full">
+                                {item.description}
+                            </p>
 
-                            <CardContent className="text-left flex-grow">
-                                <p className="text-gray-500 font-sans text-lg capitalize line-clamp-3 mb-4">{item.description}</p>
-
-                                {item.requiredAmount > 0 && (
-                                    <div className="space-y-2">
-                                        <div className="w-full bg-gray-200 rounded-full h-4 relative">
-                                            <div
-                                                className="bg-[#852D1A] h-4 rounded-full"
-                                                style={{ width: `${Math.min((item.collectedAmount / item.requiredAmount) * 100, 100)}%` }}
-                                            ></div>
-                                        </div>
-                                        <p className="text-[#1E2542] font-sans font-medium text-lg">
-                                            Raised: <span className="text-[#852D1A]">${item.collectedAmount?.toLocaleString() || 0}</span> / ${item.requiredAmount?.toLocaleString()}
-                                        </p>
+                            {item.requiredAmount > 0 && (
+                                <div className="w-full mb-6 text-left">
+                                    <div className="flex justify-between items-center mb-2 text-xs font-bold text-gray-500 uppercase tracking-widest font-sans">
+                                        <span className="text-rafahiyah-deep-red">Raised: ${item.collectedAmount?.toLocaleString() || 0}</span>
+                                        <span>Goal: ${item.requiredAmount?.toLocaleString()}</span>
                                     </div>
-                                )}
-                            </CardContent>
+                                    <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                                        <div
+                                            className="bg-[#8B2D1B] h-full transition-all duration-1000 ease-out rounded-full"
+                                            style={{ width: `${Math.min(((item.collectedAmount || 0) / (item.requiredAmount || 1)) * 100, 100)}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
-                            <CardFooter className="flex justify-between items-center pt-4 pb-6 px-6 gap-4">
-                                <Button
+                            <div className="flex gap-4 w-full mt-auto">
+                                <button
+                                    className="flex-1 bg-[#FFD700] text-black py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#FDB931] transition-colors uppercase tracking-wider"
                                     onClick={() => setSelectedInitiative(item)}
-                                    className="bg-rafahiyah-gold text-rafahiyah-dark-blue hover:bg-yellow-400 hover:text-black rounded-full px-6 font-odibee text-lg tracking-wide flex-1 shadow-sm"
                                 >
                                     Read More
-                                </Button>
-                                <Button
-                                    className="bg-rafahiyah-deep-red text-white hover:bg-[#6b2416] transition-colors rounded-full px-6 font-odibee text-lg tracking-wide flex-1 shadow-sm"
+                                </button>
+                                <button
+                                    className="flex-1 bg-rafahiyah-deep-red text-white py-3 rounded-xl text-sm font-bold font-odibee hover:bg-[#6b2416] transition-colors uppercase tracking-wider"
                                     onClick={() => {
                                         navigate('/contact', {
                                             state: {
@@ -116,17 +114,17 @@ const OngoingInitiatives = () => {
                                         });
                                     }}
                                 >
-                                    Join Now
-                                </Button>
-                            </CardFooter>
-                        </Card>
+                                    Join Us
+                                </button>
+                            </div>
+                        </div>
                     ))}
                 </div>
 
                 <div className="mt-12">
                     <Button
                         onClick={() => navigate('/stories')}
-                        className="bg-[#1E2542] text-white hover:bg-[#2a3356] border-none rounded-full px-8 py-6 font-sans shadow-md transition-all"
+                        className="bg-[#1E2542] text-white hover:bg-[#2a3356] border-none rounded-full px-8 py-6 font-odibee tracking-wider text-xl shadow-md transition-all"
                     >
                         Discover More
                     </Button>

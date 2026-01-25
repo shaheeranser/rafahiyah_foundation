@@ -131,18 +131,20 @@ All colors MUST be HSL.
   }
 }
 
-@keyframes scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); } /* Half the width since we doubled the content */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
 }
 
-.animate-scroll-slow {
-  animation: scroll 40s linear infinite; /* Adjust time as needed */
-  width: max-content;
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
 
-@media (prefers-reduced-motion) {
-  .animate-scroll-slow {
-    animation: none;
-  }
+.animate-float-delayed {
+  animation: float 6s ease-in-out 3s infinite;
+}
+
+.animate-float-slow {
+  animation: float 8s ease-in-out infinite;
 }
