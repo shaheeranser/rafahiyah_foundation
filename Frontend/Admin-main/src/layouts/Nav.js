@@ -17,11 +17,9 @@ function Nav({ onToggleSidebar }) {
         >
           <Menu size={20} className="text-gray-600" />
         </button>
-        
+
         {/* Logo/Title */}
-        <Link to="/Admin/" className="hover:text-blue-600 transition-colors">
-          <div className="text-xl font-semibold text-gray-800">Admin</div>
-        </Link>
+
       </div>
 
       {/* Right side - Admin info and logout */}
@@ -33,7 +31,7 @@ function Nav({ onToggleSidebar }) {
               <AdminName />
             </span>
           </div>
-          
+
           {/* Logout Button - Uncomment when needed */}
           {/* 
           <Link 

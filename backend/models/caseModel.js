@@ -38,6 +38,15 @@ const caseSchema = new mongoose.Schema({
     },
     finalAmount: {
         type: Number
+    },
+    receipt: {
+        type: String // Path to receipt file
+    },
+    documents: {
+        type: String // Path to documents file
+    },
+    additionalComments: {
+        type: String
     }
 }, { timestamps: true });
 

@@ -261,8 +261,16 @@ const Posts = () => {
   // Handlers
   const handleCreateOpen = () => {
     setEditId(null);
+
+    // Sequential Case Number Logic
+    const maxCaseNo = activeCases.concat(completedCases, droppedCases)
+      .reduce((max, c) => {
+        const num = parseInt(c.caseNo, 10);
+        return !isNaN(num) && num > max ? num : max;
+      }, 34); // Start checking from 34, so next is 35
+
     setNewCaseForm({
-      caseNo: Math.floor(1000 + Math.random() * 9000), // Auto-generate
+      caseNo: maxCaseNo + 1,
       category: 'Financial Help',
       amountRequired: '',
       amountCollected: '',
@@ -275,6 +283,12 @@ const Posts = () => {
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation for negative numbers
+    if (newCaseForm.amountRequired < 0 || newCaseForm.amountCollected < 0) {
+      Swal.fire('Error', 'Amounts cannot be negative.', 'error');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('caseNo', newCaseForm.caseNo);
@@ -322,7 +336,7 @@ const Posts = () => {
         amountCollected: caseItem.amountCollected,
         title: caseItem.title,
         description: caseItem.description,
-        picture: null // Reset picture input, user can upload new one if they want
+        picture: null
       });
       setShowCreateModal(true);
     } else if (action === 'delete') {
@@ -373,16 +387,39 @@ const Posts = () => {
 
   const handleCompleteStart = () => {
     setShowDetailModal(false);
-    setCompletionForm({ finalAmount: selectedCase.amountCollected, docs: null, receipt: null });
+    setCompletionForm({
+      finalAmount: selectedCase.amountCollected,
+      docs: null,
+      receipt: null,
+      additionalComments: ''
+    });
     setShowCompleteModal(true);
   };
 
   const handleCompleteSubmit = async (e) => {
     e.preventDefault();
+
+    // DOUBLE CHECK: File validation
+    if (!completionForm.docs || !completionForm.receipt) {
+      Swal.fire('Missing Files', 'You must upload both the Documents and the Receipt before completing the case.', 'error');
+      return;
+    }
+
+    if (newCaseForm.amountCollected < 0) { // Although this is readonly here, good generically
+      Swal.fire('Error', 'Amount cannot be negative.', 'error');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('status', 'completed');
+    formData.append('finalAmount', completionForm.finalAmount);
+    formData.append('additionalComments', completionForm.additionalComments);
+    formData.append('documents', completionForm.docs);
+    formData.append('receipt', completionForm.receipt);
+
     try {
-      await axios.patch(`${Domain()}/cases/${selectedCase._id}/status`, {
-        status: 'completed',
-        finalAmount: completionForm.finalAmount
+      await axios.patch(`${Domain()}/cases/${selectedCase._id}/status`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       Swal.fire('Completed!', 'Case closed successfully.', 'success');
       setShowCompleteModal(false);
@@ -563,11 +600,35 @@ const Posts = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Amount Required</label>
-                  <input type="number" placeholder="$0.00" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={newCaseForm.amountRequired} onChange={e => setNewCaseForm({ ...newCaseForm, amountRequired: e.target.value })} required />
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="PKR 0.00"
+                    className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    value={newCaseForm.amountRequired}
+                    onKeyDown={(e) => e.key === '-' && e.preventDefault()}
+                    onChange={e => {
+                      const val = Number(e.target.value);
+                      setNewCaseForm({ ...newCaseForm, amountRequired: Math.max(0, val) })
+                    }}
+                    required
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Amount Raised</label>
-                  <input type="number" placeholder="$0.00" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={newCaseForm.amountCollected} onChange={e => setNewCaseForm({ ...newCaseForm, amountCollected: e.target.value })} required />
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="PKR 0.00"
+                    className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    value={newCaseForm.amountCollected}
+                    onKeyDown={(e) => e.key === '-' && e.preventDefault()}
+                    onChange={e => {
+                      const val = Number(e.target.value);
+                      setNewCaseForm({ ...newCaseForm, amountCollected: Math.max(0, val) })
+                    }}
+                    required
+                  />
                 </div>
               </div>
 
@@ -583,6 +644,7 @@ const Posts = () => {
                     id="file-upload"
                     type="file"
                     className="hidden"
+                    accept="image/*"
                     onChange={e => {
                       if (e.target.files[0]) {
                         setNewCaseForm({ ...newCaseForm, picture: e.target.files[0] });
@@ -670,11 +732,11 @@ const Posts = () => {
                 <div className="space-y-4 bg-gray-50 p-5 rounded-xl border border-gray-100">
                   <div className="flex justify-between items-center text-sm">
                     <span className="font-bold text-gray-500 uppercase">total amount:</span>
-                    <span className="font-bold text-gray-900 text-lg">${selectedCase.amountRequired}</span>
+                    <span className="font-bold text-gray-900 text-lg">PKR {selectedCase.amountRequired}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="font-bold text-gray-500 uppercase">collected amount:</span>
-                    <span className="font-bold text-emerald-600 text-lg">${selectedCase.amountCollected}</span>
+                    <span className="font-bold text-emerald-600 text-lg">PKR {selectedCase.amountCollected}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
                     <div
@@ -685,7 +747,7 @@ const Posts = () => {
                   <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-200/60">
                     <span className="font-bold text-gray-500 uppercase">remaining amount:</span>
                     <span className="font-bold text-rose-500 text-lg">
-                      ${Math.max(0, (selectedCase.amountRequired || 0) - (selectedCase.amountCollected || 0))}
+                      PKR {Math.max(0, (selectedCase.amountRequired || 0) - (selectedCase.amountCollected || 0))}
                     </span>
                   </div>
                 </div>
@@ -720,7 +782,15 @@ const Posts = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in-up">
             <div className="p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Completion Process</h3>
+              <div className="flex justify-between items-start mb-1">
+                <h3 className="text-lg font-bold text-gray-900">Completion Process</h3>
+                <button
+                  onClick={() => setShowCompleteModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faTimesCircle} size="lg" />
+                </button>
+              </div>
               <p className="text-xs text-gray-500 mb-6 font-bold uppercase">Finalizing Case #{selectedCase.caseNo}</p>
 
               <form onSubmit={handleCompleteSubmit} className="space-y-4">
@@ -728,21 +798,63 @@ const Posts = () => {
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Total Amount Collected</label>
                   <input
                     type="number"
-                    className="w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500/50 outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm font-bold text-gray-900 focus:outline-none cursor-not-allowed appearance-none"
                     value={completionForm.finalAmount}
-                    onChange={(e) => setCompletionForm({ ...completionForm, finalAmount: e.target.value })}
-                    required
+                    readOnly
+                    style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
                   />
                 </div>
 
-                <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center text-gray-500 text-xs hover:bg-gray-50 cursor-pointer transition-colors">
-                  <FontAwesomeIcon icon={faFileUpload} className="mb-2 block mx-auto text-lg text-gray-300" />
-                  Upload Documents
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Additional Comments <span className="text-red-500">*</span></label>
+                  <textarea
+                    className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    rows="3"
+                    placeholder="Enter any additional details..."
+                    value={completionForm.additionalComments}
+                    onChange={(e) => setCompletionForm({ ...completionForm, additionalComments: e.target.value })}
+                    required
+                  ></textarea>
                 </div>
 
-                <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center text-gray-500 text-xs hover:bg-gray-50 cursor-pointer transition-colors">
-                  <FontAwesomeIcon icon={faFileUpload} className="mb-2 block mx-auto text-lg text-gray-300" />
-                  Upload Receipt
+                {/* Documents Upload */}
+                <div>
+                  <input
+                    type="file"
+                    id="upload-docs"
+                    className="hidden"
+                    accept="image/*,.pdf"
+                    onChange={(e) => setCompletionForm({ ...completionForm, docs: e.target.files[0] })}
+                  />
+                  <div
+                    className={`border border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${completionForm.docs ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:bg-gray-50'}`}
+                    onClick={() => document.getElementById('upload-docs').click()}
+                  >
+                    <FontAwesomeIcon icon={faFileUpload} className={`mb-2 block mx-auto text-lg ${completionForm.docs ? 'text-indigo-500' : 'text-gray-300'}`} />
+                    <span className={`text-xs ${completionForm.docs ? 'text-indigo-700 font-bold' : 'text-gray-500'}`}>
+                      {completionForm.docs ? completionForm.docs.name : 'Upload Documents'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Receipt Upload */}
+                <div>
+                  <input
+                    type="file"
+                    id="upload-receipt"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => setCompletionForm({ ...completionForm, receipt: e.target.files[0] })}
+                  />
+                  <div
+                    className={`border border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${completionForm.receipt ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:bg-gray-50'}`}
+                    onClick={() => document.getElementById('upload-receipt').click()}
+                  >
+                    <FontAwesomeIcon icon={faFileUpload} className={`mb-2 block mx-auto text-lg ${completionForm.receipt ? 'text-indigo-500' : 'text-gray-300'}`} />
+                    <span className={`text-xs ${completionForm.receipt ? 'text-indigo-700 font-bold' : 'text-gray-500'}`}>
+                      {completionForm.receipt ? completionForm.receipt.name : 'Upload Receipt'}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="pt-2">

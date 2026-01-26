@@ -48,8 +48,8 @@ const EventCard = ({ event, onView, onEdit, onDelete }) => {
         {(event.requiredAmount > 0) && (
           <div className="mb-4">
             <div className="flex justify-between text-xs text-gray-500 mb-1">
-              <span>Raised: ${event.collectedAmount || 0}</span>
-              <span>Goal: ${event.requiredAmount}</span>
+              <span>Raised: PKR {event.collectedAmount || 0}</span>
+              <span>Goal: PKR {event.requiredAmount}</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
               <div
@@ -91,7 +91,7 @@ const EventCard = ({ event, onView, onEdit, onDelete }) => {
             <FontAwesomeIcon icon={faEdit} />
           </button>
           <button
-            onClick={() => onDelete(event.id)}
+            onClick={() => onDelete(event._id)}
             className="text-gray-400 hover:text-rose-500 transition-colors p-2 hover:bg-rose-50 rounded-full"
             title="Delete Event"
           >
@@ -149,7 +149,7 @@ const CompletedTable = ({ events, onExport, onView, onUndo, onEdit }) => {
                   {event.location}
                 </td>
                 <td className="py-4 px-6 text-sm text-gray-600 font-medium">
-                  {event.requiredAmount ? `$${event.requiredAmount}` : 'N/A'}
+                  {event.requiredAmount ? `PKR ${event.requiredAmount}` : 'N/A'}
                 </td>
                 <td className="py-4 px-6">
                   <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-600 border border-emerald-200 flex items-center w-fit gap-1">
@@ -322,12 +322,21 @@ const Events = () => {
     setShowDetailModal(true);
   };
 
+  const safeDate = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      return new Date(dateStr).toISOString().split('T')[0];
+    } catch (e) {
+      return '';
+    }
+  };
+
   const handleEditOpen = (event) => {
     setSelectedEvent(event);
     setEditForm({
       title: event.title,
       description: event.description,
-      date: event.date ? new Date(event.date).toISOString().split('T')[0] : '',
+      date: safeDate(event.date),
       time: event.time,
       location: event.location,
       requiredAmount: event.requiredAmount || 0,
@@ -359,6 +368,10 @@ const Events = () => {
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
+    // Prevent negative values for amount fields
+    if (name === 'requiredAmount' || name === 'collectedAmount') {
+      if (value < 0) return;
+    }
     setEditForm({ ...editForm, [name]: value });
   };
 
@@ -586,13 +599,13 @@ const Events = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Budget Required (Opt)</label>
-                  <input type="number" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.requiredAmount} onChange={e => setCreateForm({ ...createForm, requiredAmount: e.target.value })} />
+                  <input type="number" min="0" onKeyDown={(e) => e.key === '-' && e.preventDefault()} className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.requiredAmount} onChange={e => setCreateForm({ ...createForm, requiredAmount: Math.max(0, Number(e.target.value)) })} />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Collected Amount (Opt)</label>
-                <input type="number" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.collectedAmount} onChange={e => setCreateForm({ ...createForm, collectedAmount: e.target.value })} />
+                <input type="number" min="0" onKeyDown={(e) => e.key === '-' && e.preventDefault()} className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.collectedAmount} onChange={e => setCreateForm({ ...createForm, collectedAmount: Math.max(0, Number(e.target.value)) })} />
               </div>
 
               <div>
@@ -777,9 +790,11 @@ const Events = () => {
                     <div className="flex items-center gap-2">
                       {isEditing ? (
                         <div className="flex items-center">
-                          <span className="font-bold text-gray-500 mr-1">$</span>
+                          <span className="font-bold text-gray-500 mr-1">PKR</span>
                           <input
                             type="number"
+                            min="0"
+                            onKeyDown={(e) => e.key === '-' && e.preventDefault()}
                             name="requiredAmount"
                             value={editForm.requiredAmount}
                             onChange={handleEditChange}
@@ -787,7 +802,7 @@ const Events = () => {
                           />
                         </div>
                       ) : (
-                        <span className="text-lg font-bold text-gray-900">${selectedEvent.requiredAmount || 0}</span>
+                        <span className="text-lg font-bold text-gray-900">PKR {selectedEvent.requiredAmount || 0}</span>
                       )}
                     </div>
                   </div>
@@ -797,9 +812,11 @@ const Events = () => {
                     <div className="flex items-center gap-2">
                       {isEditing ? (
                         <div className="flex items-center">
-                          <span className="font-bold text-gray-500 mr-1">$</span>
+                          <span className="font-bold text-gray-500 mr-1">PKR</span>
                           <input
                             type="number"
+                            min="0"
+                            onKeyDown={(e) => e.key === '-' && e.preventDefault()}
                             name="collectedAmount"
                             value={editForm.collectedAmount}
                             onChange={handleEditChange}
@@ -807,7 +824,7 @@ const Events = () => {
                           />
                         </div>
                       ) : (
-                        <span className="text-lg font-bold text-emerald-600">${selectedEvent.collectedAmount || 0}</span>
+                        <span className="text-lg font-bold text-emerald-600">PKR {selectedEvent.collectedAmount || 0}</span>
                       )}
                     </div>
                   </div>
@@ -824,7 +841,8 @@ const Events = () => {
               </div>
 
               {/* Actions */}
-              <div className="mt-8 space-y-3 pt-6 border-t border-gray-100">
+              {/* Actions - Sticky Footer */}
+              <div className="pt-6 border-t border-gray-100 mt-auto bg-white z-10">
                 {isEditing ? (
                   <button
                     onClick={handleUpdateEvent}
@@ -849,8 +867,8 @@ const Events = () => {
                   </div>
                 )}
               </div>
-
             </div>
+
           </div>
         </div>
       )}

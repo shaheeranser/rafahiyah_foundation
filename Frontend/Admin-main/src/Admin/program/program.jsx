@@ -95,7 +95,7 @@ const ProgramCard = ({ program, onView, onEdit, onDelete }) => {
             <FontAwesomeIcon icon={faEdit} />
           </button>
           <button
-            onClick={() => onDelete(program.id)}
+            onClick={() => onDelete(program._id)}
             className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full"
             title="Delete Program"
           >
@@ -274,14 +274,23 @@ const Programs = () => {
     setShowCreateModal(true);
   };
 
+  const safeDate = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      return new Date(dateStr).toISOString().split('T')[0];
+    } catch (e) {
+      return '';
+    }
+  };
+
   const handleEditOpen = (program) => {
     setSelectedProgram(program);
     setProgramForm({
       name: program.name,
       description: program.description,
       venue: program.venue,
-      startDate: program.startDate,
-      endDate: program.endDate || '',
+      startDate: safeDate(program.startDate),
+      endDate: safeDate(program.endDate),
       status: program.status,
       image: program.image,
       selectedEventIds: (program.linkedEvents || []).map(e => typeof e === 'object' ? e._id : e),
@@ -423,7 +432,7 @@ const Programs = () => {
         }
       };
 
-      await axios.put(`${API_BASE_URL}/programs/update/${selectedProgram.id}`, formData, config);
+      await axios.put(`${API_BASE_URL}/programs/update/${selectedProgram._id || selectedProgram.id}`, formData, config);
 
       Swal.fire('Updated', 'Program updated successfully', 'success');
       // Refresh list
@@ -599,9 +608,10 @@ const Programs = () => {
 
 
   const handleMarkComplete = async (program) => {
-    // 1. Validation: Check linked Events
-    const incompleteEvents = program.linkedEvents.filter(eventId => {
-      const id = typeof eventId === 'object' ? eventId._id : eventId;
+    // 1. Validation: Check linked Events (Safe check)
+    const incompleteEvents = (program.linkedEvents || []).filter(eventId => {
+      const id = (eventId && typeof eventId === 'object') ? eventId._id : eventId;
+      if (!id) return false; // Skip invalid IDs
       const event = eventsList.find(e => e._id === id);
       return event && event.status !== 'Completed';
     });
@@ -611,9 +621,10 @@ const Programs = () => {
       return;
     }
 
-    // 2. Validation: Check linked Cases
-    const incompleteCases = program.linkedCases.filter(caseId => {
-      const id = typeof caseId === 'object' ? caseId._id : caseId;
+    // 2. Validation: Check linked Cases (Safe check)
+    const incompleteCases = (program.linkedCases || []).filter(caseId => {
+      const id = (caseId && typeof caseId === 'object') ? caseId._id : caseId;
+      if (!id) return false;
       const caseItem = casesList.find(c => c._id === id);
       return caseItem && caseItem.status !== 'completed';
     });
@@ -629,34 +640,26 @@ const Programs = () => {
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
       const config = { headers: { 'Authorization': `Bearer ${token}` } };
 
-      const formData = new FormData();
-      formData.append('status', 'completed');
-
-      // We are using the generic update endpoint which uses FormData
-      // Ideally we would have a specific PATCH endpoint, but using existing Update logic
-      // Note: We need to send other required fields if backend requires them on PUT, 
-      // but if it's a PATCH or flexible PUT, just status might work. 
-      // Since existing handleEditSubmit uses PUT with all fields, let's try to construct a minimal valid request 
-      // OR better, create a specific status update flow if backend supports it. 
-      // Assuming we need to send at least required structure.
-      // Let's try sending just status as JSON if backend supports it, otherwise we'd need to re-send all data.
-      // Given the `update` route in `programRoute.js` likely maps to `updateProgram` in controller which handles file upload...
-      // Let's assume for now we can't easily do a partial update without potentially clearing other fields if the controller expects them.
-      // SAFEST APPROACH: Use the existing data and just change status.
-
-      // Re-constructing FormData with existing data + new status
       const data = new FormData();
       data.append('title', program.name);
       data.append('venue', program.venue);
       data.append('description', program.description);
       data.append('startingDate', program.startDate);
-      // Fallback to startDate if endDate is missing to verify backend validation
-      data.append('endingDate', program.endDate || program.startDate);
-      // image is tricky if it's already there. Usually we don't send it back if we don't change it.
+      // Ensure we have a valid ending date. If closing now and no end date, use today.
+      // If it has an end date, use it. If not, use Start Date (original logic) or Today.
+      // Keeping original fallback but adding safety.
+      data.append('endingDate', program.endDate || new Date().toISOString());
+
       data.append('status', 'completed');
-      // CAUTION: program.linkedEvents/linkedCases are populated objects not IDs. Map them to IDs.
-      const linkedEventIds = program.linkedEvents.map(e => typeof e === 'object' ? e._id : e);
-      const linkedCaseIds = program.linkedCases.map(c => typeof c === 'object' ? c._id : c);
+
+      // Safe Mapping and Filtering
+      const linkedEventIds = (program.linkedEvents || [])
+        .map(e => (e && typeof e === 'object') ? e._id : e)
+        .filter(id => id); // Remove null/undefined/empty
+
+      const linkedCaseIds = (program.linkedCases || [])
+        .map(c => (c && typeof c === 'object') ? c._id : c)
+        .filter(id => id);
 
       data.append('linkedEvents', JSON.stringify(linkedEventIds));
       data.append('linkedCases', JSON.stringify(linkedCaseIds));
@@ -671,7 +674,7 @@ const Programs = () => {
 
     } catch (error) {
       console.error("Error completing program:", error);
-      Swal.fire('Error', 'Failed to mark program as completed', 'error');
+      Swal.fire('Error', error.response?.data?.message || 'Failed to mark program as completed', 'error');
     }
   };
 
@@ -686,11 +689,17 @@ const Programs = () => {
       data.append('venue', program.venue);
       data.append('description', program.description);
       data.append('startingDate', program.startDate);
-      data.append('endingDate', program.endDate || program.startDate);
+      data.append('endingDate', program.endDate || ''); // Use empty string for active if unknowns
       data.append('status', 'active');
-      // Map to IDs
-      const linkedEventIds = program.linkedEvents.map(e => typeof e === 'object' ? e._id : e);
-      const linkedCaseIds = program.linkedCases.map(c => typeof c === 'object' ? c._id : c);
+
+      // Safe Mapping
+      const linkedEventIds = (program.linkedEvents || [])
+        .map(e => (e && typeof e === 'object') ? e._id : e)
+        .filter(id => id);
+
+      const linkedCaseIds = (program.linkedCases || [])
+        .map(c => (c && typeof c === 'object') ? c._id : c)
+        .filter(id => id);
 
       data.append('linkedEvents', JSON.stringify(linkedEventIds));
       data.append('linkedCases', JSON.stringify(linkedCaseIds));
@@ -704,7 +713,7 @@ const Programs = () => {
 
     } catch (error) {
       console.error("Error restoring program:", error);
-      Swal.fire('Error', 'Failed to restore program', 'error');
+      Swal.fire('Error', error.response?.data?.message || 'Failed to restore program', 'error');
     }
   };
 
@@ -968,7 +977,7 @@ const Programs = () => {
                 </div>
               </div>
 
-              <div className="pt-4 flex gap-3">
+              <div className="pt-4 flex gap-3 mt-auto bg-white border-t border-gray-100 z-10">
                 <button type="button" onClick={() => { setShowCreateModal(false); setShowEditModal(false); }} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-bold transition-colors">
                   Cancel
                 </button>

@@ -62,12 +62,12 @@ const ContactData = ({ contactData, setContactData, currentPage, itemsPerPage })
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-50 bg-white">
-                <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Name</th>
-                <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Subject</th>
-                <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Email</th>
-                <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Number</th>
-                <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
-                <th className="text-right py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Actions</th>
+                <th className="text-left py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Name</th>
+                <th className="text-left py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Subject</th>
+                <th className="text-left py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Email</th>
+                <th className="text-left py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Contact Number</th>
+                <th className="text-left py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Date</th>
+                <th className="text-right py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -139,7 +139,7 @@ const ContactData = ({ contactData, setContactData, currentPage, itemsPerPage })
                   <div className="flex items-center">
                     <FontAwesomeIcon icon={faUser} className="text-gray-400 mr-3 w-4" />
                     <div>
-                      <p className="text-xs text-gray-400 uppercase font-bold">Sender</p>
+                      <p className="text-xs text-[#8B2D1B] uppercase font-bold">Sender</p>
                       <p className="text-gray-800 font-medium">{selectedContact.fullName}</p>
                     </div>
                   </div>
@@ -147,7 +147,7 @@ const ContactData = ({ contactData, setContactData, currentPage, itemsPerPage })
                   <div className="flex items-center">
                     <FontAwesomeIcon icon={faEnvelope} className="text-gray-400 mr-3 w-4" />
                     <div>
-                      <p className="text-xs text-gray-400 uppercase font-bold">Email</p>
+                      <p className="text-xs text-[#8B2D1B] uppercase font-bold">Email</p>
                       <p className="text-gray-800 font-medium">{selectedContact.email}</p>
                     </div>
                   </div>
@@ -155,7 +155,7 @@ const ContactData = ({ contactData, setContactData, currentPage, itemsPerPage })
                   <div className="flex items-center">
                     <FontAwesomeIcon icon={faPhone} className="text-gray-400 mr-3 w-4" />
                     <div>
-                      <p className="text-xs text-gray-400 uppercase font-bold">Contact Number</p>
+                      <p className="text-xs text-[#8B2D1B] uppercase font-bold">Contact Number</p>
                       <p className="text-gray-800 font-medium">{selectedContact.contactNumber || 'N/A'}</p>
                     </div>
                   </div>
@@ -163,7 +163,7 @@ const ContactData = ({ contactData, setContactData, currentPage, itemsPerPage })
                   <div className="flex items-center">
                     <FontAwesomeIcon icon={faTag} className="text-gray-400 mr-3 w-4" />
                     <div>
-                      <p className="text-xs text-gray-400 uppercase font-bold">Subject</p>
+                      <p className="text-xs text-[#8B2D1B] uppercase font-bold">Subject</p>
                       <p className="text-gray-800 font-medium">{selectedContact.subject}</p>
                     </div>
                   </div>
@@ -171,7 +171,7 @@ const ContactData = ({ contactData, setContactData, currentPage, itemsPerPage })
                   <div className="flex items-center">
                     <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400 mr-3 w-4" />
                     <div>
-                      <p className="text-xs text-gray-400 uppercase font-bold">Date Received</p>
+                      <p className="text-xs text-[#8B2D1B] uppercase font-bold">Date Received</p>
                       <p className="text-gray-800 font-medium">
                         {new Date(selectedContact.createdAt).toLocaleString()}
                       </p>

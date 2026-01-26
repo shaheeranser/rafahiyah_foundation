@@ -40,7 +40,9 @@ const OngoingInitiatives = () => {
             try {
                 const response = await getAllEvents();
                 if (response.success) {
-                    setInitiatives(response.events);
+                    // Filter out completed events
+                    const activeEvents = (response.events || []).filter((e: any) => e.status !== 'Completed');
+                    setInitiatives(activeEvents);
                 }
             } catch (error) {
                 console.error("Error fetching events:", error);

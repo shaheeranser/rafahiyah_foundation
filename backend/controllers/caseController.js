@@ -100,7 +100,7 @@ export const deleteCase = async (req, res) => {
 export const updateCaseStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, finalAmount } = req.body;
+        const { status, finalAmount, additionalComments } = req.body;
 
         const caseItem = await Case.findById(id);
         if (!caseItem) {
@@ -111,6 +111,19 @@ export const updateCaseStatus = async (req, res) => {
         if (finalAmount) {
             caseItem.amountCollected = finalAmount;
             caseItem.finalAmount = finalAmount;
+        }
+        if (additionalComments) {
+            caseItem.additionalComments = additionalComments;
+        }
+
+        // Handle File Uploads
+        if (req.files) {
+            if (req.files['documents'] && req.files['documents'][0]) {
+                caseItem.documents = req.files['documents'][0].path.replace(/\\/g, '/');
+            }
+            if (req.files['receipt'] && req.files['receipt'][0]) {
+                caseItem.receipt = req.files['receipt'][0].path.replace(/\\/g, '/');
+            }
         }
 
         await caseItem.save();

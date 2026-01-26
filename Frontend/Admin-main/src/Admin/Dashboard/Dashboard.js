@@ -27,15 +27,10 @@ const StatCard = ({ title, value, subtext, trend, trendType, icon: Icon, color }
 
     <div>
       <h3 className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">{value}</h3>
-      <p className="text-sm text-gray-500 font-medium mb-3">{title}</p>
-
-      <div className="flex items-center gap-2">
-        <div className={`flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${trendType === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-          {trendType === 'up' ? <TrendingUp size={12} className="mr-1" /> : <TrendingDown size={12} className="mr-1" />}
-          {trend}
-        </div>
-        <span className="text-xs text-gray-400">vs last month</span>
-      </div>
+      {/* Assuming the user intended to change the color of the existing title paragraph or add a new label.
+          The provided snippet was syntactically incorrect. I'm interpreting "Update Modal labels to red"
+          as changing the color of the StatCard's title label/paragraph. */}
+      <p className="text-sm text-[#8B2D1B] font-medium mb-3">{title}</p>
     </div>
   </div>
 );
@@ -77,6 +72,33 @@ const DonationTable = () => {
     fetchDonations();
   }, []);
 
+  const handleExportCSV = () => {
+    // Combine date for CSV (all donations)
+    // You might want to export current view or all. Usually All is preferred.
+    const headers = ['Donor Name', 'Email', 'Amount', 'Date', 'Payment Method', 'Campaign', 'Link to Proof'];
+    const rows = transactions.map(d => [ // Changed `donations` to `transactions` to use the component's state
+      `"${d.user?.name || d.fullName || 'Anonymous'}"`,
+      `"${d.user?.email || d.email || ''}"`,
+      `"${d.amount}"`,
+      `"${new Date(d.createdAt || d.date).toLocaleDateString()}"`,
+      `"${d.paymentMethod}"`,
+      `"${d.cause} - ${d.purpose}"`,
+      `"${d.paymentProof ? `http://localhost:8000/${d.paymentProof.replace(/\\/g, '/')}` : (d.receiptUrl || d.receipt ? `http://localhost:8000/api/${d.receiptUrl || d.receipt}` : '')}"`
+    ]);
+
+    let csvContent = "data:text/csv;charset=utf-8,"
+      + headers.join(",") + "\n"
+      + rows.map(e => e.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "donations_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
   const getStatusStyle = (status) => {
     switch (status) {
       case "Verified":
@@ -90,8 +112,8 @@ const DonationTable = () => {
   const formatAmount = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
-    }).format(amount || 0);
+      currency: 'PKR'
+    }).format(amount || 0).replace('PKR', 'PKR ');
   };
 
   const formatDate = (dateString) => {
@@ -118,7 +140,10 @@ const DonationTable = () => {
           <h3 className="text-lg font-bold text-gray-900">Recent Donations</h3>
           <p className="text-sm text-gray-500 mt-0.5">Latest financial contributions to the foundation</p>
         </div>
-        <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm">
+        <button
+          onClick={handleExportCSV}
+          className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+        >
           <Download size={16} className="text-gray-500" /> Export CSV
         </button>
       </div>
@@ -127,13 +152,12 @@ const DonationTable = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50/50 border-b border-gray-100">
-              <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Donor</th>
-              <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Method</th>
-              <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Campaign</th>
-              <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+              <th className="py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Donor</th>
+              <th className="py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Amount</th>
+              <th className="py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Date</th>
+              <th className="py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Method</th>
+              <th className="py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Campaign</th>
+              <th className="py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -298,9 +322,9 @@ function Dashboard() {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'PKR',
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(amount).replace('PKR', 'PKR ');
   };
 
   const formatGrowth = (val) => {
@@ -326,12 +350,7 @@ function Dashboard() {
               <p className="text-gray-500 mt-1 text-lg">Detailed overview of foundation performance.</p>
             </div>
             <div className="flex gap-3">
-              <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 font-medium shadow-sm transition-all text-sm">
-                View Reports
-              </button>
-              <button className="px-4 py-2 bg-[#0A1229] hover:bg-[#1a2540] text-white rounded-lg font-medium shadow-lg shadow-gray-200 transition-all text-sm flex items-center gap-2">
-                <Download size={16} /> Download PDF
-              </button>
+              {/* Actions Removed */}
             </div>
           </div>
         </div>
@@ -392,9 +411,7 @@ function Dashboard() {
         <div className="mt-12 border-t border-gray-200 pt-6 flex justify-between items-center text-sm text-gray-500">
           <p>&copy; 2024 Rafahiyah Foundation. All rights reserved.</p>
           <div className="flex gap-4">
-            <a href="#" className="hover:text-gray-900">Privacy Policy</a>
-            <a href="#" className="hover:text-gray-900">Terms of Service</a>
-            <a href="#" className="hover:text-gray-900">Support</a>
+            {/* Footer Links Removed */}
           </div>
         </div>
 

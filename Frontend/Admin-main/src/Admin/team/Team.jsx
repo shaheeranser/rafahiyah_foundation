@@ -46,14 +46,14 @@ const ViewVolunteerModal = ({ showModal, setShowModal, member }) => {
             <div className="flex items-center p-3 bg-gray-50 rounded-lg">
               <FontAwesomeIcon icon={faBirthdayCake} className="text-gray-400 w-5 mr-3" />
               <div>
-                <p className="text-xs text-gray-400 uppercase font-bold">Age</p>
+                <p className="text-xs text-[#8B2D1B] uppercase font-bold">Age</p>
                 <p className="text-gray-700">{member.age}</p>
               </div>
             </div>
             <div className="flex items-center p-3 bg-gray-50 rounded-lg">
               <FontAwesomeIcon icon={faBriefcase} className="text-gray-400 w-5 mr-3" />
               <div>
-                <p className="text-xs text-gray-400 uppercase font-bold">Occupation</p>
+                <p className="text-xs text-[#8B2D1B] uppercase font-bold">Occupation</p>
                 <p className="text-gray-700">{member.occupation}</p>
               </div>
             </div>
@@ -64,7 +64,7 @@ const ViewVolunteerModal = ({ showModal, setShowModal, member }) => {
           <div className="flex items-center p-3 bg-gray-50 rounded-lg">
             <FontAwesomeIcon icon={faPhone} className="text-gray-400 w-5 mr-3" />
             <div>
-              <p className="text-xs text-gray-400 uppercase font-bold">Phone</p>
+              <p className="text-xs text-[#8B2D1B] uppercase font-bold">Phone</p>
               <p className="text-gray-700">{member.contactNumber}</p>
             </div>
           </div>
@@ -72,13 +72,13 @@ const ViewVolunteerModal = ({ showModal, setShowModal, member }) => {
           <div className="flex items-center p-3 bg-gray-50 rounded-lg">
             <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-400 w-5 mr-3" />
             <div>
-              <p className="text-xs text-gray-400 uppercase font-bold">City/Location</p>
+              <p className="text-xs text-[#8B2D1B] uppercase font-bold">City/Location</p>
               <p className="text-gray-700">{member.city || 'N/A'}</p>
             </div>
           </div>
 
           <div className="p-3 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-400 uppercase font-bold mb-1">Event / Additional Info</p>
+            <p className="text-xs text-[#8B2D1B] uppercase font-bold mb-1">Event / Additional Info</p>
             <p className="text-gray-600 text-sm">
               {member.eventName ? `Joined for event: ${member.eventName}` : 'No specific event mentioned.'}
             </p>
@@ -140,13 +140,13 @@ const TeamData = ({ teamData, setTeamData }) => {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-50 bg-white">
-                <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Full Name</th>
-                <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Number</th>
-                <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Age</th>
-                <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">City</th>
-                <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Occupation</th>
-                <th className="text-left py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Team</th>
-                <th className="text-right py-4 px-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Actions</th>
+                <th className="text-left py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Full Name</th>
+                <th className="text-left py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Contact Number</th>
+                <th className="text-left py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Age</th>
+                <th className="text-left py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">City</th>
+                <th className="text-left py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Occupation</th>
+                <th className="text-left py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Team</th>
+                <th className="text-right py-4 px-6 text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>

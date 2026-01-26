@@ -147,6 +147,32 @@ const Donations = () => {
     fetchUnapprovedDonations();
   }, []);
 
+  const handleExportCSV = () => {
+    // Combine date for CSV (all donations)
+    const headers = ['Donor Name', 'Email', 'Amount', 'Date', 'Payment Method', 'Campaign', 'Link to Proof'];
+    const rows = donations.map(d => [
+      `"${d.user?.name || d.fullName || 'Anonymous'}"`,
+      `"${d.user?.email || d.email || ''}"`,
+      `"${d.amount}"`,
+      `"${new Date(d.createdAt || d.date).toLocaleDateString()}"`,
+      `"${d.paymentMethod}"`,
+      `"${d.cause} - ${d.purpose}"`,
+      `"${d.paymentProof ? `http://localhost:8000/${d.paymentProof.replace(/\\/g, '/')}` : (d.receiptUrl || d.receipt ? `http://localhost:8000/api/${d.receiptUrl || d.receipt}` : '')}"`
+    ]);
+
+    let csvContent = "data:text/csv;charset=utf-8,"
+      + headers.join(",") + "\n"
+      + rows.map(e => e.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "donations_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -158,8 +184,8 @@ const Donations = () => {
   const formatAmount = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
-    }).format(amount || 0);
+      currency: 'PKR'
+    }).format(amount || 0).replace('PKR', 'PKR ');
   };
 
   const getStatusBadge = (donation) => {
@@ -245,7 +271,7 @@ const Donations = () => {
             {/* Left Column: Details */}
             <div className="space-y-5">
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Donor</label>
+                <label className="block text-[#8B2D1B] text-xs uppercase font-bold mb-1">Donor</label>
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <p className="text-gray-900 font-medium">{donation.user?.name || donation.fullName || 'Anonymous'}</p>
                   <p className="text-gray-600 text-sm">{donation.user?.email || donation.email}</p>
@@ -253,34 +279,34 @@ const Donations = () => {
               </div>
 
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Contact Number</label>
+                <label className="block text-[#8B2D1B] text-xs uppercase font-bold mb-1">Contact Number</label>
                 <p className="text-gray-900">{donation.contactNumber || 'N/A'}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-700 font-medium mb-1">Amount</label>
+                  <label className="block text-[#8B2D1B] text-xs uppercase font-bold mb-1">Amount</label>
                   <p className="text-2xl font-bold text-green-600">{formatAmount(donation.amount)}</p>
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-medium mb-1">Date</label>
+                  <label className="block text-[#8B2D1B] text-xs uppercase font-bold mb-1">Date</label>
                   <p className="text-gray-900">{formatDate(donation.createdAt || donation.date)}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-700 font-medium mb-1">Payment Method</label>
+                  <label className="block text-[#8B2D1B] text-xs uppercase font-bold mb-1">Payment Method</label>
                   <p className="text-gray-900 capitalize">{donation.paymentMethod}</p>
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-medium mb-1">Status</label>
+                  <label className="block text-[#8B2D1B] text-xs uppercase font-bold mb-1">Status</label>
                   {getStatusBadge(donation)}
                 </div>
               </div>
 
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Campaign</label>
+                <label className="block text-[#8B2D1B] text-xs uppercase font-bold mb-1">Campaign</label>
                 <p className="text-gray-900 p-2 bg-gray-50 rounded">{donation.cause} - {donation.purpose}</p>
               </div>
             </div>
@@ -289,7 +315,7 @@ const Donations = () => {
             <div className="space-y-5">
               {donation.paymentProof ? (
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">Payment Proof</label>
+                  <label className="block text-[#8B2D1B] text-xs uppercase font-bold mb-2">Payment Proof</label>
                   <div className="rounded-lg border border-gray-200 p-2 bg-gray-50 text-center h-full flex flex-col justify-center">
                     <img
                       src={`http://localhost:8000/${donation.paymentProof.replace(/\\/g, '/')}`}
@@ -308,7 +334,7 @@ const Donations = () => {
                 </div>
               ) : (donation.receiptUrl || donation.receipt) ? (
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">Receipt</label>
+                  <label className="block text-[#8B2D1B] text-xs uppercase font-bold mb-2">Receipt</label>
                   <div className="flex items-center justify-center h-64 bg-gray-50 border border-gray-200 rounded-lg border-dashed">
                     <a
                       href={`http://localhost:8000/api/${donation.receiptUrl || donation.receipt}`}
@@ -359,7 +385,15 @@ const Donations = () => {
     <AdminLayout>
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Donations Management</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-gray-800">Donations Management</h1>
+            <button
+              onClick={handleExportCSV}
+              className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 shadow-sm"
+            >
+              Export CSV
+            </button>
+          </div>
           <div className="flex space-x-4 text-sm">
             <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
               Total: {donations.length}
@@ -412,12 +446,12 @@ const Donations = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donor</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cause & Purpose</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Donor</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Cause & Purpose</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-right text-xs font-bold text-[#8B2D1B] uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">

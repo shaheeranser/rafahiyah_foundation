@@ -70,10 +70,12 @@ const Cases = () => {
                 ]);
 
                 if (programsRes.data.success) {
-                    setProgramsList(programsRes.data.programs || []);
+                    const activePrograms = (programsRes.data.programs || []).filter((p: any) => p.status !== 'completed');
+                    setProgramsList(activePrograms);
                 }
                 if (eventsRes.data.success) {
-                    setEventsList(eventsRes.data.events || []);
+                    const activeEvents = (eventsRes.data.events || []).filter((e: any) => e.status !== 'Completed');
+                    setEventsList(activeEvents);
                 }
 
                 // Cases API might return array directly or { success: true, cases: [...] }

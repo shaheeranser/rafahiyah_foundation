@@ -43,7 +43,7 @@ function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
     <aside
       className={`
         fixed inset-y-0 left-0 z-50
-        bg-[#5D1910] text-white
+        bg-[#8B2D1B] text-white
         transition-all duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:relative lg:translate-x-0
@@ -52,13 +52,13 @@ function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
       `}
     >
       {/* Header / Logo */}
-      <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-[#6B2414]/50`}>
+      <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} h-20 border-b border-[#6B2414]/30`}>
         {!isCollapsed && (
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
               <img src="/rafahiyah logo.png" alt="Logo" className="w-6 h-6 object-contain" />
             </div>
-            <span className="font-bold text-lg tracking-wide font-sans">RAFAHIYAH</span>
+            <span className="font-bold text-2xl tracking-wide font-odibee pt-1">RAFAHIYAH</span>
           </div>
         )}
         {isCollapsed && (
@@ -68,7 +68,7 @@ function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
         {/* Collapse Toggle (Desktop) */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`hidden lg:flex items-center justify-center w-6 h-6 rounded-md bg-[#852D1A] text-white hover:bg-[#A33822] transition-colors ${isCollapsed ? 'absolute -right-3 top-7 shadow-md' : ''}`}
+          className={`hidden lg:flex items-center justify-center w-6 h-6 rounded-md bg-[#5D1910] text-white hover:bg-[#4a140c] transition-colors ${isCollapsed ? 'absolute -right-3 top-7 shadow-md' : ''}`}
         >
           {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
@@ -96,7 +96,7 @@ function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
                 transition-all duration-200 group relative
                 ${isActive
                   ? 'bg-white/10 text-white shadow-sm'
-                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                  : 'text-white/70 hover:bg-white/5 hover:text-white'
                 }
               `}
               title={isCollapsed ? link.label : ""}
@@ -105,54 +105,40 @@ function SideBar({ isOpen, onClose, isCollapsed, setIsCollapsed }) {
                 size={22}
                 className={`
                     transition-transform duration-200 
-                    ${isActive ? 'text-white' : 'text-white/60 group-hover:text-white'}
+                    ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}
                 `}
               />
 
               {!isCollapsed && (
-                <span className={`ml-3 font-medium text-sm tracking-wide font-sans`}>
+                <span className={`ml-3 font-medium text-lg tracking-wide font-odibee pt-0.5`}>
                   {link.label}
                 </span>
               )}
 
               {/* Active Indicator Strip */}
               {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#E64833] rounded-r-md" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#FFD700] rounded-r-md" />
               )}
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer / User Profile & Logout */}
-      <div className={`p-4 border-t border-[#6B2414]/50 flex flex-col gap-4`}>
-        {/* Profile Info */}
-        <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center' : ''}`}>
-          <div className={`w-10 h-10 rounded-full bg-gradient-to-tr from-[#E64833] to-[#FF8C66] flex items-center justify-center text-white font-bold shadow-md shrink-0`}>
-            A
-          </div>
-          {!isCollapsed && (
-            <div className="overflow-hidden">
-              <p className="text-sm font-semibold text-white truncate">Admin User</p>
-              <p className="text-xs text-white/50 truncate">admin@rafahiyah.org</p>
-            </div>
-          )}
-        </div>
-
-        {/* Logout Button */}
+      {/* Footer / Logout Only */}
+      <div className={`p-4 border-t border-[#6B2414]/30`}>
         <button
           onClick={handleLogout}
           className={`
             flex items-center
             ${isCollapsed ? 'justify-center' : 'justify-center w-full'}
             py-2 rounded-lg
-            bg-red-500/10 text-red-200 hover:bg-red-500 hover:text-white
-            transition-colors duration-200 mt-2
+            bg-[#5D1910]/50 text-white/80 hover:bg-[#5D1910] hover:text-white
+            transition-colors duration-200
           `}
           title="Logout"
         >
           <LogOut size={20} />
-          {!isCollapsed && <span className="ml-2 font-medium text-sm">Logout</span>}
+          {!isCollapsed && <span className="ml-2 font-medium text-lg font-odibee pt-0.5">Logout</span>}
         </button>
       </div>
     </aside>
