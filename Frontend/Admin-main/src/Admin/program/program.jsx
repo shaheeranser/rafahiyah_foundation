@@ -347,6 +347,13 @@ const Programs = () => {
         return;
       }
 
+      if (programForm.startDate && programForm.endDate) {
+        if (new Date(programForm.endDate) < new Date(programForm.startDate)) {
+          Swal.fire('Error', 'End Date cannot be before Start Date', 'error');
+          return;
+        }
+      }
+
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
       const formData = new FormData();
       formData.append('title', programForm.name);
@@ -409,6 +416,13 @@ const Programs = () => {
       if (!token) {
         Swal.fire('Error', 'Not authenticated', 'error');
         return;
+      }
+
+      if (programForm.startDate && programForm.endDate) {
+        if (new Date(programForm.endDate) < new Date(programForm.startDate)) {
+          Swal.fire('Error', 'End Date cannot be before Start Date', 'error');
+          return;
+        }
       }
 
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
@@ -732,7 +746,7 @@ const Programs = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-10">
           <div>
-            <h1 className="text-3xl font-handwriting text-gray-800" style={{ fontFamily: '"Patrick Hand", cursive' }}>Program Management</h1>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Program Management</h1>
             <p className="text-gray-500 text-sm mt-1">Manage comprehensive programs, associated events, and cases.</p>
           </div>
           <button
@@ -857,11 +871,11 @@ const Programs = () => {
               <div className="grid grid-cols-2 gap-6 bg-blue-50 p-4 rounded-xl border border-blue-100">
                 <div>
                   <label className="block text-xs font-bold text-blue-700 uppercase mb-1.5">Start Date</label>
-                  <input type="date" className="w-full border border-blue-200 rounded-lg p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none" value={programForm.startDate} onChange={e => setProgramForm({ ...programForm, startDate: e.target.value })} required />
+                  <input type="date" min={new Date().toISOString().split('T')[0]} className="w-full border border-blue-200 rounded-lg p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none" value={programForm.startDate} onChange={e => setProgramForm({ ...programForm, startDate: e.target.value })} required />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-blue-700 uppercase mb-1.5">End Date</label>
-                  <input type="date" className="w-full border border-blue-200 rounded-lg p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none" value={programForm.endDate} onChange={e => setProgramForm({ ...programForm, endDate: e.target.value })} />
+                  <input type="date" min={programForm.startDate || new Date().toISOString().split('T')[0]} className="w-full border border-blue-200 rounded-lg p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none" value={programForm.endDate} onChange={e => setProgramForm({ ...programForm, endDate: e.target.value })} />
                 </div>
               </div>
 
@@ -879,7 +893,26 @@ const Programs = () => {
                         .flatMap(p => p.linkedEvents || [])
                         .map(item => (typeof item === 'object' && item ? item._id : item));
 
-                      let availableEvents = eventsList.filter(ev => !unavailableEventIds.includes(ev._id));
+                      let availableEvents = eventsList.filter(ev =>
+                        !unavailableEventIds.includes(ev._id) && ev.status !== 'Completed'
+                      );
+
+                      // If editing, we want to ensure currently selected (linked) events are visible even if completed?
+                      // Usually once linked, they stay linked. But for NEW links, we hide completed.
+                      // The current logic excludes 'unavailableEventIds' which are events linked to OTHER programs.
+                      // Currently linked events for THIS program are NOT in unavailableEventIds, so they would show up if they pass the status filter.
+                      // If a linked event is now completed, we probably still want to show it as selected/linked.
+                      // So we should only filter out completed events IF they are not already selected.
+
+                      availableEvents = eventsList.filter(ev => {
+                        const isUnavailable = unavailableEventIds.includes(ev._id);
+                        if (isUnavailable) return false;
+
+                        const isAlreadySelected = programForm.selectedEventIds.includes(ev._id);
+                        if (isAlreadySelected) return true; // Keep showing if already selected
+
+                        return ev.status !== 'Completed'; // Hide if not selected and completed
+                      });
 
                       // Filter by Date Range if dates are selected
                       if (programForm.startDate) {
@@ -934,7 +967,15 @@ const Programs = () => {
                         .flatMap(p => p.linkedCases || [])
                         .map(item => (typeof item === 'object' && item ? item._id : item));
 
-                      let availableCases = casesList.filter(c => !unavailableCaseIds.includes(c._id));
+                      let availableCases = casesList.filter(c => {
+                        const isUnavailable = unavailableCaseIds.includes(c._id);
+                        if (isUnavailable) return false;
+
+                        const isAlreadySelected = programForm.selectedCaseIds.includes(c._id);
+                        if (isAlreadySelected) return true;
+
+                        return c.status !== 'completed' && c.status !== 'dropped';
+                      });
 
                       // Filter by Date Range
                       if (programForm.startDate) {

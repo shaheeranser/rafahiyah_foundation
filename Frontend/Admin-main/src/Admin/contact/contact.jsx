@@ -257,7 +257,8 @@ const Contact = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-10">
           <div>
-            <h1 className="text-3xl font-handwriting text-gray-800" style={{ fontFamily: '"Patrick Hand", cursive' }}>Contact Us</h1>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Contact Messages</h1>
+            <p className="text-sm text-gray-500 mt-1">View and manage inquiries and messages from users.</p>
           </div>
 
           <button

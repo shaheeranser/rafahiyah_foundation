@@ -158,13 +158,16 @@ const CompletedTable = ({ events, onExport, onView, onUndo, onEdit }) => {
                 </td>
                 <td className="py-4 px-6 text-right relative dropdown-container">
                   <button
-                    onClick={() => setOpenDropdownId(openDropdownId === event.id ? null : event.id)}
+                    onClick={() => {
+                      const id = event._id || event.id;
+                      setOpenDropdownId(openDropdownId === id ? null : id);
+                    }}
                     className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
                   >
                     <FontAwesomeIcon icon={faEllipsisV} />
                   </button>
 
-                  {openDropdownId === event.id && (
+                  {openDropdownId === (event._id || event.id) && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl z-50 border border-gray-100 overflow-hidden animate-fade-in-up origin-top-right">
                       <button
                         onClick={() => { onView(event); setOpenDropdownId(null); }}
@@ -585,7 +588,7 @@ const Events = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Date</label>
-                  <input type="date" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.date} onChange={e => setCreateForm({ ...createForm, date: e.target.value })} required />
+                  <input type="date" min={new Date().toISOString().split('T')[0]} className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50" value={createForm.date} onChange={e => setCreateForm({ ...createForm, date: e.target.value })} required />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Time</label>
@@ -720,6 +723,7 @@ const Events = () => {
                     {isEditing ? (
                       <input
                         type="date"
+                        min={new Date().toISOString().split('T')[0]}
                         name="date"
                         value={editForm.date}
                         onChange={handleEditChange}

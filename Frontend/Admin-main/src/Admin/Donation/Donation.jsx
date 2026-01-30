@@ -21,7 +21,7 @@ api.interceptors.request.use((config) => {
 const Donations = () => {
   const [donations, setDonations] = useState([]);
   const [unapprovedDonations, setUnapprovedDonations] = useState([]);
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'unapproved'
+  const [activeTab, setActiveTab] = useState('general'); // 'general', 'projects', 'unapproved'
   const [loading, setLoading] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -62,6 +62,25 @@ const Donations = () => {
       setLoading(false);
     }
   };
+
+  // Approve and reject functions... (same as before, omitted here for brevity as replace_file_content scope is limited)
+
+  // ... (rest of functions)
+
+  // Wait, I need to replace the state initialization AND the JSX for tabs.
+  // Since replace_file_content works on contiguous blocks, I have to be careful not to replace the whole file if unnecessary.
+  // The first replace call handled the BODY of the table.
+  // This replace call handles the STATE initialization at the top and the JSX for TABS navigation.
+
+  // State initialization is lines 24: const [activeTab, setActiveTab] = useState('all');
+  // Tabs JSX is lines 417-440.
+
+  // Since these are far apart, I must use multi_replace. Or two calls.
+  // I will use replace_file_content for the tabs JSX first, then another for state initialization.
+
+  // Actually, I can rely on just changing 'all' to 'general' in useState and updating the JSX.
+  // Let's do the TABS JSX first.
+
 
   // Approve donation
   const approveDonation = async (donationId) => {
@@ -386,7 +405,10 @@ const Donations = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-gray-800">Donations Management</h1>
+            <div>
+              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Donations Management</h1>
+              <p className="text-sm text-gray-500 mt-1">Track and manage donation records and approvals.</p>
+            </div>
             <button
               onClick={handleExportCSV}
               className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 shadow-sm"
@@ -415,13 +437,22 @@ const Donations = () => {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveTab('all')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'all'
+                onClick={() => setActiveTab('general')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'general'
                   ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
-                All Donations ({donations.length})
+                General Donations ({donations.filter(d => d.cause === 'General Donation').length})
+              </button>
+              <button
+                onClick={() => setActiveTab('projects')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'projects'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+              >
+                Project Donations ({donations.filter(d => d.cause !== 'General Donation').length})
               </button>
               <button
                 onClick={() => setActiveTab('unapproved')}
@@ -455,13 +486,23 @@ const Donations = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {activeTab === 'all' ? (
-                    donations.length > 0 ? (
-                      donations.map((donation) => renderRow(donation))
+                  {activeTab === 'general' ? (
+                    donations.filter(d => d.cause === 'General Donation').length > 0 ? (
+                      donations.filter(d => d.cause === 'General Donation').map((donation) => renderRow(donation))
                     ) : (
                       <tr>
                         <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
-                          No donations found
+                          No general donations found
+                        </td>
+                      </tr>
+                    )
+                  ) : activeTab === 'projects' ? (
+                    donations.filter(d => d.cause !== 'General Donation').length > 0 ? (
+                      donations.filter(d => d.cause !== 'General Donation').map((donation) => renderRow(donation))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                          No project donations found
                         </td>
                       </tr>
                     )
@@ -493,7 +534,7 @@ const Donations = () => {
           />
         )}
       </div>
-    </AdminLayout>
+    </AdminLayout >
   );
 };
 
