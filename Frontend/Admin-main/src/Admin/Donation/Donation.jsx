@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Eye, CheckCircle, XCircle } from 'lucide-react';
 import AdminLayout from '../../layouts/AdminLayout';
 import { AuthToken } from '../../Api/Api';
@@ -166,30 +168,140 @@ const Donations = () => {
     fetchUnapprovedDonations();
   }, []);
 
-  const handleExportCSV = () => {
-    // Combine date for CSV (all donations)
-    const headers = ['Donor Name', 'Email', 'Amount', 'Date', 'Payment Method', 'Campaign', 'Link to Proof'];
-    const rows = donations.map(d => [
-      `"${d.user?.name || d.fullName || 'Anonymous'}"`,
-      `"${d.user?.email || d.email || ''}"`,
-      `"${d.amount}"`,
-      `"${new Date(d.createdAt || d.date).toLocaleDateString()}"`,
-      `"${d.paymentMethod}"`,
-      `"${d.cause} - ${d.purpose}"`,
-      `"${d.paymentProof ? `http://localhost:8000/${d.paymentProof.replace(/\\/g, '/')}` : (d.receiptUrl || d.receipt ? `http://localhost:8000/api/${d.receiptUrl || d.receipt}` : '')}"`
-    ]);
+  const handleExportPDF = async () => {
+    try {
+      setLoading(true);
+      const doc = new jsPDF();
 
-    let csvContent = "data:text/csv;charset=utf-8,"
-      + headers.join(",") + "\n"
-      + rows.map(e => e.join(",")).join("\n");
+      // Determine which data to export based on active tab
+      let exportData = [];
+      if (activeTab === 'general') {
+        exportData = donations.filter(d => d.cause === 'General Donation');
+      } else if (activeTab === 'projects') {
+        exportData = donations.filter(d => d.cause !== 'General Donation');
+      } else if (activeTab === 'unapproved') {
+        exportData = unapprovedDonations;
+      }
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "donations_export.csv");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+      // Helper to compress image
+      const compressImage = (url) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'Anonymous';
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const maxWidth = 300;
+            const maxHeight = 300;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+          };
+          img.onerror = (e) => resolve(null);
+          img.src = url;
+        });
+      };
+
+      const tableColumn = ["Donor", "Amount", "Date", "Method", "Campaign", "Proof/Receipt"];
+      const tableRows = [];
+
+      for (const d of exportData) {
+        let proofImage = null;
+        let proofUrl = d.paymentProof
+          ? `http://localhost:8000/${d.paymentProof.replace(/\\/g, '/')}`
+          : (d.receiptUrl || d.receipt ? `http://localhost:8000/api/${d.receiptUrl || d.receipt}` : null);
+
+        if (proofUrl) {
+          try {
+            proofImage = await compressImage(proofUrl);
+          } catch (err) {
+            console.error("Error loading image for PDF:", err);
+            proofImage = "Error";
+          }
+        }
+
+        const rowData = [
+          d.user?.name || d.fullName || 'Anonymous',
+          formatAmount(d.amount),
+          new Date(d.createdAt || d.date).toLocaleDateString(),
+          d.paymentMethod,
+          `${d.cause} - ${d.purpose}`,
+          { content: '', image: proofImage } // Pass as object so text is empty, preventing string spill
+        ];
+        tableRows.push(rowData);
+      }
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 20,
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+          minCellHeight: 20, // Ensure row is tall enough for image
+          valign: 'middle',
+          overflow: 'linebreak'
+        },
+        columnStyles: {
+          0: { cellWidth: 25 }, // Donor
+          1: { cellWidth: 20 }, // Amount
+          2: { cellWidth: 20 }, // Date
+          3: { cellWidth: 20 }, // Method
+          4: { cellWidth: 40 }, // Campaign
+          5: { cellWidth: 25 }  // Proof/Receipt (Fixed width for image)
+        },
+        didDrawCell: (data) => {
+          if (data.column.index === 5 && data.cell.section === 'body') {
+            // Access image from custom object
+            const image = data.cell.raw?.image;
+            if (image && typeof image === 'string' && image.startsWith('data:image')) {
+              try {
+                // Fixed thumbnail size
+                const imgWidth = 15;
+                const imgHeight = 15;
+
+                // Center image in cell
+                const posX = data.cell.x + (data.cell.width - imgWidth) / 2;
+                const posY = data.cell.y + (data.cell.height - imgHeight) / 2;
+
+                let format = 'JPEG';
+                if (image.includes('image/png')) format = 'PNG';
+                else if (image.includes('image/webp')) format = 'WEBP';
+
+                doc.addImage(image, format, posX, posY, imgWidth, imgHeight);
+              } catch (imgError) {
+                // Silent fail or small marker
+              }
+            }
+          }
+        }
+      });
+
+      doc.text(`Donations Report - ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`, 14, 15);
+      // Changing filename to FORCE verification that new code is running
+      doc.save("donations_report_FIXED_V2.pdf");
+
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      Swal.fire('Error', `Failed to generate PDF: ${error.message}`, 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -410,10 +522,10 @@ const Donations = () => {
               <p className="text-sm text-gray-500 mt-1">Track and manage donation records and approvals.</p>
             </div>
             <button
-              onClick={handleExportCSV}
+              onClick={handleExportPDF}
               className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 shadow-sm"
             >
-              Export CSV
+              Export PDF
             </button>
           </div>
           <div className="flex space-x-4 text-sm">

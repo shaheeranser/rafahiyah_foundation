@@ -1,5 +1,7 @@
 import React from 'react';
 import axios from 'axios';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { AuthToken } from "../../Api/Api";
 import AdminLayout from "../../layouts/AdminLayout";
 import {
@@ -72,31 +74,140 @@ const DonationTable = () => {
     fetchDonations();
   }, []);
 
-  const handleExportCSV = () => {
-    // Combine date for CSV (all donations)
-    // You might want to export current view or all. Usually All is preferred.
-    const headers = ['Donor Name', 'Email', 'Amount', 'Date', 'Payment Method', 'Campaign', 'Link to Proof'];
-    const rows = transactions.map(d => [ // Changed `donations` to `transactions` to use the component's state
-      `"${d.user?.name || d.fullName || 'Anonymous'}"`,
-      `"${d.user?.email || d.email || ''}"`,
-      `"${d.amount}"`,
-      `"${new Date(d.createdAt || d.date).toLocaleDateString()}"`,
-      `"${d.paymentMethod}"`,
-      `"${d.cause} - ${d.purpose}"`,
-      `"${d.paymentProof ? `http://localhost:8000/${d.paymentProof.replace(/\\/g, '/')}` : (d.receiptUrl || d.receipt ? `http://localhost:8000/api/${d.receiptUrl || d.receipt}` : '')}"`
-    ]);
+  const handleExportPDF = async () => {
+    try {
+      setLoading(true); // Reuse existing loading state or create a specific one if needed. 
+      // Existing loading state in component is for initial fetch, might hide the dashboard. 
+      // Better to have a separate state or just accept full screen loader for now. 
+      // Given the "freeze", a full screen loader (which existing loading=true does) is actually good feedback.
 
-    let csvContent = "data:text/csv;charset=utf-8,"
-      + headers.join(",") + "\n"
-      + rows.map(e => e.join(",")).join("\n");
+      const doc = new jsPDF();
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "donations_export.csv");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+      // Helper to compress image
+      const compressImage = (url) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'Anonymous';
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const maxWidth = 300; // Resize to thumbnail size
+            const maxHeight = 300;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            // Compress to JPEG 0.7
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+          };
+          img.onerror = (e) => resolve(null); // Resolve null on error to keep going
+          img.src = url;
+        });
+      };
+
+      // Use transactions directly, but FORCE slice to 10 to be absolutely sure.
+      // The user reported seeing 109 records, which implies standard slice might have been missed or state is different.
+      const allDonations = transactions.slice(0, 10);
+      console.log("Exporting records:", allDonations.length, allDonations);
+
+      const tableColumn = ["Donor", "Amount", "Date", "Method", "Campaign", "Proof/Receipt"];
+      const tableRows = [];
+
+      for (const d of allDonations) {
+        let proofImage = null;
+        let proofUrl = d.paymentProof
+          ? `http://localhost:8000/${d.paymentProof.replace(/\\/g, '/')}`
+          : (d.receiptUrl || d.receipt ? `http://localhost:8000/api/${d.receiptUrl || d.receipt}` : null);
+
+        if (proofUrl) {
+          try {
+            // Use our new compress helper
+            proofImage = await compressImage(proofUrl);
+          } catch (err) {
+            console.error("Error loading image for PDF:", err);
+            proofImage = "Error";
+          }
+        }
+
+        const rowData = [
+          d.user?.name || d.fullName || 'Anonymous',
+          formatAmount(d.amount),
+          new Date(d.createdAt || d.date).toLocaleDateString(),
+          d.paymentMethod,
+          `${d.cause} - ${d.purpose}`,
+          { content: '', image: proofImage } // Pass as object so text is empty
+        ];
+        tableRows.push(rowData);
+      }
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 20,
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+          minCellHeight: 20,
+          valign: 'middle',
+          overflow: 'linebreak'
+        },
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 20 },
+          2: { cellWidth: 20 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 40 },
+          5: { cellWidth: 25 }
+        },
+        didDrawCell: (data) => {
+          if (data.column.index === 5 && data.cell.section === 'body') {
+            const image = data.cell.raw?.image; // Access image from custom object
+            if (image && typeof image === 'string' && image.startsWith('data:image')) {
+              try {
+                // Fixed thumbnail size
+                const imgWidth = 15;
+                const imgHeight = 15;
+
+                // Center image in cell
+                const posX = data.cell.x + (data.cell.width - imgWidth) / 2;
+                const posY = data.cell.y + (data.cell.height - imgHeight) / 2;
+
+                let format = 'JPEG';
+                if (image.includes('image/png')) format = 'PNG';
+                else if (image.includes('image/webp')) format = 'WEBP';
+
+                doc.addImage(image, format, posX, posY, imgWidth, imgHeight);
+              } catch (imgError) {
+                // Silent fail
+              }
+            }
+          }
+        }
+      });
+
+      doc.text("Donations Report", 14, 15);
+      doc.save("dashboard_report_FIXED_FINAL.pdf");
+
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert(`Failed to generate PDF: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusStyle = (status) => {
@@ -141,10 +252,10 @@ const DonationTable = () => {
           <p className="text-sm text-gray-500 mt-0.5">Latest financial contributions to the foundation</p>
         </div>
         <button
-          onClick={handleExportCSV}
+          onClick={handleExportPDF}
           className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
         >
-          <Download size={16} className="text-gray-500" /> Export CSV
+          <Download size={16} className="text-gray-500" /> Export PDF
         </button>
       </div>
 
