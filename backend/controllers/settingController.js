@@ -27,7 +27,7 @@ export const getSettings = async (req, res) => {
 // Update Settings
 export const updateSettings = async (req, res) => {
     try {
-        const { phoneNumber, email, address } = req.body;
+        const { phoneNumber, email, address, copyrightText } = req.body;
 
         const settings = await Setting.findOneAndUpdate(
             { key: "site_settings" },
@@ -36,6 +36,7 @@ export const updateSettings = async (req, res) => {
                     "value.phoneNumber": phoneNumber,
                     "value.email": email,
                     "value.address": address,
+                    "value.copyrightText": copyrightText,
                     updatedAt: Date.now()
                 }
             },

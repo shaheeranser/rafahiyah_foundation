@@ -31,7 +31,7 @@ import { Copy } from "lucide-react";
 
 // Validation Helpers
 const isValidEmail = (email: string) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9_.+-]+\.[a-zA-Z0-9_.+-]+$/.test(email);
 };
 
 const isValidName = (name: string) => {
@@ -109,6 +109,11 @@ const Contact = () => {
       if (/^\d*$/.test(value)) {
         setFormData({ ...formData, [name]: value });
       }
+    } else if (name === "fullName") {
+      // Allow only letters and spaces
+      if (/^[a-zA-Z\s]*$/.test(value)) {
+        setFormData({ ...formData, [name]: value });
+      }
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -119,6 +124,11 @@ const Contact = () => {
     if (name === "contactNumber" || name === "age") {
       // Allow only digits
       if (/^\d*$/.test(value)) {
+        setJoinData({ ...joinData, [name]: value });
+      }
+    } else if (name === "fullName") {
+      // Allow only letters and spaces
+      if (/^[a-zA-Z\s]*$/.test(value)) {
         setJoinData({ ...joinData, [name]: value });
       }
     } else {
@@ -225,8 +235,12 @@ const Contact = () => {
   // Donation Handlers
   const handleDonationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (name === "contactNumber") {
+    if (name === "contactNumber" || name === "amount") {
       if (/^\d*$/.test(value)) {
+        setDonationData({ ...donationData, [name]: value });
+      }
+    } else if (name === "fullName") {
+      if (/^[a-zA-Z\s]*$/.test(value)) {
         setDonationData({ ...donationData, [name]: value });
       }
     } else {
@@ -567,7 +581,7 @@ const Contact = () => {
                   />
                   <span className="absolute bottom-4 right-4 text-[10px] text-gray-400">{formData.message.length}/150</span>
                 </div>
-                <Button disabled={loading} className="w-full h-14 rounded-xl bg-white hover:bg-rafahiyah-dark-blue hover:text-white text-rafahiyah-dark-blue text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg border-2 border-transparent hover:border-white/20">
+                <Button disabled={loading} className="w-full h-14 rounded-xl bg-white hover:bg-[#7A8BCB] hover:text-white text-rafahiyah-dark-blue text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg border-2 border-transparent hover:border-white/20">
                   {loading ? "Sending..." : "Send Message"}
                 </Button>
               </form>
@@ -659,7 +673,7 @@ const Contact = () => {
                     By submitting this form, I acknowledge and agree to volunteer my time and services without any financial benefit. I understand that this is a voluntary role and does not constitute employment.
                   </p>
                 </div>
-                <Button className="w-full h-12 rounded-xl bg-white hover:bg-[#8B2D1B] hover:text-white text-[#8B2D1B] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg border-2 border-transparent hover:border-white/20">
+                <Button className="w-full h-12 rounded-xl bg-white hover:bg-[#D96B60] hover:text-white text-[#8B2D1B] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg border-2 border-transparent hover:border-white/20">
                   Join The Crew
                 </Button>
               </form>
@@ -1071,7 +1085,7 @@ const Contact = () => {
 
 
 
-                <Button disabled={donationLoading} className="w-full h-14 rounded-xl bg-white hover:bg-[#806306] hover:text-white text-[#806306] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg mt-4 border-2 border-transparent hover:border-white/20">
+                <Button disabled={donationLoading} className="w-full h-14 rounded-xl bg-white hover:bg-[#E0B941] hover:text-white text-[#806306] text-xl font-odibee tracking-wider transition-all duration-300 shadow-lg mt-4 border-2 border-transparent hover:border-white/20">
                   {donationLoading ? "Processing..." : "Donate Now"}
                 </Button>
               </form>

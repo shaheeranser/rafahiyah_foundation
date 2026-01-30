@@ -15,7 +15,8 @@ const Footer = () => {
   const [settings, setSettings] = useState({
     phoneNumber: "+92 335 9424716", // Default fallback
     email: "rafahiyahfoundation@gmail.com",
-    address: "Pakistan"
+    address: "Pakistan",
+    copyrightText: ""
   });
 
   useEffect(() => {
@@ -44,11 +45,11 @@ const Footer = () => {
           {/* Column 1: Logo & Name */}
           <div className="flex flex-col items-center lg:items-center text-center">
             {/* Full circle logo container */}
-            <div className="bg-white rounded-full p-0.5 w-24 h-24 flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden border-4 border-white/10">
+            <div className="bg-white rounded-full w-24 h-24 flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden border-4 border-white/10">
               <img
                 src={rafahiyahLogo}
                 alt="Rafahiyah Foundation"
-                className="w-full h-full object-contain drop-shadow-md rounded-full"
+                className="w-full h-full object-cover drop-shadow-md rounded-full"
               />
             </div>
             <h2 className="text-xl font-odibee leading-tight uppercase tracking-widest text-center">
@@ -123,7 +124,7 @@ const Footer = () => {
         {/* Bottom Footer */}
         <div className="text-center">
           <p className="text-sm text-gray-400 font-sans">
-            © Copyright 2023-2026 Rafahiyah Foundation Pakistan
+            © {settings.copyrightText || "Rafahiyah Foundation Pakistan"}
           </p>
         </div>
       </div>

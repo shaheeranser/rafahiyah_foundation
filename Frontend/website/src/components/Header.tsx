@@ -76,11 +76,11 @@ const Header = ({ showNavItems = true }: HeaderProps) => {
         {/* Logo Area */}
         <div className="flex items-center gap-3">
           <Link to="/" className="flex-shrink-0 group">
-            <div className="bg-white rounded-full p-0.5 shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-transform transform group-hover:scale-105 duration-300 w-16 h-16 flex items-center justify-center overflow-hidden border-2 border-white/50">
+            <div className="bg-white rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-transform transform group-hover:scale-105 duration-300 w-16 h-16 flex items-center justify-center overflow-hidden border-2 border-white/50">
               <img
                 src={rafahiyahLogo}
                 alt="Rafahiyah Foundation Logo"
-                className="w-full h-full object-contain drop-shadow-sm p-1 rounded-full"
+                className="w-full h-full object-cover drop-shadow-sm rounded-full"
               />
             </div>
           </Link>

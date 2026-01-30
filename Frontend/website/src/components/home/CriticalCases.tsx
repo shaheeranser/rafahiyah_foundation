@@ -76,7 +76,7 @@ const CriticalCases = () => {
                 <div className="mt-12">
                     <Button
                         onClick={() => navigate('/stories#cases')}
-                        className="bg-[#1E2542] text-white hover:bg-[#2a3356] border-none rounded-full px-8 py-6 font-sans shadow-md transition-all"
+                        className="bg-[#1E2542] text-white hover:bg-[#2a3356] border-none rounded-full px-8 py-6 font-odibee text-xl tracking-wider shadow-md transition-all"
                     >
                         View More
                     </Button>
